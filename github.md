@@ -19,3 +19,74 @@
 | `git pull origin main`               | Sync local `main` after merge               |
 | `git branch -d feature/x`            | Delete local feature branch                 |
 | `git push origin --delete feature/x` | Delete remote feature branch                |
+
+## Best-Practice Considerations (Branching & Collaboration)
+
+### Branching
+
+- **One feature per branch**  
+  Keep scope narrow; easier review and rollback.
+- **Branch from up-to-date `main`**  
+  Always pull before branching.
+- **Short-lived branches**  
+  Merge or discard quickly to avoid drift.
+- **Clear naming**  
+  `feature/x`, `fix/y`, `experiment/z`.
+
+### Commits
+
+- **Commit by intent**  
+  One logical change per commit.
+- **Small, frequent commits**  
+  Easier to review and debug.
+- **Readable messages**  
+  State _what_ changed, not _how_.
+
+### Syncing
+
+- **Pull before starting work**  
+  Reduces conflicts.
+- **Merge `main` into your branch before PR**  
+  Resolve conflicts early.
+- **Avoid blind `git pull`**  
+  Prefer `fetch` + intentional merge when history matters.
+
+### Pull Requests
+
+- **Always PR into `main`**  
+  Never commit directly.
+- **Require review**  
+  At least one other person approves.
+- **Small, focused PRs**  
+  Faster, higher-quality feedback.
+
+### `main` Branch
+
+- **Always stable**  
+  Should build/run at any time.
+- **Protected**  
+  No direct pushes; PRs only.
+- **Clean history**  
+  Prefer squash merges for features.
+
+### Collaboration Hygiene
+
+- **Communicate early**  
+  Call out overlapping work.
+- **One owner per branch**  
+  Don’t share feature branches.
+- **Delete merged branches**  
+  Keep the repo tidy.
+
+### Conflict Avoidance
+
+- **Avoid unrelated file changes**  
+  Reduces merge pain.
+- **Split refactors from features**  
+  Refactor first, then add features.
+
+### Mental Rules
+
+- Branches isolate risk
+- PRs select winners
+- `main` is sacred
