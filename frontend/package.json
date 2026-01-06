@@ -39,7 +39,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vanilla-extract/babel-plugin": "^1.2.0",
+    "@vanilla-extract/babel-plugin": "^0.4.0",
     "@vanilla-extract/css": "^1.18.0",
     "@vanilla-extract/next-plugin": "^2.4.17",
     "babel-plugin-react-compiler": "1.0.0",
