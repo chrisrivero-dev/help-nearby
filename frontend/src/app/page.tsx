@@ -1,34 +1,128 @@
-'use client';
+/* eslint-disable @next/next/no-page-custom-font */
+'use client'; // required because we use framer-motion
 
 import { motion } from 'framer-motion';
-import React from 'react';
+import type { FC } from 'react';
+import { FiMapPin } from 'react-icons/fi';
+import { GridOverlay } from '../components/GridOverlay'; // corrected import
 
-export default function Home() {
+/* -------------------------------------------------------------------------- */
+/* Layout styles                                                               */
+/* -------------------------------------------------------------------------- */
+const containerStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: '100vh',
+  width: '100vw',
+  overflowY: 'auto',
+  backgroundColor: '#ffffff',
+  color: '#000',
+  padding: '2rem',
+};
+
+const headingWrapperStyle: React.CSSProperties = {
+  position: 'relative', // positioning context for absolute children & overlay
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  width: '100%',
+};
+
+const titleStyle: React.CSSProperties = {
+  fontWeight: 'bold',
+  textTransform: 'uppercase',
+  textAlign: 'left',
+  color: '#000000ff',
+  borderRadius: '0.25rem',
+  padding: '0.5rem',
+  fontSize: 'clamp(2rem, 8vw, 12vh)',
+  marginBottom: '2rem',
+};
+
+const iconStyle: React.CSSProperties = {
+  position: 'absolute',
+  left: '300px', // matches the animation’s x‑offset
+  top: '-1000px', // start position (overridden by motion)
+  marginTop: '2rem',
+};
+
+/* -------------------------------------------------------------------------- */
+/* Component                                                                   */
+/* -------------------------------------------------------------------------- */
+const Home: FC = () => {
+  // Toggle this flag to hide the debug grid in production
+  const showDebugGrid = true;
+
   return (
     <motion.main
-      className="container mx-auto p-8 flex flex-col items-center text-center"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      style={containerStyle}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
-      <motion.h1
-        className="text-4xl font-bold mb-4"
-        initial={{ scale: 0.9 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        Welcome to Help Nearby
-      </motion.h1>
+      {/* ---------------------------------------------------------------------- */}
+      {/* Position‑relative wrapper – holds heading, icon, and optional grid */}
+      {/* ---------------------------------------------------------------------- */}
+      <div style={headingWrapperStyle}>
+        {/* Debug grid – rendered only when `showDebugGrid` is true */}
+        {showDebugGrid && (
+          <GridOverlay step={100} opacity={0.12} color="#000" />
+        )}
 
-      <motion.p
-        className="text-lg text-gray-700 max-w-2xl"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        A resource hub for communities to seek help nearby and share information
-        that matters.
-      </motion.p>
+        {/* -------------------------------------------------------------- */}
+        {/* Animated heading (HELP! / NEARBY.)                               */}
+        {/* -------------------------------------------------------------- */}
+        <motion.div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            ...titleStyle,
+          }}
+          initial={false}
+          animate={false}
+        >
+          {/* HELP! – slide‑in */}
+          <motion.span
+            initial={{ x: -600, y: -400, opacity: 0 }}
+            animate={{ x: -300, y: -400, opacity: 1 }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            HELP!
+          </motion.span>
+
+          {/* NEARBY. – delayed linear slide */}
+          <motion.span
+            initial={{ x: -280, y: -400, opacity: 0 }}
+            animate={{ x: -280, y: -400, opacity: 1 }}
+            transition={{ duration: 0.1, delay: 2, ease: 'linear' }}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            NEARBY.
+          </motion.span>
+        </motion.div>
+
+        {/* -------------------------------------------------------------- */}
+        {/* FiMapPin icon – absolutely positioned to avoid layout shift   */}
+        {/* -------------------------------------------------------------- */}
+        <motion.div
+          style={iconStyle}
+          initial={{ x: 600, y: -100, opacity: 0 }}
+          animate={{ x: 600, y: 600, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 3, ease: 'linear' }}
+        >
+          <FiMapPin style={{ fontSize: '15rem', color: '#000' }} />
+        </motion.div>
+      </div>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Add any additional page content below the wrapper if needed         */}
+      {/* ------------------------------------------------------------------ */}
     </motion.main>
   );
-}
+};
+
+export default Home;

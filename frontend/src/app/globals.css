@@ -1,70 +1,97 @@
-/* stylelint-disable */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* --------------------------------------------------------------------------------------------------
-   Custom CSS Variables
-   ------------------------------------------------------------------ */
-:root {
-  /* Dark‑mode default palette */
-  --color-bg: #121212; /* near‑black */
-  --color-fg: #e0e0e0; /* light gray */
-  --color-primary: #3b82f6; /* Tailwind blue-500 */
-  --color-muted: #6b7280; /* Tailwind gray-500 */
-
-  /* Typography */
-  --font-sans:
-    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-  --font-mono:
-    ui-monospace, SFMono-Regular, 'SF Mono', 'Menlo', 'Consolas',
-    'Liberation Mono', 'Courier New', monospace;
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-/* Light‑mode overrides – only applied when the user prefers light */
-@media (prefers-color-scheme: light) {
-  :root {
-    --color-bg: #ffffff;
-    --color-fg: #1f2937; /* Tailwind gray-800 */
-    --color-primary: #2563eb; /* Tailwind blue-600 */
-    --color-muted: #9ca3af; /* Tailwind gray-400 */
-  }
-}
-
-/* --------------------------------------------------------------------------------------------------
-   Global element styles
-   ------------------------------------------------------------------ */
 html {
-  scroll-behavior: smooth;
-  font-family: var(--font-sans);
-  color-scheme: dark light; /* informs the browser about supported schemes */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  min-height: 100vh;
-  background-color: var(--color-bg);
-  color: var(--color-fg);
+  padding: 0;
+}
+
+/* Viewport */
+html,
+body {
+  width: 100%;
+  min-height: 100svh;
+}
+
+body {
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+}
+
+/* Typography */
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 1rem;
   line-height: 1.5;
+  font-weight: 400;
+  color: #111;
+  background-color: #fff;
+  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Ensure that Tailwind’s utilities can rely on the custom palette */
-.bg-primary {
-  background-color: var(--color-primary) !important;
-}
-.text-primary {
-  color: var(--color-primary) !important;
-}
-.text-muted {
-  color: var(--color-muted) !important;
+/* Media */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
-/* --------------------------------------------------------------------------------------------------
-   Accessibility & focus outlines
-   ------------------------------------------------------------------ */
+/* Forms */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Focus */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid currentColor;
   outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
