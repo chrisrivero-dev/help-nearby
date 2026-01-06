@@ -26,3 +26,6 @@ coverage/
 
 # Build artifacts
 build/
+
+#continue.dev
+.continue/
