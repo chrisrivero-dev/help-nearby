@@ -3,23 +3,28 @@
 
 import { motion } from 'framer-motion';
 import type { FC } from 'react';
+import Link from 'next/link';
 import { FiMapPin } from 'react-icons/fi';
 import { GridOverlay } from '../components/GridOverlay'; // corrected import
 
 /* -------------------------------------------------------------------------- */
 /* Layout styles                                                               */
 /* -------------------------------------------------------------------------- */
+/* Container for the whole page – let the body decide the max‑width */
 const containerStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'flex-start',
   minHeight: '100vh',
-  width: '100vw',
+  width: '100%', // inherit body width instead of forcing 100vw
+  maxWidth: '1200px', // match body max‑width
   overflowY: 'auto',
   backgroundColor: '#ffffff',
   color: '#000',
   padding: '2rem',
+  marginLeft: 'auto', // horizontally center the container
+  marginRight: 'auto',
 };
 
 const headingWrapperStyle: React.CSSProperties = {
@@ -95,28 +100,28 @@ const Home: FC = () => {
 
           {/* NEARBY. – delayed linear slide */}
           <motion.span
-            initial={{ x: -80, opacity: 0 }}
+            initial={{ x: 0, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.2, delay: 2, ease: 'linear' }}
             style={{ whiteSpace: 'nowrap' }}
           >
-            
-          NEARBY.
-        </motion.span>
-
+            NEARBY.
+          </motion.span>
         </motion.div>
 
         {/* -------------------------------------------------------------- */}
         {/* FiMapPin icon – absolutely positioned to avoid layout shift   */}
         {/* -------------------------------------------------------------- */}
-        <motion.div
-          style={iconStyle}
-          initial={{ x: 0, y: -800, opacity: 0 }}
-          animate={{ x: 0, y: -300, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 2, ease: 'easeInOut' }}
-        >
-          <FiMapPin style={{ fontSize: '15rem', color: '#000' }} />
-        </motion.div>
+        <Link href="/help">
+          <motion.div
+            style={iconStyle}
+            initial={{ x: 0, y: -800, opacity: 0 }}
+            animate={{ x: 0, y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 2, ease: 'easeInOut' }}
+          >
+            <FiMapPin style={{ fontSize: '15rem', color: '#000' }} />
+          </motion.div>
+        </Link>
       </div>
 
       {/* ------------------------------------------------------------------ */}
