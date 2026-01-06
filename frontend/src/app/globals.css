@@ -3,21 +3,24 @@
 /* -------------------------------------------------
    Token definitions
    ------------------------------------------------- */
-/* NOTE: CSS cannot import a .ts file directly.
-   Ensure that your build pipeline generates a
-   `tokens.css` file from `tokens.css.ts` and places
-   it beside this file, then uncomment the line below
-   to import it. */
+/* NOTE: Ensure your build generates tokens.css
+   from tokens.css.ts */
 @import './tokens.css';
 
-/* Reset */
+/* -------------------------------------------------
+   Reset
+   ------------------------------------------------- */
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* Viewport */
+/* -------------------------------------------------
+   Viewport
+   ------------------------------------------------- */
+
 html,
 body {
   width: 100%;
@@ -31,22 +34,15 @@ html {
   font-size: clamp(14px, 0.9vw, 18px);
 }
 
-/* Center the page body and keep it fluid */
-body {
-  margin: 0 auto; /* shorthand for left/right auto */
-  padding: 0;
-  max-width: 1200px;
-  width: 100%; /* ensure full width up to max‑width */
-}
+/* -------------------------------------------------
+   Body
+   ------------------------------------------------- */
 
-/* Existing body typography (unchanged) */
 body {
-  overflow-x: hidden;
-  overscroll-behavior-y: none;
-}
+  margin: 0;
+  width: 100%;
+  max-width: none;
 
-/* Typography */
-body {
   font-family:
     system-ui,
     -apple-system,
@@ -56,16 +52,21 @@ body {
     Helvetica,
     Arial,
     sans-serif;
+
   font-size: 1rem;
   line-height: 1.5;
   font-weight: 400;
   color: #111;
   background-color: #fff;
+
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Media */
+/* -------------------------------------------------
+   Media
+   ------------------------------------------------- */
+
 img,
 picture,
 video,
@@ -76,16 +77,19 @@ svg {
   height: auto;
 }
 
-/* Forms */
+/* -------------------------------------------------
+   Forms
+   ------------------------------------------------- */
+
 input,
-button,
 textarea,
 select {
   font: inherit;
   color: inherit;
 }
 
-button {
+/* Buttons only reset when explicitly opted in */
+button.unstyled {
   background: none;
   border: none;
   padding: 0;
@@ -94,22 +98,112 @@ button {
 
 button:disabled {
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
-/* Focus */
+/* -------------------------------------------------
+   Focus
+   ------------------------------------------------- */
+
 :focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
 
-/* Reduced motion */
+/* -------------------------------------------------
+   Reduced motion
+   ------------------------------------------------- */
+
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  * {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* -------------------------------------------------
+   Links
+   ------------------------------------------------- */
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:visited {
+  color: inherit;
+}
+
+/* =================================================
+   Help Nearby – Choice Grid (REAL LAYOUT)
+   ================================================= */
+
+.hn-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 3rem;               /* ← spacing between cards */
+  justify-content: center;
+  align-items: stretch;
+  margin: 3rem auto;
+}
+
+@media (max-width: 640px) {
+  .hn-choice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hn-choice-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+
+  padding: 3rem 3.5rem;
+  background: #fff;
+
+  border: 1px solid #d1d5db;
+  border-radius: 18px;
+
+  text-align: center;
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.1s ease;
+}
+
+.hn-choice-card:hover {
+  border-color: #111;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.hn-choice-card:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 3px;
+}
+
+.hn-choice-icon {
+  font-size: 1.5rem;
+}
+
+.hn-choice-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.hn-choice-hint {
+  font-size: 0.95rem;
+  color: #4b5563;
+  max-width: 20rem;
+}
+.hn-footer-note {
+  text-align: center;
+  margin-top: 3rem;
+  color: #4b5563;
+  font-size: 0.9rem;
 }

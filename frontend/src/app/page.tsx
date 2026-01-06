@@ -1,47 +1,57 @@
 /* eslint-disable @next/next/no-page-custom-font */
 'use client'; // required because we use framer-motion
 
-import { motion } from 'framer-motion';
 import type { FC } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { FiMapPin } from 'react-icons/fi';
-import { GridOverlay } from '../components/GridOverlay'; // corrected import
+
+import { GridOverlay } from '../components/GridOverlay';
 
 /* -------------------------------------------------------------------------- */
 /* Layout styles                                                               */
 /* -------------------------------------------------------------------------- */
-/* Container for the whole page – let the body decide the max‑width */
+
+/* Container for the whole page – let the body decide the max-width */
 const containerStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'flex-start',
+
   minHeight: '100vh',
-  width: '100%', // inherit body width instead of forcing 100vw
-  maxWidth: '1200px', // match body max‑width
-  overflowY: 'auto',
-  backgroundColor: '#ffffff',
-  color: '#000',
+
+  width: '100%',
+  maxWidth: '1200px',
+  margin: '0 auto',
+
   padding: '2rem',
-  marginLeft: 'auto', // horizontally center the container
-  marginRight: 'auto',
+
+  backgroundColor: '#ffffff',
+  color: '#000000',
+
+  position: 'relative', // REQUIRED for z-index layering
+  overflowY: 'auto',
 };
 
 const headingWrapperStyle: React.CSSProperties = {
-  position: 'relative', // positioning context for absolute children & overlay
+  position: 'relative', // anchor for GridOverlay
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   width: '100%',
+  zIndex: 1, // content above grid
 };
 
 const titleStyle: React.CSSProperties = {
-  fontWeight: 'bold',
+  fontWeight: 600,
   textTransform: 'uppercase',
   textAlign: 'left',
-  color: '#000000ff',
+  color: '#000',
+
   borderRadius: '0.25rem',
   padding: '0.5rem',
+
   fontSize: 'clamp(2rem, 8vw, 12vh)',
   marginBottom: '2rem',
 };
@@ -49,12 +59,12 @@ const titleStyle: React.CSSProperties = {
 const iconStyle: React.CSSProperties = {
   fontSize: 'clamp(8rem, 15vw, 20rem)',
   marginTop: '2rem',
-  // centered via flex container
 };
 
 /* -------------------------------------------------------------------------- */
 /* Component                                                                   */
 /* -------------------------------------------------------------------------- */
+
 const Home: FC = () => {
   // Toggle this flag to hide the debug grid in production
   const showDebugGrid = true;
@@ -62,21 +72,28 @@ const Home: FC = () => {
   return (
     <motion.main
       style={containerStyle}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
     >
-      {/* ---------------------------------------------------------------------- */}
-      {/* Position‑relative wrapper – holds heading, icon, and optional grid */}
-      {/* ---------------------------------------------------------------------- */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Heading / Icon / Grid wrapper                                      */}
+      {/* ------------------------------------------------------------------ */}
       <div style={headingWrapperStyle}>
-        {/* Debug grid – rendered only when `showDebugGrid` is true */}
+        {/* Debug grid – decorative only */}
         {showDebugGrid && (
-          <GridOverlay step={100} opacity={0.12} color="#000" />
+          <GridOverlay
+            style={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          />
         )}
 
         {/* -------------------------------------------------------------- */}
-        {/* Animated heading (HELP! / NEARBY.)                               */}
+        {/* Animated heading: HELP! NEARBY.                                */}
         {/* -------------------------------------------------------------- */}
         <motion.div
           style={{
@@ -88,7 +105,6 @@ const Home: FC = () => {
           initial={false}
           animate={false}
         >
-          {/* HELP! – slide‑in */}
           <motion.span
             initial={{ x: -80, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -98,10 +114,9 @@ const Home: FC = () => {
             HELP!
           </motion.span>
 
-          {/* NEARBY. – delayed linear slide */}
           <motion.span
-            initial={{ x: 0, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.2, delay: 2, ease: 'linear' }}
             style={{ whiteSpace: 'nowrap' }}
           >
@@ -110,23 +125,19 @@ const Home: FC = () => {
         </motion.div>
 
         {/* -------------------------------------------------------------- */}
-        {/* FiMapPin icon – absolutely positioned to avoid layout shift   */}
+        {/* Map pin CTA                                                    */}
         {/* -------------------------------------------------------------- */}
         <Link href="/help">
           <motion.div
             style={iconStyle}
-            initial={{ x: 0, y: -800, opacity: 0 }}
-            animate={{ x: 0, y: 0, opacity: 1 }}
+            initial={{ y: -800, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 2, ease: 'easeInOut' }}
           >
-            <FiMapPin style={{ fontSize: '15rem', color: '#000' }} />
+            <FiMapPin />
           </motion.div>
         </Link>
       </div>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Add any additional page content below the wrapper if needed         */}
-      {/* ------------------------------------------------------------------ */}
     </motion.main>
   );
 };
