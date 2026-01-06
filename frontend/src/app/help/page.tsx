@@ -1,3 +1,5 @@
+'use client';
+
 import HelpFlow from '@/components/HelpFlow';
 
 export default function HelpPage() {

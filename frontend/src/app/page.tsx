@@ -6,8 +6,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FiMapPin } from 'react-icons/fi';
 
-import { GridOverlay } from '../components/GridOverlay';
-
 /* -------------------------------------------------------------------------- */
 /* Layout styles                                                               */
 /* -------------------------------------------------------------------------- */
@@ -80,18 +78,6 @@ const Home: FC = () => {
       {/* Heading / Icon / Grid wrapper                                      */}
       {/* ------------------------------------------------------------------ */}
       <div style={headingWrapperStyle}>
-        {/* Debug grid – decorative only */}
-        {showDebugGrid && (
-          <GridOverlay
-            style={{
-              position: 'absolute',
-              inset: 0,
-              pointerEvents: 'none',
-              zIndex: 0,
-            }}
-          />
-        )}
-
         {/* -------------------------------------------------------------- */}
         {/* Animated heading: HELP! NEARBY.                                */}
         {/* -------------------------------------------------------------- */}
