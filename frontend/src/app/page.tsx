@@ -13,7 +13,7 @@ const containerStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  justifyContent: 'center',
+  justifyContent: 'flex-start',
   minHeight: '100vh',
   width: '100vw',
   overflowY: 'auto',
@@ -85,8 +85,8 @@ const Home: FC = () => {
         >
           {/* HELP! – slide‑in */}
           <motion.span
-            initial={{ x: -600, y: -400, opacity: 0 }}
-            animate={{ x: -300, y: -400, opacity: 1 }}
+            initial={{ x: -80, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.8, ease: 'easeInOut' }}
             style={{ whiteSpace: 'nowrap' }}
           >
@@ -95,13 +95,15 @@ const Home: FC = () => {
 
           {/* NEARBY. – delayed linear slide */}
           <motion.span
-            initial={{ x: -280, y: -400, opacity: 0 }}
-            animate={{ x: -280, y: -400, opacity: 1 }}
-            transition={{ duration: 0.1, delay: 2, ease: 'linear' }}
+            initial={{ x: -80, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.2, delay: 2, ease: 'linear' }}
             style={{ whiteSpace: 'nowrap' }}
           >
-            NEARBY.
-          </motion.span>
+            
+          NEARBY.
+        </motion.span>
+
         </motion.div>
 
         {/* -------------------------------------------------------------- */}
