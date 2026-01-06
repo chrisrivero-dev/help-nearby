@@ -1,6 +1,6 @@
 'use client';
 
-import HelpFlow from '@/components/HelpFlow'; // adjust import if HelpFlow lives elsewhere
+import HelpFlow from '@/components/HelpFlow';
 
 export default function HelpPage() {
   return (

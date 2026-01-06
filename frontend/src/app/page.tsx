@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import type { FC } from 'react';
 import Link from 'next/link';
 import { FiMapPin } from 'react-icons/fi';
-import { GridOverlay } from '../components/GridOverlay'; // corrected import
 
 /* -------------------------------------------------------------------------- */
 /* Layout styles                                                               */
@@ -70,11 +69,6 @@ const Home: FC = () => {
       {/* Position‑relative wrapper – holds heading, icon, and optional grid */}
       {/* ---------------------------------------------------------------------- */}
       <div style={headingWrapperStyle}>
-        {/* Debug grid – rendered only when `showDebugGrid` is true */}
-        {showDebugGrid && (
-          <GridOverlay step={100} opacity={0.12} color="#000" />
-        )}
-
         {/* -------------------------------------------------------------- */}
         {/* Animated heading (HELP! / NEARBY.)                               */}
         {/* -------------------------------------------------------------- */}
