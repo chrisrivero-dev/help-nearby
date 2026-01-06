@@ -70,7 +70,7 @@ const Home: FC = () => {
   return (
     <motion.main
       style={containerStyle}
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >
@@ -92,7 +92,7 @@ const Home: FC = () => {
           animate={false}
         >
           <motion.span
-            initial={{ x: -80, opacity: 0 }}
+            initial={{ x: -200, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.8, ease: 'easeInOut' }}
             style={{ whiteSpace: 'nowrap' }}
