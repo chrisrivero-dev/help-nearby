@@ -1,18 +1,20 @@
+/* src/app/globals.css */
+
+/* -------------------------------------------------
+   Token definitions
+   ------------------------------------------------- */
+/* NOTE: CSS cannot import a .ts file directly.
+   Ensure that your build pipeline generates a
+   `tokens.css` file from `tokens.css.ts` and places
+   it beside this file, then uncomment the line below
+   to import it. */
+@import './tokens.css';
+
 /* Reset */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
-}
-
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-body {
-  margin: 0;
-  padding: 0;
 }
 
 /* Viewport */
@@ -22,6 +24,23 @@ body {
   min-height: 100svh;
 }
 
+/* Responsive root font size */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-size: clamp(14px, 0.9vw, 18px);
+}
+
+/* Body layout */
+body {
+  margin: 0;
+  padding: 0;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Existing body typography (unchanged) */
 body {
   overflow-x: hidden;
   overscroll-behavior-y: none;

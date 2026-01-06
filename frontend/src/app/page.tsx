@@ -42,10 +42,9 @@ const titleStyle: React.CSSProperties = {
 };
 
 const iconStyle: React.CSSProperties = {
-  position: 'absolute',
-  left: '300px', // matches the animation’s x‑offset
-  top: '-1000px', // start position (overridden by motion)
+  fontSize: 'clamp(8rem, 15vw, 20rem)',
   marginTop: '2rem',
+  // centered via flex container
 };
 
 /* -------------------------------------------------------------------------- */
@@ -110,9 +109,9 @@ const Home: FC = () => {
         {/* -------------------------------------------------------------- */}
         <motion.div
           style={iconStyle}
-          initial={{ x: 600, y: -100, opacity: 0 }}
-          animate={{ x: 600, y: 600, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 3, ease: 'linear' }}
+          initial={{ x: 0, y: -800, opacity: 0 }}
+          animate={{ x: 0, y: -300, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 2, ease: 'easeInOut' }}
         >
           <FiMapPin style={{ fontSize: '15rem', color: '#000' }} />
         </motion.div>
