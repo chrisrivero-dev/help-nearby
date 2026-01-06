@@ -3,7 +3,7 @@
 A single script (`setup/stable/strapped1.sh`) that bootstraps a full‑stack starter project with:
 
 - **Backend**: FastAPI, SQLAlchemy, Alembic, Pytest, Ruff, MyPy, Python ≥ 3.12 (via pyenv)
-- **Frontend**: Next.js (App Router) + TypeScript, React‑Query, Zustand, Axios, Jest, Prettier, Stylelint
+- **Frontend**: Next.js (App Router) + TypeScript, React‑Query, Zustand, Axios, Jest, Prettier, Stylelint, Vanilla Extract
 
 ## What the script does (concise)
 
