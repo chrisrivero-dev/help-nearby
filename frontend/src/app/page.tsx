@@ -63,7 +63,7 @@ const linkStyle: React.CSSProperties = {
   color: '#000',
   backgroundColor: '#fff',
   border: '4px solid #000',
-  borderRadius: '0.25rem',
+  borderRadius: '0.5rem',
   padding: '0.25rem 0',
   textDecoration: 'none',
 };
@@ -123,9 +123,7 @@ const Home: FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const [announcements, setAnnouncements] = useState<string[]>([]);
 
-  /* ---------------------------------------------------------
-   * Load / persist announcements (optional – keeps list across reloads)
-   * ------------------------------------------------------- */
+  /* ------ Load / persist announcements (optional) ------ */
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const stored = localStorage.getItem('announcements');
@@ -136,7 +134,6 @@ const Home: FC = () => {
         setAnnouncements([]);
       }
     } else {
-      // No stored announcements – start with an empty list
       setAnnouncements([]);
     }
   }, []);
@@ -146,9 +143,7 @@ const Home: FC = () => {
     localStorage.setItem('announcements', JSON.stringify(announcements));
   }, [announcements]);
 
-  /* ---------------------------------------------------------
-   * Handlers for the modal
-   * ------------------------------------------------------- */
+  /* ------ Handlers for the modal ------ */
   const handleAdd = () => {
     if (!newMessage.trim()) return;
     setAnnouncements((prev) => [...prev, newMessage.trim()]);
@@ -172,7 +167,6 @@ const Home: FC = () => {
     >
       {/* ----- Header ----- */}
       <header style={headerStyle}>
-        {/* Title – HELP! toggles the modal */}
         <motion.div
           style={titleStyle}
           initial={{ x: '-100%' }}
@@ -193,7 +187,6 @@ const Home: FC = () => {
           <span>NEARBY.</span>
         </motion.div>
 
-        {/* Map‑pin icon – toggles sliding panel */}
         <motion.div
           onClick={() => setPanelOpen((o) => !o)}
           style={headerIconStyle}
@@ -211,7 +204,6 @@ const Home: FC = () => {
           <FiMapPin />
         </motion.div>
 
-        {/* Navigation links */}
         <div style={linkContainerStyle}>
           <Button
             style={linkStyle}
@@ -274,7 +266,7 @@ const Home: FC = () => {
         )}
       </AnimatePresence>
 
-      {/* ----- Sliding Panel (preserved) ----- */}
+      {/* ----- Sliding Panel ----- */}
       <AnimatePresence>
         {panelOpen && (
           <motion.div
@@ -300,11 +292,8 @@ const Home: FC = () => {
 
       {/* ----- Fixed Bottom Moving Banner ----- */}
       <div style={fixedBannerStyle}>
-        <MovingBanner
-          announcements={announcements}
-          speed={80}
-          backgroundColor="#ffeb3b"
-        />
+        {/* Props for speed/background are intentionally omitted */}
+        <MovingBanner announcements={announcements} />
       </div>
     </motion.main>
   );
