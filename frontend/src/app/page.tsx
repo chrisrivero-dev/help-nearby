@@ -33,20 +33,19 @@ const titleStyle: React.CSSProperties = {
   textTransform: 'uppercase',
   textAlign: 'left',
   color: '#000',
-  borderRadius: '0.25rem',
   padding: '0.5rem',
   fontSize: 'clamp(2rem, 8vw, 12vh)',
 };
 
 const headerIconStyle: React.CSSProperties = {
   fontSize: 'clamp(4rem, 8vw, 10rem)',
-  marginLeft: '1rem',
   cursor: 'pointer',
 };
 
 const linkContainerStyle: React.CSSProperties = {
   display: 'flex',
-  gap: '0',
+  flexDirection: 'column', // stack buttons vertically
+  gap: '1rem', // space between stacked buttons
   fontSize: '1.25rem',
   marginLeft: 'auto',
   alignItems: 'flex-end',
@@ -63,7 +62,6 @@ const linkStyle: React.CSSProperties = {
   color: '#000',
   backgroundColor: '#fff',
   border: '4px solid #000',
-  borderRadius: '0.5rem',
   padding: '0.25rem 0',
   textDecoration: 'none',
 };
@@ -82,9 +80,20 @@ const mapPlaceholderStyle: React.CSSProperties = {
   color: '#000',
   backgroundColor: '#fff',
   border: '4px solid #000',
-  borderRadius: '0.5rem',
   padding: '1rem 2rem',
   textAlign: 'center',
+};
+
+const activeShadowStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: 'calc(100% + 4px)', // distance below the icon (tweak if needed)
+  left: 0,
+  right: 0,
+  margin: '0 auto', // forces horizontal centering
+  width: '4rem',
+  height: '1.2rem',
+  backgroundColor: '#000', // solid black
+  borderRadius: '50%',
 };
 
 const fixedBannerStyle: React.CSSProperties = {
@@ -187,22 +196,38 @@ const Home: FC = () => {
           <span>NEARBY.</span>
         </motion.div>
 
-        <motion.div
-          onClick={() => setPanelOpen((o) => !o)}
-          style={headerIconStyle}
-          initial={{ y: -800, opacity: 0 }}
-          animate={{
-            y: 0,
-            opacity: 1,
-            transition: { duration: 1.2, ease: 'easeInOut' },
-          }}
-          whileHover={{
-            y: -10,
-            transition: { duration: 0.15, ease: 'linear' },
-          }}
-        >
-          <FiMapPin />
-        </motion.div>
+        {/* Wrapper now carries the same left‑margin as the icon */}
+        <div style={{ position: 'relative', marginLeft: '1rem' }}>
+          <motion.div
+            onClick={() => setPanelOpen((o) => !o)}
+            style={headerIconStyle}
+            initial={{ y: -800, opacity: 0 }}
+            animate={{
+              y: 0,
+              opacity: 1,
+              transition: { duration: 1.2, ease: 'easeInOut' },
+            }}
+            whileHover={{
+              y: -10,
+              transition: { duration: 0.15, ease: 'linear' },
+            }}
+          >
+            <FiMapPin />
+          </motion.div>
+
+          {/* Oval shadow – animated (kept from previous step) */}
+          <AnimatePresence>
+            {panelOpen && (
+              <motion.div
+                style={activeShadowStyle}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              />
+            )}
+          </AnimatePresence>
+        </div>
 
         <div style={linkContainerStyle}>
           <Button
@@ -215,7 +240,7 @@ const Home: FC = () => {
             style={linkStyle}
             onClick={() => (window.location.href = '/help')}
           >
-            GET SOME
+            RESOURCES
           </Button>
         </div>
       </header>
