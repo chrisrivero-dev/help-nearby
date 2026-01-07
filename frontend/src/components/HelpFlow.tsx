@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaHome,
   FaUtensils,
@@ -16,6 +17,7 @@ type HelpType = 'housing' | 'food' | 'cash' | 'disaster' | null;
 
 export default function HelpFlow() {
   const [selectedHelp, setSelectedHelp] = useState<HelpType>(null);
+  const [activeHelp, setActiveHelp] = useState<HelpType>(null);
 
   return (
     <section className="hn-help-section">
@@ -23,6 +25,7 @@ export default function HelpFlow() {
         {/* -------------------------------------------------- */}
         {/* STEP 1 — CHOICE GRID                               */}
         {/* -------------------------------------------------- */}
+
         {!selectedHelp && (
           <div className="hn-help-step">
             <div className="hn-help-header">
@@ -31,30 +34,35 @@ export default function HelpFlow() {
             </div>
 
             <div className="hn-choice-grid">
-              {/* Housing (prototype card) */}
-              <IconCard
-                icon={<FaHome />}
-                label="Housing"
-                hint="Shelter, rent help, temporary housing"
-                subOptions={[
-                  {
-                    label: 'Rent assistance',
-                    description:
-                      'Help paying rent or preventing eviction through local or state programs.',
-                  },
-                  {
-                    label: 'Temporary housing',
-                    description:
-                      'Short-term housing placements while you search for something permanent.',
-                  },
-                  {
-                    label: 'Emergency shelter',
-                    description:
-                      'Immediate shelter options for individuals or families in crisis.',
-                  },
-                ]}
-                onClick={() => setSelectedHelp('housing')}
-              />
+              {/* Housing (PROTOTYPE ICON) */}
+              <motion.div
+                whileHover={{ scale: 1.07 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+              >
+                <IconCard
+                  icon={<FaHome size={48} />}
+                  label="Housing"
+                  hint="Shelter, rent help, temporary housing"
+                  subOptions={[
+                    {
+                      label: 'Rent assistance',
+                      description:
+                        'Help paying rent or preventing eviction through local or state programs.',
+                    },
+                    {
+                      label: 'Temporary housing',
+                      description:
+                        'Short-term housing placements while you search for something permanent.',
+                    },
+                    {
+                      label: 'Emergency shelter',
+                      description:
+                        'Immediate shelter options for individuals or families in crisis.',
+                    },
+                  ]}
+                  onClick={() => setActiveHelp('housing')}
+                />
+              </motion.div>
 
               {/* Food */}
               <IconCard
@@ -140,8 +148,38 @@ export default function HelpFlow() {
         )}
 
         {/* -------------------------------------------------- */}
-        {/* STEP 2 — FAKE “NEXT PAGE”                          */}
+        {/* HOUSING SIDE PANEL (PROTOTYPE)                     */}
         {/* -------------------------------------------------- */}
+
+        <AnimatePresence>
+          {activeHelp === 'housing' && (
+            <motion.aside
+              initial={{ x: 24, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 24, opacity: 0 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="hn-help-panel"
+            >
+              <h3>Housing assistance</h3>
+              <p>
+                Help with rent, shelter, eviction prevention, and temporary
+                housing through local and state programs.
+              </p>
+
+              <button
+                className="hn-back-button"
+                onClick={() => setActiveHelp(null)}
+              >
+                ← Back
+              </button>
+            </motion.aside>
+          )}
+        </AnimatePresence>
+
+        {/* -------------------------------------------------- */}
+        {/* STEP 2 — FAKE NEXT PAGE                            */}
+        {/* -------------------------------------------------- */}
+
         {selectedHelp && (
           <div className="hn-next-step">
             <h2>
@@ -169,7 +207,7 @@ export default function HelpFlow() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Icon Card Component (AidKit-style, manual control)                          */
+/* Icon Card Component                                                         */
 /* -------------------------------------------------------------------------- */
 
 function IconCard({
@@ -207,34 +245,20 @@ function IconCard({
 
       <div className="hn-choice-title">{label}</div>
 
-      {/* Static summary */}
       <div className="hn-choice-hint">{hint}</div>
 
-      {/* Manual rotator */}
       <div className="hn-card-rotator">
-        <button
-          className="hn-rotator-arrow"
-          onClick={prev}
-          aria-label="Previous option"
-        >
+        <button className="hn-rotator-arrow" onClick={prev}>
           ←
         </button>
-
         <span className="hn-rotator-label">{current.label}</span>
-
-        <button
-          className="hn-rotator-arrow"
-          onClick={next}
-          aria-label="Next option"
-        >
+        <button className="hn-rotator-arrow" onClick={next}>
           →
         </button>
       </div>
 
-      {/* Contextual helper text */}
       <div className="hn-card-helper">{current.description}</div>
 
-      {/* Learn more pill */}
       <div className="hn-learn-more">
         Learn more <span className="hn-learn-arrow">→</span>
       </div>
