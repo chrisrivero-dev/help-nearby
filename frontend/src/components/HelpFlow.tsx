@@ -33,7 +33,7 @@ export default function HelpFlow() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <IconCard
-              icon={<HomeIcon />}
+              icon={<FaHome />}
               label="Housing"
               hint="Shelter, rent help, temporary housing"
               onClick={() => setSelectedHelp('housing')}
@@ -114,16 +114,15 @@ export default function HelpFlow() {
               (Next step — options will appear here)
             </p>
           </div>
-        )}
-
-      </div>
+        </div>
+      )}
     </section>
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Reusable components                                                        */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------ */
+/* Reusable components                                           */
+/* ------------------------------------------------------------ */
 
 function IconCard({
   icon,
