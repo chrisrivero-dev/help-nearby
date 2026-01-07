@@ -20,7 +20,6 @@ export default function HelpFlow() {
   return (
     <section className="hn-help-section">
       <div className="hn-help-card">
-
         {/* -------------------------------------------------- */}
         {/* STEP 1 — CHOICE GRID                               */}
         {/* -------------------------------------------------- */}
@@ -32,7 +31,6 @@ export default function HelpFlow() {
             </div>
 
             <div className="hn-choice-grid">
-
               {/* Housing (prototype card) */}
               <IconCard
                 icon={<FaHome />}
@@ -132,12 +130,11 @@ export default function HelpFlow() {
                 ]}
                 onClick={() => setSelectedHelp('disaster')}
               />
-
             </div>
 
             <p className="hn-footer-note">
-              Your answers help narrow down public programs you may want to explore.
-              Nothing is submitted automatically.
+              Your answers help narrow down public programs you may want to
+              explore. Nothing is submitted automatically.
             </p>
           </div>
         )}
@@ -166,7 +163,6 @@ export default function HelpFlow() {
             </button>
           </div>
         )}
-
       </div>
     </section>
   );
@@ -236,9 +232,7 @@ function IconCard({
       </div>
 
       {/* Contextual helper text */}
-      <div className="hn-card-helper">
-        {current.description}
-      </div>
+      <div className="hn-card-helper">{current.description}</div>
 
       {/* Learn more pill */}
       <div className="hn-learn-more">
