@@ -30,7 +30,6 @@ export const Button: FC<ButtonProps> = ({
   const defaultStyle: React.CSSProperties = {
     background: 'white',
     border: '4px solid black',
-    borderRadius: '0.25rem',
     cursor: disabled ? 'default' : 'pointer',
     padding: '0.5rem 1rem',
     fontWeight: 600,

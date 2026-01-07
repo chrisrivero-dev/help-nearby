@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { motion, useAnimation, LegacyAnimationControls } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
 import Button from '@/components/Buttons';
 
 export interface MovingBannerProps {
@@ -9,9 +9,8 @@ export interface MovingBannerProps {
 }
 
 /**
- * A horizontal ticker that scrolls the given announcements infinitely.
- * Includes a play/pause button that stays inline with the scrolling text at
- * the far‑right of the banner (its own container, higher z‑index).
+ * Horizontal ticker that scrolls **left‑to‑right** continuously.
+ * Uses Framer Motion with an infinite loop that never shows a gap.
  */
 export default function MovingBanner({
   announcements,
@@ -19,28 +18,28 @@ export default function MovingBanner({
   backgroundColor = '#ffeb3b',
 }: MovingBannerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [singleSetWidth, setSingleSetWidth] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const controls = useAnimation(); // type: AnimationControls
+  const controls = useAnimation();
 
   // Duplicate the list so the scrolling appears seamless
   const items = [...announcements, ...announcements];
 
   // -------------------------------------------------
-  // 1️⃣ Measure the width of the scrolling content
+  // 1️⃣ Measure the width of ONE set of announcements
   // -------------------------------------------------
   useEffect(() => {
     if (containerRef.current) {
       // scrollWidth includes both duplicated copies; divide by 2 for a single set
-      setContainerWidth(containerRef.current.scrollWidth / 2);
+      setSingleSetWidth(containerRef.current.scrollWidth / 2);
     }
   }, [announcements]);
 
   // -------------------------------------------------
-  // 2️⃣ Helper – start the infinite looping animation
+  // 2️⃣ Helper – start the infinite looping animation (left‑to‑right)
   // -------------------------------------------------
-  const startInfiniteLoop = (initialX: number = -containerWidth) => {
-    const distance = containerWidth; // total travel distance
+  const startInfiniteLoop = (initialX: number = -singleSetWidth) => {
+    const distance = singleSetWidth; // travel from -singleSetWidth → 0
     const duration = distance / speed; // seconds for a full pass
 
     controls.start({
@@ -60,46 +59,45 @@ export default function MovingBanner({
   // 3️⃣ Effect – (re)start the loop when width / speed changes
   // -------------------------------------------------
   useEffect(() => {
-    if (containerWidth === 0) return;
+    if (singleSetWidth === 0) return;
     if (isPlaying) {
-      startInfiniteLoop(); // start from the beginning on first render
+      startInfiniteLoop(); // begin from off‑screen left
     } else {
-      controls.stop(); // ensure nothing runs while paused
+      controls.stop(); // pause while not playing
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [containerWidth, speed]);
+  }, [singleSetWidth, speed]);
 
   // -------------------------------------------------
-  // 4️⃣ Effect – pause / resume handling (preserve scroll pos)
+  // 4️⃣ Effect – pause / resume handling (preserve scroll position)
   // -------------------------------------------------
   useEffect(() => {
-    if (containerWidth === 0) return; // nothing to animate yet
+    if (singleSetWidth === 0) return; // nothing to animate yet
 
     if (!isPlaying) {
       // ---------- PAUSE ----------
-      // `stop()` freezes the animation at its current transform value
       controls.stop();
       return;
     }
 
     // ---------- PLAY ----------
-    // Grab the current translateX value from the DOM element
     const el = containerRef.current;
-    let currentX = -containerWidth; // fallback (start of a fresh loop)
+    // Default start position is off‑screen left
+    let currentX = -singleSetWidth;
 
     if (el) {
       const style = el.style.transform; // e.g. "translateX(-123px)"
       const match = style?.match(/translateX\(([-+]?\d*\.?\d+)px\)/);
       if (match && match[1]) {
-        currentX = parseFloat(match[1]); // may be negative or 0
+        currentX = parseFloat(match[1]); // value between -singleSetWidth and 0
       }
     }
 
-    // Compute remaining distance in the *current* loop
-    const remainingDistance = Math.abs(currentX); // how far we still need to travel to reach 0
-    const remainingDuration = remainingDistance / speed; // seconds left for this pass
+    // Distance remaining to reach the right edge (x = 0)
+    const remainingDistance = Math.abs(currentX);
+    const remainingDuration = remainingDistance / speed;
 
-    // 1️⃣ Animate the remainder of the current pass only
+    // Animate the remainder of the current pass, then restart the infinite loop
     controls
       .start({
         x: [currentX, 0],
@@ -111,8 +109,8 @@ export default function MovingBanner({
         },
       })
       .then(() => {
-        // 2️⃣ When that finishes, kick off the normal infinite loop again
-        startInfiniteLoop(); // now repeats forever as before
+        // After reaching the right edge, start the normal infinite loop again
+        startInfiniteLoop();
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying]);
@@ -121,28 +119,26 @@ export default function MovingBanner({
   // 5️⃣ Render
   // -------------------------------------------------
   return (
-    /* ------------------------------------------------------- */
-    /* OUTER wrapper – background, top‑border, relative pos      */
-    /* ------------------------------------------------------- */
+    /* OUTER wrapper – background, top‑border, relative positioning */
     <div
       style={{
         backgroundColor,
+        height: 100,
         width: '100%',
         borderTop: '4px solid #000',
         boxSizing: 'border-box',
-        position: 'relative', // anchor for the absolute button
-        overflow: 'visible', // hide scrolling text behind the button
+        position: 'relative',
+        overflow: 'hidden', // hide any reset artefacts
       }}
     >
-      {/* ------------------------------------------------------- */}
-      {/* Scrolling ticker – the only element that actually moves */}
-      {/* ------------------------------------------------------- */}
+      {/* Scrolling ticker */}
       <div
         style={{
-          padding: '0.5rem 0',
-          paddingRight: '5rem', // reserve visual space; the button sits on top
+          // Remove vertical padding – we’ll centre via flex
+          padding: '0 0.5rem',
           display: 'flex',
           alignItems: 'center',
+          height: '100%', // <-- full height of the banner
         }}
       >
         <motion.div
@@ -151,9 +147,11 @@ export default function MovingBanner({
           style={{
             display: 'inline-flex',
             whiteSpace: 'nowrap',
-            fontSize: '1rem',
+            fontSize: '2rem',
             fontWeight: 600,
             flexGrow: 1,
+            alignItems: 'center', // <-- vertically centre the text inside
+            height: '100%', // <-- make it fill the wrapper’s height
           }}
         >
           {items.map((msg, idx) => (
@@ -163,12 +161,7 @@ export default function MovingBanner({
           ))}
         </motion.div>
       </div>
-
-      {/* ------------------------------------------------------- */}
-      {/* Button container – its own inline block positioned at the */}
-      {/* right‑most edge of the banner. It sits on top of the      */}
-      {/* scrolling text (z‑index) so the text disappears behind it */}
-      {/* ------------------------------------------------------- */}
+      {/* Button container – positioned at the right‑most edge of the banner */}
       <div
         style={{
           position: 'absolute',
@@ -181,6 +174,7 @@ export default function MovingBanner({
           padding: '0 0.5rem',
           backgroundColor: 'transparent',
           zIndex: 10,
+          pointerEvents: 'auto',
         }}
       >
         <Button

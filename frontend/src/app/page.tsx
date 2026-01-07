@@ -111,10 +111,9 @@ const modalOverlayStyle: React.CSSProperties = {
 const modalContentStyle: React.CSSProperties = {
   backgroundColor: '#fff',
   border: '4px solid #000',
-  borderRadius: '0.5rem',
   padding: '2rem',
   maxWidth: '90%',
-  width: '400px',
+  width: '800px',
   boxShadow: '0 4px 12px rgba(0,0,0,.3)',
 };
 
