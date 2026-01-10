@@ -1,7 +1,3 @@
-// src/components/MovingBanner.tsx
-/* ----------------------------------------------------------- */
-/*  IMPORTS – add React (or cloneElement) to the top of file  */
-/* ----------------------------------------------------------- */
 import React, {
   useRef,
   useLayoutEffect,
@@ -9,9 +5,8 @@ import React, {
   useState,
   CSSProperties,
 } from 'react';
-import { motion, useAnimation } from 'framer-motion';
+import { motion, useAnimation, useMotionValue } from 'framer-motion';
 import Button from '@/components/Buttons';
-/* ----------------------------------------------------------- */
 
 function Marker() {
   const bar: CSSProperties = {
@@ -51,6 +46,7 @@ export default function MovingBanner({
   const [singleSetWidth, setSingleSetWidth] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const controls = useAnimation();
+  const x = useMotionValue(0); // tracks current horizontal offset
 
   /* ---------------------- helpers ---------------------- */
   /** Build the content of ONE loop (marker + messages) */
@@ -67,7 +63,7 @@ export default function MovingBanner({
       { element: marker, key: 'marker' },
       ...msgs.map((el) => ({
         element: el,
-        key: el.key as string,
+        key: (el.key as string) ?? '',
       })),
     ];
   }, [announcements]);
@@ -111,7 +107,7 @@ export default function MovingBanner({
   /* ---------------------- animation core ---------------------- */
   const runLoop = (initialX: number = 0) => {
     if (singleSetWidth === 0) return;
-    const distance = singleSetWidth; // 0 → -singleSetWidth
+    const distance = singleSetWidth; // length of one full set
     const duration = distance / speed;
     controls.start({
       x: [initialX, -singleSetWidth],
@@ -126,22 +122,29 @@ export default function MovingBanner({
     });
   };
 
+  // Initialise or restart the loop when dimensions change
   useLayoutEffect(() => {
     if (singleSetWidth === 0) return;
-    isPlaying ? runLoop() : controls.stop();
+    if (isPlaying) {
+      runLoop(); // start from beginning on mount / size change
+    } else {
+      controls.stop();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [singleSetWidth, speed, isPlaying]);
 
+  // Handle play / pause toggles without resetting position
   useLayoutEffect(() => {
     if (singleSetWidth === 0) return;
+
     if (!isPlaying) {
+      // Pause – stop animation but keep current x value
       controls.stop();
       return;
     }
-    // NOTE: For a perfect pause/resume you could read the current
-    // animated value from a MotionValue (`x.get()`), but the logic
-    // below keeps the example simple.
-    const currentX = 0;
+
+    // Resume – continue from the current x offset
+    const currentX = x.get(); // negative or zero
     const remainingDistance = Math.abs(currentX + singleSetWidth);
     const remainingDuration = remainingDistance / speed;
 
@@ -153,6 +156,7 @@ export default function MovingBanner({
         },
       })
       .then(() => runLoop());
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying]);
 
@@ -200,7 +204,11 @@ export default function MovingBanner({
     <div style={wrapperStyle}>
       {/* Scrolling ticker */}
       <div style={innerContainerStyle}>
-        <motion.div ref={containerRef} animate={controls} style={motionStyle}>
+        <motion.div
+          ref={containerRef}
+          animate={controls}
+          style={{ ...motionStyle, x }} // bind MotionValue
+        >
           {items}
         </motion.div>
       </div>

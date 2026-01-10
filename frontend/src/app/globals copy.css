@@ -1,0 +1,756 @@
+/* src/app/globals.css */
+
+/* -------------------------------------------------
+   Reset
+   ------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* -------------------------------------------------
+   Viewport
+   ------------------------------------------------- */
+
+html,
+body {
+  width: 100%;
+  min-height: 100svh;
+}
+
+/* Responsive root font size */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-size: clamp(14px, 0.9vw, 18px);
+}
+
+/* -------------------------------------------------
+   Body
+   ------------------------------------------------- */
+
+body {
+  margin: 0;
+  width: 100%;
+  max-width: none;
+
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #111;
+  background-color: #fff;
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* -------------------------------------------------
+   Media
+   ------------------------------------------------- */
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* -------------------------------------------------
+   Forms
+   ------------------------------------------------- */
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* Buttons only reset when explicitly opted in */
+button.unstyled {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* -------------------------------------------------
+   Focus
+   ------------------------------------------------- */
+
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------
+   Reduced motion
+   ------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* -------------------------------------------------
+   Links
+   ------------------------------------------------- */
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:visited {
+  color: inherit;
+}
+
+/* =================================================
+   Help Nearby – Choice Grid (REAL LAYOUT)
+   ================================================= */
+
+.hn-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 360px));
+  justify-content: center;
+  column-gap: 96px;
+  row-gap: 64px;
+}
+
+@media (max-width: 640px) {
+  .hn-choice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hn-choice-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+
+  padding: 2.25rem 2.75rem;
+  background: #fff;
+
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+
+  text-align: center;
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.12s ease;
+}
+
+.hn-choice-card:hover {
+  border-color: #111;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.hn-choice-card:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 3px;
+}
+
+.hn-choice-icon {
+  font-size: 1.5rem;
+}
+
+.hn-choice-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.hn-choice-hint {
+  font-size: 0.95rem;
+  color: #4b5563;
+  max-width: 20rem;
+}
+/* ================================
+   Help Nearby – Header
+   ================================ */
+
+.hn-help-header {
+  text-align: center;
+  max-width: 40rem;
+  margin: 0 auto 3rem auto;
+}
+
+.hn-help-header h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+}
+
+.hn-help-header p {
+  font-size: 1rem;
+  color: #4b5563;
+  margin: 0;
+}
+/* ================================
+   Help Nearby – Card Backgrounds
+   ================================ */
+
+.hn-choice-card {
+  background-color: #fafafa; /* default neutral */
+  border: 1px solid #d1d5db;
+}
+
+.hn-choice-card[data-type='housing'] {
+  background-color: #faf9f7;
+}
+
+.hn-choice-card[data-type='food'] {
+  background-color: #f6f9f7;
+}
+
+.hn-choice-card[data-type='cash'] {
+  background-color: #f6f8fb;
+}
+
+.hn-choice-card[data-type='disaster'] {
+  background-color: #faf7f4;
+}
+/* ================================
+   Help Nearby – Footer Note
+   ================================ */
+
+.hn-footer-note {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6b7280;
+  max-width: 42rem;
+  margin: 3rem auto 0 auto;
+  line-height: 1.5;
+}
+/* ================================
+   Help Nearby – Learn More Pill
+   ================================ */
+
+.hn-learn-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  margin-top: 0.75rem;
+
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  color: #374151;
+  background-color: rgba(0, 0, 0, 0.04);
+
+  pointer-events: none; /* ← important: non-interactive */
+  user-select: none;
+}
+.hn-learn-more::after {
+  content: '→';
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+/* ================================
+   Help Nearby – Card Carousel (Phase 2)
+   ================================ */
+
+.hn-rotator-text {
+  min-width: 9rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.hn-rotator-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+
+  font-size: 0.85rem;
+  color: #374151;
+
+  background-color: rgba(0, 0, 0, 0.04);
+
+  pointer-events: none; /* visual only for now */
+  user-select: none;
+}
+/* Rotator row */
+.hn-card-rotator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.hn-rotator-arrow {
+  background: #f1f1f1;
+  border: none;
+  border-radius: 999px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.hn-rotator-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+/* =========================
+   GRID LAYOUT (authoritative)
+========================= */
+
+.hn-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 4rem 6rem;
+  justify-items: center;
+}
+
+/* Each category = icon + panel */
+.hn-help-category {
+  display: grid;
+  grid-template-columns: 140px minmax(360px, 480px);
+  column-gap: 3rem;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* =========================
+   ICON / ANCHOR
+========================= */
+
+.hn-help-anchor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* =========================
+   SOFT CARDS (buttons fixed)
+========================= */
+
+.hn-soft-card:hover {
+  transform: translateY(-2px);
+  background: #f7f7f7;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.hn-soft-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.hn-soft-desc {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  opacity: 0.85;
+}
+
+/* =========================
+   BOTTOM BRAND (never fades)
+========================= */
+
+.hn-bottom-banner {
+  margin-top: 6rem;
+  padding: 4rem 0 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hn-bottom-brand {
+  font-weight: 900;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  letter-spacing: 0.04em;
+  color: #000;
+  opacity: 1;
+  animation: drift 12s ease-in-out infinite;
+}
+
+.hn-bottom-icon {
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  color: #000;
+}
+
+/* =========================
+   SUBTLE BRAND MOTION
+========================= */
+
+@keyframes drift {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+.hn-soft-card {
+  word-break: break-word;
+}
+.hn-help-category {
+  width: 100%;
+  overflow: visible;
+}
+.hn-help-anchor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.hn-help-anchor-icon {
+  color: #000;
+}
+
+.hn-help-anchor-label {
+  margin-top: 0.75rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.hn-reveal-panel {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+}
+.hn-reveal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hn-soft-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.hn-soft-desc {
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+.hn-bottom-banner {
+  margin-top: 5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hn-bottom-brand {
+  font-weight: 900;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  letter-spacing: 0.04em;
+  color: #000;
+  opacity: 1;
+}
+
+.hn-bottom-icon {
+  font-size: 2.2rem;
+  color: #000;
+}
+.hn-help-stage {
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+}
+.hn-help-category {
+  display: grid;
+  align-items: center;
+  width: 100%;
+}
+
+.hn-help-anchor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* =========================================================
+   HELP NEARBY — FINAL LAYOUT & INTERACTIONS (AUTHORITATIVE)
+   ========================================================= */
+
+/* ---------- STAGE / CENTERING ---------- */
+
+.hn-help-stage {
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ---------- GRID (2x2 categories) ---------- */
+
+.hn-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 4rem 6rem;
+  justify-items: center;
+  align-items: start;
+}
+
+/* ---------- CATEGORY (ICON + PANEL ROW) ---------- */
+
+.hn-help-category {
+  display: grid;
+  grid-template-columns: 140px minmax(360px, 480px);
+  column-gap: 3rem;
+  align-items: flex-start;
+  width: 100%;
+  overflow: visible;
+}
+
+/* ---------- ICON / ANCHOR ---------- */
+
+.hn-help-anchor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.35s ease;
+}
+
+.hn-help-category:hover .hn-help-anchor {
+  transform: translateX(-12px) scale(1.04);
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.12));
+}
+
+.hn-help-anchor-icon {
+  color: #000;
+}
+
+.hn-help-anchor-label {
+  margin-top: 0.75rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+/* ---------- REVEAL PANEL (RIGHT SIDE) ---------- */
+
+.hn-reveal-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 320px;
+  max-width: 420px;
+}
+
+/* ---------- REVEAL STACK ---------- */
+
+.hn-reveal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ---------- SOFT CARDS (AidKit-style) ---------- */
+
+.hn-soft-card {
+  background: #f4f4f4;
+  border-radius: 14px;
+  padding: 16px 20px;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
+
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    background 0.35s ease;
+}
+
+.hn-soft-card:hover {
+  transform: translateY(-2px);
+  background: #f7f7f7;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+.hn-soft-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.hn-soft-desc {
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+/* ---------- FOOTER NOTE ---------- */
+
+.hn-footer-note {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6b7280;
+  max-width: 42rem;
+  margin: 3rem auto 0 auto;
+  line-height: 1.5;
+}
+
+/* ---------- BOTTOM BRAND (NEVER FADES) ---------- */
+
+.hn-bottom-banner {
+  margin-top: 6rem;
+  padding: 4rem 0 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hn-bottom-brand {
+  font-weight: 900;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  letter-spacing: 0.04em;
+  color: #000;
+  opacity: 1;
+  pointer-events: none;
+  animation: drift 12s ease-in-out infinite;
+}
+
+.hn-bottom-icon {
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  color: #000;
+}
+
+/* ---------- SUBTLE BRAND MOTION ---------- */
+
+@keyframes drift {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+/* Category row */
+.hn-help-category {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+/* Icon column */
+.hn-help-icon {
+  width: 56px;
+  min-width: 56px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Content column */
+.hn-help-options {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hn-category-row {
+  display: flex;
+  align-items: center; /* 🔑 THIS IS CRITICAL */
+}
+.hn-icon-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120px;
+  flex-shrink: 0;
+}
+.hn-bubble-col {
+  display: flex;
+  align-items: center; /* 🔑 aligns cards to icon center */
+}
+.hn-help-anchor-icon {
+  display: flex;
+  justify-content: center;
+}
+
+.hn-help-anchor-label {
+  text-align: center; /* center text */
+  width: 100%; /* match icon column */
+  line-height: 1.2;
+}
+.hn-icon-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* THIS is key */
+}
+.hn-bottom-image {
+  margin-top: 64px;
+  display: flex;
+  justify-content: center;
+}
+
+.hn-bottom-image img {
+  width: 100%;
+  max-width: 1100px;
+  height: auto;
+  border-radius: 16px;
+  opacity: 0.9;
+}
+.hn-bottom-image {
+  margin-top: 64px;
+}
+
+.hn-bottom-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 0;
+}
+.hn-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 320px); /* fixed column width */
+  justify-content: center;
+  column-gap: 60px; /* 👈 MUCH closer */
+  row-gap: 56px;
+}
+.hn-bubble-col {
+  padding-left: 8px; /* subtle separation */
+}
