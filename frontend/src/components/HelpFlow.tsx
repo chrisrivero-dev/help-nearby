@@ -5,11 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaHome,
   FaUtensils,
+  FaMapMarkerAlt,
   FaDollarSign,
   FaExclamationTriangle,
-  FaMapMarkerAlt,
   FaTimes,
 } from 'react-icons/fa';
+
+import HoverZipPrompt from '@/components/HoverZipPrompt';
 
 type HelpType = 'housing' | 'food' | 'cash' | 'disaster' | null;
 
@@ -159,7 +161,7 @@ export default function HelpFlow() {
         <div className="hn-header-nav">
           <motion.button
             className="hn-nav-button"
-            onClick={() => window.location.href = '/about'}
+            onClick={() => (window.location.href = '/about')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -167,7 +169,7 @@ export default function HelpFlow() {
           </motion.button>
           <motion.button
             className="hn-nav-button"
-            onClick={() => window.location.href = '/'}
+            onClick={() => (window.location.href = '/')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -178,8 +180,18 @@ export default function HelpFlow() {
 
       <div className="hn-help-container">
         <header className="hn-help-header">
-          <h2>What kind of help are you looking for?</h2>
-          <p>Choose the option that best matches your situation.</p>
+          <div className="hn-context-label">HELP NEARBY</div>
+
+          <HoverZipPrompt
+            onZipSubmit={(zip) => {
+              localStorage.setItem('helpNearbyZip', zip);
+              console.log('ZIP saved:', zip);
+            }}
+          />
+
+          <h2 className="hn-primary-instruction">
+            Choose the option that best matches your situation
+          </h2>
         </header>
 
         {/* GRID WITH CENTER GAP */}
@@ -196,9 +208,13 @@ export default function HelpFlow() {
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
             >
-              <motion.div 
+              <motion.div
                 className="hn-icon-wrapper"
-                animate={hovered === 'housing' || selected === 'housing' ? { y: -4 } : { y: 0 }}
+                animate={
+                  hovered === 'housing' || selected === 'housing'
+                    ? { y: -4 }
+                    : { y: 0 }
+                }
               >
                 <FaHome size={80} />
               </motion.div>
@@ -239,9 +255,13 @@ export default function HelpFlow() {
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
             >
-              <motion.div 
+              <motion.div
                 className="hn-icon-wrapper"
-                animate={hovered === 'food' || selected === 'food' ? { y: -4 } : { y: 0 }}
+                animate={
+                  hovered === 'food' || selected === 'food'
+                    ? { y: -4 }
+                    : { y: 0 }
+                }
               >
                 <FaUtensils size={80} />
               </motion.div>
@@ -261,9 +281,13 @@ export default function HelpFlow() {
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
             >
-              <motion.div 
+              <motion.div
                 className="hn-icon-wrapper"
-                animate={hovered === 'cash' || selected === 'cash' ? { y: -4 } : { y: 0 }}
+                animate={
+                  hovered === 'cash' || selected === 'cash'
+                    ? { y: -4 }
+                    : { y: 0 }
+                }
               >
                 <FaDollarSign size={80} />
               </motion.div>
@@ -304,9 +328,13 @@ export default function HelpFlow() {
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
             >
-              <motion.div 
+              <motion.div
                 className="hn-icon-wrapper"
-                animate={hovered === 'disaster' || selected === 'disaster' ? { y: -4 } : { y: 0 }}
+                animate={
+                  hovered === 'disaster' || selected === 'disaster'
+                    ? { y: -4 }
+                    : { y: 0 }
+                }
               >
                 <FaExclamationTriangle size={80} />
               </motion.div>
@@ -330,7 +358,8 @@ export default function HelpFlow() {
   );
 }
 
-/* INFO PANEL COMPONENT */
+// INFO PANEL COMPONENT
+
 function InfoPanel({
   items,
   categoryKey,
