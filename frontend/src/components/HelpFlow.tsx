@@ -2,21 +2,21 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import HoverZipPrompt from '@/components/HoverZipPrompt';
 import {
   FaHome,
   FaUtensils,
-  FaMapMarkerAlt,
   FaDollarSign,
   FaExclamationTriangle,
   FaTimes,
+  FaMapMarkerAlt,
 } from 'react-icons/fa';
 
-import HoverZipPrompt from '@/components/HoverZipPrompt';
-
 type HelpType = 'housing' | 'food' | 'cash' | 'disaster' | null;
+type HelpCategory = Exclude<HelpType, null>;
 
 interface Category {
-  key: Exclude<HelpType, null>;
+  key: HelpCategory;
   label: string;
   icon: React.ReactNode;
   position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
@@ -106,22 +106,47 @@ const CATEGORIES: Category[] = [
   },
 ];
 
-export default function HelpFlow() {
+interface HelpFlowProps {
+  locationReady: boolean;
+  onZipSubmit: (zip: string) => void;
+  onCategorySelect: (category: HelpCategory) => void;
+  onSubcategorySelect: (subcategory: string) => void;
+}
+
+export default function HelpFlow({
+  locationReady,
+  onZipSubmit,
+  onCategorySelect,
+  onSubcategorySelect,
+}: HelpFlowProps) {
   const [hovered, setHovered] = useState<HelpType>(null);
   const [selected, setSelected] = useState<HelpType>(null);
 
-  const handleIconClick = (key: HelpType) => {
-    setSelected(selected === key ? null : key);
+  // ✅ Must exist ABOVE return
+  const handleIconClick = (key: HelpCategory) => {
+    setSelected((prev) => (prev === key ? null : key));
   };
 
+  // ✅ Shelter wiring (and future subcats)
   const handleItemClick = (categoryKey: string, itemTitle: string) => {
-    console.log(`Selected: ${categoryKey} - ${itemTitle}`);
-    alert(`You selected: ${itemTitle}`);
+    if (!locationReady) {
+      alert('Enter your ZIP and click Go first.');
+      return;
+    }
+
+    onCategorySelect(categoryKey as HelpCategory);
+
+    const normalizedSubcategory = itemTitle
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-');
+
+    onSubcategorySelect(normalizedSubcategory);
   };
 
   return (
     <section className="hn-help-section">
-      {/* MAIN HEADER - MATCHES HOME PAGE */}
+      {/* MAIN HEADER */}
       <header className="hn-main-header">
         <motion.div
           className="hn-header-title"
@@ -150,10 +175,7 @@ export default function HelpFlow() {
             opacity: 1,
             transition: { duration: 1.2, ease: 'easeInOut' },
           }}
-          whileHover={{
-            y: -10,
-            transition: { duration: 0.15 },
-          }}
+          whileHover={{ y: -10, transition: { duration: 0.15 } }}
         >
           <FaMapMarkerAlt />
         </motion.div>
@@ -164,6 +186,7 @@ export default function HelpFlow() {
             onClick={() => (window.location.href = '/about')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
+            type="button"
           >
             ABOUT
           </motion.button>
@@ -172,6 +195,7 @@ export default function HelpFlow() {
             onClick={() => (window.location.href = '/')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
+            type="button"
           >
             BACK TO MAIN
           </motion.button>
@@ -182,12 +206,8 @@ export default function HelpFlow() {
         <header className="hn-help-header">
           <div className="hn-context-label">HELP NEARBY</div>
 
-          <HoverZipPrompt
-            onZipSubmit={(zip) => {
-              localStorage.setItem('helpNearbyZip', zip);
-              console.log('ZIP saved:', zip);
-            }}
-          />
+          {/* ✅ ZIP prompt (calls parent via prop) */}
+          <HoverZipPrompt onZipSubmit={onZipSubmit} />
 
           <h2 className="hn-primary-instruction">
             Choose the option that best matches your situation
@@ -198,7 +218,7 @@ export default function HelpFlow() {
         <div className="hn-icon-wrapper-grid">
           {/* TOP ROW */}
           <div className="hn-grid-row">
-            {/* HOUSING (TOP LEFT) */}
+            {/* HOUSING */}
             <motion.div
               className={`hn-icon-item ${selected === 'housing' ? 'selected' : ''}`}
               onClick={() => handleIconClick('housing')}
@@ -221,7 +241,7 @@ export default function HelpFlow() {
               <div className="hn-icon-label">Housing</div>
             </motion.div>
 
-            {/* CENTER GAP - INFO APPEARS HERE FOR TOP ROW */}
+            {/* CENTER GAP (TOP) */}
             <div className="hn-center-gap">
               <AnimatePresence mode="wait">
                 {selected === 'housing' && (
@@ -245,7 +265,7 @@ export default function HelpFlow() {
               </AnimatePresence>
             </div>
 
-            {/* FOOD (TOP RIGHT) */}
+            {/* FOOD */}
             <motion.div
               className={`hn-icon-item ${selected === 'food' ? 'selected' : ''}`}
               onClick={() => handleIconClick('food')}
@@ -271,7 +291,7 @@ export default function HelpFlow() {
 
           {/* BOTTOM ROW */}
           <div className="hn-grid-row">
-            {/* CASH ASSISTANCE (BOTTOM LEFT) */}
+            {/* CASH */}
             <motion.div
               className={`hn-icon-item ${selected === 'cash' ? 'selected' : ''}`}
               onClick={() => handleIconClick('cash')}
@@ -294,7 +314,7 @@ export default function HelpFlow() {
               <div className="hn-icon-label">Cash assistance</div>
             </motion.div>
 
-            {/* CENTER GAP - INFO APPEARS HERE FOR BOTTOM ROW */}
+            {/* CENTER GAP (BOTTOM) */}
             <div className="hn-center-gap">
               <AnimatePresence mode="wait">
                 {selected === 'cash' && (
@@ -318,7 +338,7 @@ export default function HelpFlow() {
               </AnimatePresence>
             </div>
 
-            {/* DISASTER RECOVERY (BOTTOM RIGHT) */}
+            {/* DISASTER */}
             <motion.div
               className={`hn-icon-item ${selected === 'disaster' ? 'selected' : ''}`}
               onClick={() => handleIconClick('disaster')}
@@ -348,7 +368,7 @@ export default function HelpFlow() {
           Nothing is submitted automatically.
         </p>
 
-        {/* HELP NEARBY BANNER */}
+        {/* BOTTOM BRAND */}
         <div className="hn-bottom-banner">
           <span className="hn-bottom-brand">HELP NEARBY</span>
           <FaMapMarkerAlt className="hn-bottom-icon" />
@@ -358,8 +378,7 @@ export default function HelpFlow() {
   );
 }
 
-// INFO PANEL COMPONENT
-
+/* INFO PANEL (pure, no state inside) */
 function InfoPanel({
   items,
   categoryKey,
@@ -379,7 +398,12 @@ function InfoPanel({
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
     >
-      <button className="hn-close-btn" onClick={onClose} aria-label="Close">
+      <button
+        className="hn-close-btn"
+        onClick={onClose}
+        aria-label="Close"
+        type="button"
+      >
         <FaTimes size={18} />
       </button>
 
@@ -391,10 +415,7 @@ function InfoPanel({
           hidden: { opacity: 0 },
           show: {
             opacity: 1,
-            transition: {
-              staggerChildren: 0.1,
-              delayChildren: 0.1,
-            },
+            transition: { staggerChildren: 0.1, delayChildren: 0.1 },
           },
         }}
       >
