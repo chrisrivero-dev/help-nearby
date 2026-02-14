@@ -18,11 +18,14 @@ const StarWarsIntro: React.FC = () => {
     position: 'relative',
     height: '400px',
     overflow: 'hidden',
+    perspective: '800px',
+    perspectiveOrigin: '50% 30%',
     background: '#000',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     cursor: 'none', // Hide default cursor
+    width: '100%',
   };
 
   const fadeTopStyle: React.CSSProperties = {
@@ -50,7 +53,8 @@ const StarWarsIntro: React.FC = () => {
 
   const textContainerStyle: React.CSSProperties = {
     position: 'relative',
-    width: 'min(900px, 92vw)',
+    width: '100%',
+    maxWidth: '720px',
     textAlign: 'justify',
     color: '#f9c700',
     letterSpacing: '0.08em',
@@ -58,26 +62,8 @@ const StarWarsIntro: React.FC = () => {
     fontWeight: 600,
     fontSize: '22px',
     padding: '0 10px',
+    margin: '0 auto',
     zIndex: 2,
-  };
-
-  const bottomPanelStyle: React.CSSProperties = {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '100px',
-    background: '#000',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    color: '#f9c700',
-    fontSize: '22px',
-    fontWeight: 600,
-    letterSpacing: '0.08em',
-    zIndex: 10,
-    // This will be animated to move up with the text
-    transform: 'translateY(0)',
   };
 
   useEffect(() => {
@@ -115,7 +101,11 @@ const StarWarsIntro: React.FC = () => {
           }
         });
       },
-      { root: null, threshold: 1 },
+      {
+        root: null,
+        threshold: 0,
+        rootMargin: '0px 0px -50% 0px',
+      },
     );
     if (lastParagraphRef.current) {
       observer.observe(lastParagraphRef.current);
@@ -147,9 +137,9 @@ const StarWarsIntro: React.FC = () => {
 
           <motion.div
             ref={textContainerRef}
-            style={textContainerStyle}
-            initial={{ y: '100%' }}
-            animate={{ y: '-100%' }}
+            style={{ ...textContainerStyle, transformOrigin: '50% 0%' }}
+            initial={{ y: '100%', rotateX: 38, scale: 1.4 }}
+            animate={{ y: '-100%', rotateX: 38, scale: [1.4, 0.6] }}
             transition={{ duration: 30, ease: 'linear' }}
             onAnimationComplete={() => {
               setIsAnimating(false);
@@ -188,7 +178,7 @@ const StarWarsIntro: React.FC = () => {
             >
               We’re not trying to be heroes. We just want to build the thing
               we’d want for our own family and friends. The journey
-              continues.......... .
+              continues..........<p>PEW PEW PEW!</p>
             </p>
           </motion.div>
 

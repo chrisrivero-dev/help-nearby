@@ -1,21 +1,31 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import Lightsaber from './Lightsaber';
+import styles from './Lightsaber.module.css';
 
 const StarWarsIntro: React.FC = () => {
   const [isHovering, setIsHovering] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const [isAnimating, setIsAnimating] = useState(true);
+  const [collapseStarted, setCollapseStarted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textContainerRef = useRef<HTMLDivElement>(null);
+  const lastParagraphRef = useRef<HTMLParagraphElement>(null);
+  const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const containerStyle: React.CSSProperties = {
     position: 'relative',
     height: '400px',
     overflow: 'hidden',
+    perspective: '800px',
+    perspectiveOrigin: '50% 30%',
     background: '#000',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     cursor: 'none', // Hide default cursor
+    width: '100%',
   };
 
   const fadeTopStyle: React.CSSProperties = {
@@ -43,7 +53,8 @@ const StarWarsIntro: React.FC = () => {
 
   const textContainerStyle: React.CSSProperties = {
     position: 'relative',
-    width: 'min(900px, 92vw)',
+    width: '100%',
+    maxWidth: '900px',
     textAlign: 'justify',
     color: '#f9c700',
     letterSpacing: '0.08em',
@@ -51,25 +62,103 @@ const StarWarsIntro: React.FC = () => {
     fontWeight: 600,
     fontSize: '22px',
     padding: '0 10px',
+    margin: '0 auto',
     zIndex: 2,
   };
+
+  const bottomPanelStyle: React.CSSProperties = {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '100px',
+    background: '#000',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    color: '#f9c700',
+    fontSize: '22px',
+    fontWeight: 600,
+    letterSpacing: '0.08em',
+    zIndex: 10,
+    // This will be animated to move up with the text
+    transform: 'translateY(0)',
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isHovering) {
+        setCursorPosition({
+          x: e.clientX,
+          y: e.clientY,
+        });
+      }
+    };
+
+    if (isHovering) {
+      window.addEventListener('mousemove', handleMouseMove);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [isHovering]);
+
+  // Observe when the last paragraph comes into view to start collapse
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (collapseTimeoutRef.current) {
+              clearTimeout(collapseTimeoutRef.current);
+            }
+            collapseTimeoutRef.current = setTimeout(() => {
+              setCollapseStarted(true);
+            }, 2000);
+            observer.disconnect();
+          }
+        });
+      },
+      { root: null, threshold: 0.5, rootMargin: '0px 0px -100px 0px' },
+    );
+    if (lastParagraphRef.current) {
+      observer.observe(lastParagraphRef.current);
+    }
+    return () => {
+      if (collapseTimeoutRef.current) {
+        clearTimeout(collapseTimeoutRef.current);
+      }
+      observer.disconnect();
+    };
+  }, []);
 
   return (
     <div style={{ width: '100%' }}>
       <section className="crawl-wrap" aria-label="Our story (animated crawl)">
-        <div
+        <motion.div
+          ref={containerRef}
           style={containerStyle}
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
+          initial={{ height: '400px' }}
+          animate={{
+            height: collapseStarted ? '0px' : '400px',
+          }}
+          transition={{ duration: 5, ease: 'linear' }}
         >
           <div style={fadeTopStyle} aria-hidden="true" />
           <div style={fadeBottomStyle} aria-hidden="true" />
 
           <motion.div
-            style={textContainerStyle}
-            initial={{ y: '100%' }}
-            animate={{ y: '-100%' }}
+            ref={textContainerRef}
+            style={{ ...textContainerStyle, transformOrigin: '50% 0%' }}
+            initial={{ y: '100%', rotateX: 38, scale: 1.4 }}
+            animate={{ y: '-100%', rotateX: 38, scale: [1.4, 0.6] }}
             transition={{ duration: 30, ease: 'linear' }}
+            onAnimationComplete={() => {
+              setIsAnimating(false);
+            }}
           >
             <p>
               We’re Mike and Chris. Two regular people who got tired of watching
@@ -91,16 +180,34 @@ const StarWarsIntro: React.FC = () => {
               fast—disaster updates, food, housing, and cash assistance—without
               the noise.
             </p>
-            <p>
+            <p
+              ref={lastParagraphRef}
+              style={{
+                textAlign: 'center',
+                marginTop: '20px',
+                color: '#f9c700',
+                fontSize: '22px',
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+              }}
+            >
               We’re not trying to be heroes. We just want to build the thing
               we’d want for our own family and friends. The journey
               continues.......... .
             </p>
           </motion.div>
 
-          {/* Custom Lightsaber cursor */}
-          {isHovering && <Lightsaber />}
-        </div>
+          {/* Rod cursor effect */}
+          {isHovering && (
+            <div
+              className={styles['rod-cursor']}
+              style={{
+                left: cursorPosition.x,
+                top: cursorPosition.y,
+              }}
+            />
+          )}
+        </motion.div>
       </section>
     </div>
   );
