@@ -8,11 +8,7 @@ const StarWarsIntro: React.FC = () => {
   const [isHovering, setIsHovering] = useState(false);
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [isAnimating, setIsAnimating] = useState(true);
-  const [collapseStarted, setCollapseStarted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const textContainerRef = useRef<HTMLDivElement>(null);
-  const lastParagraphRef = useRef<HTMLParagraphElement>(null);
-  const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const containerStyle: React.CSSProperties = {
     position: 'relative',
@@ -61,25 +57,6 @@ const StarWarsIntro: React.FC = () => {
     zIndex: 2,
   };
 
-  const bottomPanelStyle: React.CSSProperties = {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '100px',
-    background: '#000',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    color: '#f9c700',
-    fontSize: '22px',
-    fontWeight: 600,
-    letterSpacing: '0.08em',
-    zIndex: 10,
-    // This will be animated to move up with the text
-    transform: 'translateY(0)',
-  };
-
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isHovering) {
@@ -99,35 +76,6 @@ const StarWarsIntro: React.FC = () => {
     };
   }, [isHovering]);
 
-  // Observe when the last paragraph comes into view to start collapse
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            if (collapseTimeoutRef.current) {
-              clearTimeout(collapseTimeoutRef.current);
-            }
-            collapseTimeoutRef.current = setTimeout(() => {
-              setCollapseStarted(true);
-            }, 2000);
-            observer.disconnect();
-          }
-        });
-      },
-      { root: null, threshold: 1 },
-    );
-    if (lastParagraphRef.current) {
-      observer.observe(lastParagraphRef.current);
-    }
-    return () => {
-      if (collapseTimeoutRef.current) {
-        clearTimeout(collapseTimeoutRef.current);
-      }
-      observer.disconnect();
-    };
-  }, []);
-
   return (
     <div style={{ width: '100%' }}>
       <section className="crawl-wrap" aria-label="Our story (animated crawl)">
@@ -137,23 +85,18 @@ const StarWarsIntro: React.FC = () => {
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
           initial={{ height: '400px' }}
-          animate={{
-            height: collapseStarted ? '0px' : '400px',
-          }}
-          transition={{ duration: 5, ease: 'linear' }}
+          animate={{ height: isAnimating ? '400px' : 0 }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
         >
           <div style={fadeTopStyle} aria-hidden="true" />
           <div style={fadeBottomStyle} aria-hidden="true" />
 
           <motion.div
-            ref={textContainerRef}
             style={textContainerStyle}
             initial={{ y: '100%' }}
             animate={{ y: '-100%' }}
             transition={{ duration: 30, ease: 'linear' }}
-            onAnimationComplete={() => {
-              setIsAnimating(false);
-            }}
+            onAnimationComplete={() => setIsAnimating(false)}
           >
             <p>
               We’re Mike and Chris. Two regular people who got tired of watching
@@ -175,17 +118,7 @@ const StarWarsIntro: React.FC = () => {
               fast—disaster updates, food, housing, and cash assistance—without
               the noise.
             </p>
-            <p
-              ref={lastParagraphRef}
-              style={{
-                textAlign: 'center',
-                marginTop: '20px',
-                color: '#f9c700',
-                fontSize: '22px',
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-              }}
-            >
+            <p>
               We’re not trying to be heroes. We just want to build the thing
               we’d want for our own family and friends. The journey
               continues.......... .
