@@ -194,15 +194,15 @@ export default function HelpPage() {
           </Button>
           <Button
             style={linkStyle}
-            onClick={() => (window.location.href = '/about')}
-          >
-            ABOUT
-          </Button>
-          <Button
-            style={linkStyle}
             onClick={() => (window.location.href = '/help')}
           >
             RESOURCES
+          </Button>
+          <Button
+            style={linkStyle}
+            onClick={() => (window.location.href = '/about')}
+          >
+            ABOUT
           </Button>
         </div>
       </header>

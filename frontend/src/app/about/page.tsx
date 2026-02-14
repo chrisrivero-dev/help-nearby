@@ -67,39 +67,46 @@ const activeShadowStyle: React.CSSProperties = {
 
 export default function AboutPage() {
   const [hasMounted, setHasMounted] = useState(false);
+  // Remove panelOpen state since clicking map pin should do nothing
   const [panelOpen, setPanelOpen] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
+  // Create the title animation outside of the Header to prevent re-renders
+  const TitleAnimation = () => (
+    <motion.div
+      style={titleStyle}
+      initial={{ x: '-100%' }}
+      animate={{ x: 0 }}
+      transition={{ duration: 0.8, ease: 'easeInOut' }}
+      key="title-animation"
+    >
+      <motion.span
+        style={{ display: 'inline-block', cursor: 'pointer' }}
+        whileHover={{
+          backgroundColor: '#ff0000ff',
+          color: '#fff',
+          transition: { duration: 0.2 },
+        }}
+        onClick={() => console.log('HELP! clicked')}
+      >
+        ABOUT!
+      </motion.span>{' '}
+      <span>NEARBY.</span>
+    </motion.div>
+  );
+
   // Header component - static part that's always rendered
   const Header = () => (
     <header style={headerStyle}>
-      <motion.div
-        style={titleStyle}
-        initial={{ x: '-100%' }}
-        animate={{ x: 0 }}
-        transition={{ duration: 0.8, ease: 'easeInOut' }}
-      >
-        <motion.span
-          style={{ display: 'inline-block', cursor: 'pointer' }}
-          whileHover={{
-            backgroundColor: '#ff0000ff',
-            color: '#fff',
-            transition: { duration: 0.2 },
-          }}
-          onClick={() => console.log('HELP! clicked')}
-        >
-          ABOUT!
-        </motion.span>{' '}
-        <span>NEARBY.</span>
-      </motion.div>
+      <TitleAnimation />
 
       {/* Wrapper now carries the same left‑margin as the icon */}
       <div style={{ position: 'relative', marginLeft: '1rem' }}>
         <motion.div
-          onClick={() => setPanelOpen((o) => !o)}
+          // Remove the onClick handler so clicking map pin does nothing
           style={headerIconStyle}
           initial={{ y: -800, opacity: 0 }}
           animate={{
@@ -135,15 +142,15 @@ export default function AboutPage() {
         </Button>
         <Button
           style={linkStyle}
-          onClick={() => (window.location.href = '/about')}
-        >
-          ABOUT
-        </Button>
-        <Button
-          style={linkStyle}
           onClick={() => (window.location.href = '/help')}
         >
           RESOURCES
+        </Button>
+        <Button
+          style={linkStyle}
+          onClick={() => (window.location.href = '/about')}
+        >
+          ABOUT
         </Button>
       </div>
     </header>
@@ -151,7 +158,10 @@ export default function AboutPage() {
 
   // Content section - always the same
   const Content = () => (
-    <section id="about-content">
+    <section
+      id="about-content"
+      style={{ backgroundColor: '#000', color: '#fff', padding: '2rem' }}
+    >
       <div>
         <div>
           <h3>What we’re building</h3>
@@ -186,7 +196,7 @@ export default function AboutPage() {
   // Only render motion components on client side to prevent hydration mismatch
   if (!hasMounted) {
     return (
-      <main>
+      <main style={{ backgroundColor: '#000', color: '#fff' }}>
         <Header />
         <section className="crawl-wrap" aria-label="Our story (animated crawl)">
           <StarWarsIntro />
@@ -197,7 +207,7 @@ export default function AboutPage() {
   }
 
   return (
-    <main>
+    <main style={{ backgroundColor: '#000', color: '#fff' }}>
       <Header />
       <section className="crawl-wrap" aria-label="Our story (animated crawl)">
         <StarWarsIntro />

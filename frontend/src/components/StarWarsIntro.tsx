@@ -119,13 +119,23 @@ const StarWarsIntro: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ width: '100%' }}>
-      <section className="crawl-wrap" aria-label="Our story (animated crawl)">
+    <div
+      style={{
+        width: '100%',
+        cursor: 'none',
+        overflow: 'hidden',
+      }}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      <section
+        className="crawl-wrap"
+        aria-label="Our story (animated crawl)"
+        style={{ margin: 0, padding: 0, cursor: 'none' }}
+      >
         <motion.div
           ref={containerRef}
           style={containerStyle}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
           initial={{ height: '400px' }}
           animate={{
             height: collapseStarted ? '0px' : '400px',
@@ -181,18 +191,16 @@ const StarWarsIntro: React.FC = () => {
               continues..........<p>PEW PEW PEW!</p>
             </p>
           </motion.div>
-
-          {/* Rod cursor effect */}
-          {isHovering && (
-            <div
-              className={styles['rod-cursor']}
-              style={{
-                left: cursorPosition.x,
-                top: cursorPosition.y,
-              }}
-            />
-          )}
         </motion.div>
+        {/* Rod cursor effect */}
+        <div
+          className={`${styles['rod-cursor']} ${isHovering ? styles.hovered : ''}`}
+          style={{
+            left: cursorPosition.x,
+            top: cursorPosition.y,
+            opacity: isHovering ? 1 : 0,
+          }}
+        />
       </section>
     </div>
   );
