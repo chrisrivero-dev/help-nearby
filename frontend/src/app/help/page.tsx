@@ -35,12 +35,14 @@ const headerIconStyle: React.CSSProperties = {
 
 const linkContainerStyle: React.CSSProperties = {
   display: 'flex',
-  flexDirection: 'column', // stack buttons vertically
-  gap: '1rem', // space between stacked buttons
+  flexDirection: 'row',
+  gap: '1rem',
   fontSize: '1.25rem',
   marginLeft: 'auto',
-  alignItems: 'flex-end',
+  marginRight: 'auto',
+  alignItems: 'center',
   height: '100%',
+  justifyContent: 'center',
 };
 
 const linkStyle: React.CSSProperties = {
@@ -132,78 +134,93 @@ export default function HelpPage() {
     <div>
       {/* Header - Match main page style */}
       <header style={headerStyle}>
-        <motion.div
-          style={titleStyle}
-          initial={{ x: '-100%' }}
-          animate={{ x: 0 }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
+        <div
+          style={{ display: 'flex', flexDirection: 'column', width: '100%' }}
         >
-          <motion.span
-            style={{ display: 'inline-block', cursor: 'pointer' }}
-            whileHover={{
-              backgroundColor: '#ff0000ff',
-              color: '#fff',
-              transition: { duration: 0.2 },
-            }}
-            onClick={() => console.log('HELP! clicked')}
-          >
-            HELP!
-          </motion.span>{' '}
-          <span>NEARBY.</span>
-        </motion.div>
+          {/* Buttons row above title and map pin */}
+          <div style={linkContainerStyle}>
+            <Button
+              style={linkStyle}
+              onClick={() => (window.location.href = '/')}
+            >
+              HOME
+            </Button>
+            <Button
+              style={linkStyle}
+              onClick={() => (window.location.href = '/help')}
+            >
+              RESOURCES
+            </Button>
+            <Button
+              style={linkStyle}
+              onClick={() => (window.location.href = '/about')}
+            >
+              ABOUT
+            </Button>
+          </div>
 
-        {/* Wrapper now carries the same left‑margin as the icon */}
-        <div style={{ position: 'relative', marginLeft: '1rem' }}>
-          <motion.div
-            onClick={() => setPanelOpen((o) => !o)}
-            style={headerIconStyle}
-            initial={{ y: -800, opacity: 0 }}
-            animate={{
-              y: 0,
-              opacity: 1,
-              transition: { duration: 1.2, ease: 'easeInOut' },
-            }}
-            whileHover={{
-              y: -10,
-              transition: { duration: 0.15, ease: 'linear' },
+          {/* Title and map pin container */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
             }}
           >
-            <FiMapPin />
-          </motion.div>
+            <motion.div
+              style={titleStyle}
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              transition={{ duration: 0.8, ease: 'easeInOut' }}
+            >
+              <motion.span
+                style={{ display: 'inline-block', cursor: 'pointer' }}
+                whileHover={{
+                  backgroundColor: '#ff0000ff',
+                  color: '#fff',
+                  transition: { duration: 0.2 },
+                }}
+                onClick={() => console.log('HELP! clicked')}
+              >
+                RESOURCES!
+              </motion.span>{' '}
+              <span>NEARBY.</span>
+            </motion.div>
 
-          {/* Oval shadow – animated (kept from previous step) */}
-          <AnimatePresence>
-            {panelOpen && (
+            {/* Wrapper now carries the same left‑margin as the icon */}
+            <div style={{ position: 'relative', marginLeft: '1rem' }}>
               <motion.div
-                style={activeShadowStyle}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.25, ease: 'easeOut' }}
-              />
-            )}
-          </AnimatePresence>
-        </div>
+                onClick={() => setPanelOpen((o) => !o)}
+                style={headerIconStyle}
+                initial={{ y: -800, opacity: 0 }}
+                animate={{
+                  y: 0,
+                  opacity: 1,
+                  transition: { duration: 1.2, ease: 'easeInOut' },
+                }}
+                whileHover={{
+                  y: -10,
+                  transition: { duration: 0.15, ease: 'linear' },
+                }}
+              >
+                <FiMapPin style={{ color: '#000000' }} />
+              </motion.div>
 
-        <div style={linkContainerStyle}>
-          <Button
-            style={linkStyle}
-            onClick={() => (window.location.href = '/')}
-          >
-            HOME
-          </Button>
-          <Button
-            style={linkStyle}
-            onClick={() => (window.location.href = '/help')}
-          >
-            RESOURCES
-          </Button>
-          <Button
-            style={linkStyle}
-            onClick={() => (window.location.href = '/about')}
-          >
-            ABOUT
-          </Button>
+              {/* Oval shadow – animated (kept from previous step) */}
+              <AnimatePresence>
+                {panelOpen && (
+                  <motion.div
+                    style={activeShadowStyle}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
       </header>
 

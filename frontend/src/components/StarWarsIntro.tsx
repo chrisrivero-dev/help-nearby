@@ -188,7 +188,8 @@ const StarWarsIntro: React.FC = () => {
             >
               We’re not trying to be heroes. We just want to build the thing
               we’d want for our own family and friends. The journey
-              continues..........<p>PEW PEW PEW!</p>
+              continues..........
+              <span style={{ display: 'inline-block' }}>PEW PEW PEW!</span>
             </p>
           </motion.div>
         </motion.div>
