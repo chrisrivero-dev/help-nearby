@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import Button from '@/components/Buttons';
 import { FiMapPin } from 'react-icons/fi';
-import StarWarsV2 from '@/components/StarWarsV2';
+import StarWarsIntro from '@/components/StarWarsIntro';
+import styles from './about.module.css';
 
 /* ------ Layout styles -------------------------------- */
 const headerStyle: React.CSSProperties = {
@@ -13,6 +14,7 @@ const headerStyle: React.CSSProperties = {
   width: '100%',
   padding: '1rem 2rem',
   backgroundColor: 'rgb(0, 0, 0)',
+  // borderBottom: '4px solid #000',
 };
 
 const titleStyle: React.CSSProperties = {
@@ -66,6 +68,7 @@ const activeShadowStyle: React.CSSProperties = {
 };
 
 export default function AboutPage() {
+  const prefersReducedMotion = useReducedMotion();
   const [hasMounted, setHasMounted] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
 
@@ -149,31 +152,89 @@ export default function AboutPage() {
     </header>
   );
 
+  // Hero component - static for SSR, animated for client
+  const Hero = () => (
+    <section className={styles.hero}>
+      <div className={styles.container}>
+        {hasMounted ? (
+          <>
+            <motion.h1
+              className={styles.title}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+              transition={{ duration: 0.45 }}
+            >
+              About Help Nearby
+            </motion.h1>
+
+            <motion.p
+              className={styles.subtitle}
+              initial={prefersReducedMotion ? false : { opacity: 0, x: -18 }}
+              animate={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+              transition={{ duration: 0.45, delay: 0.05 }}
+            >
+              Built by two people who just want it to be easier to find real
+              help—fast.
+            </motion.p>
+
+            <motion.div
+              className={styles.badgesRow}
+              initial={prefersReducedMotion ? false : { opacity: 0, x: 18 }}
+              animate={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+              transition={{ duration: 0.45, delay: 0.1 }}
+            >
+              <span className={styles.badge}>Practical</span>
+              <span className={styles.badge}>Local-first</span>
+              <span className={styles.badge}>Zero hassle</span>
+            </motion.div>
+          </>
+        ) : (
+          <>
+            <h1 className={styles.title}>About Help Nearby</h1>
+            <p className={styles.subtitle}>
+              Built by two people who just want it to be easier to find real
+              help—fast.
+            </p>
+            <div className={styles.badgesRow}>
+              <span className={styles.badge}>Practical</span>
+              <span className={styles.badge}>Local-first</span>
+              <span className={styles.badge}>Zero hassle</span>
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  );
+
   // Content section - always the same
   const Content = () => (
-    <section id="about-content">
-      <div>
-        <div>
-          <h3>What we’re building</h3>
-          <p>
-            Help! Nearby. is a simple navigator that points people to the next
+    <section id="about-content" className={styles.contentSection}>
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <h3 className={styles.cardTitle}>What we’re building</h3>
+          <p className={styles.cardBody}>
+            Help Nearby is a simple navigator that points people to the next
             best step: live disaster info when available, and curated local
             resources for food, housing, and cash assistance.
           </p>
         </div>
 
-        <div>
-          <div>
-            <h3>Our rule</h3>
-            <p>If we wouldn't trust it for our own family, it doesn't ship.</p>
+        <div className={styles.grid}>
+          <div className={styles.card}>
+            <h3 className={styles.cardTitle}>Our rule</h3>
+            <p className={styles.cardBody}>
+              If we wouldn't trust it for our own family, it doesn't ship.
+            </p>
           </div>
-          <div>
-            <h3>Our focus</h3>
-            <p>Clear, local-first guidance. Minimal clicks. No drama.</p>
+          <div className={styles.card}>
+            <h3 className={styles.cardTitle}>Our focus</h3>
+            <p className={styles.cardBody}>
+              Clear, local-first guidance. Minimal clicks. No drama.
+            </p>
           </div>
-          <div>
-            <h3>How you can help</h3>
-            <p>
+          <div className={styles.card}>
+            <h3 className={styles.cardTitle}>How you can help</h3>
+            <p className={styles.cardBody}>
               Send resource leads, corrections, or gaps you see—we'll curate and
               improve coverage.
             </p>
@@ -186,22 +247,30 @@ export default function AboutPage() {
   // Only render motion components on client side to prevent hydration mismatch
   if (!hasMounted) {
     return (
-      <main>
+      <main className={styles.page}>
         <Header />
-        <section className="crawl-wrap" aria-label="Our story (animated crawl)">
-          <StarWarsV2 />
+        <section
+          className={styles.crawlWrap}
+          aria-label="Our story (animated crawl)"
+        >
+          <StarWarsIntro />
         </section>
+        <Hero />
         <Content />
       </main>
     );
   }
 
   return (
-    <main>
+    <main className={styles.page}>
       <Header />
-      <section className="crawl-wrap" aria-label="Our story (animated crawl)">
-        <StarWarsV2 />
+      <section
+        className={styles.crawlWrap}
+        aria-label="Our story (animated crawl)"
+      >
+        <StarWarsIntro />
       </section>
+      <Hero />
       <Content />
     </main>
   );
