@@ -232,6 +232,12 @@ const Home: FC = () => {
         <div style={linkContainerStyle}>
           <Button
             style={linkStyle}
+            onClick={() => (window.location.href = '/')}
+          >
+            HOME
+          </Button>
+          <Button
+            style={linkStyle}
             onClick={() => (window.location.href = '/about')}
           >
             ABOUT

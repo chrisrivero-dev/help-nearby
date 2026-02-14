@@ -146,62 +146,6 @@ export default function HelpFlow({
 
   return (
     <section className="hn-help-section">
-      {/* MAIN HEADER */}
-      <header className="hn-main-header">
-        <motion.div
-          className="hn-header-title"
-          initial={{ x: '-100%' }}
-          animate={{ x: 0 }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
-        >
-          <motion.span
-            className="hn-help-word"
-            whileHover={{
-              backgroundColor: '#ff0000',
-              color: '#fff',
-              transition: { duration: 0.2 },
-            }}
-          >
-            HELP!
-          </motion.span>{' '}
-          <span>NEARBY.</span>
-        </motion.div>
-
-        <motion.div
-          className="hn-header-icon"
-          initial={{ y: -800, opacity: 0 }}
-          animate={{
-            y: 0,
-            opacity: 1,
-            transition: { duration: 1.2, ease: 'easeInOut' },
-          }}
-          whileHover={{ y: -10, transition: { duration: 0.15 } }}
-        >
-          <FaMapMarkerAlt />
-        </motion.div>
-
-        <div className="hn-header-nav">
-          <motion.button
-            className="hn-nav-button"
-            onClick={() => (window.location.href = '/about')}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-          >
-            ABOUT
-          </motion.button>
-          <motion.button
-            className="hn-nav-button"
-            onClick={() => (window.location.href = '/')}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-          >
-            BACK TO MAIN
-          </motion.button>
-        </div>
-      </header>
-
       <div className="hn-help-container">
         <header className="hn-help-header">
           <div className="hn-context-label">HELP NEARBY</div>
