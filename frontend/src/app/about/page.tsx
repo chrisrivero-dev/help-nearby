@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import Button from '@/components/Buttons';
 import { FiMapPin } from 'react-icons/fi';
-import StarWarsV2 from '@/components/StarWarsV2';
+import StarWarsIntro from '@/components/StarWarsIntro';
 
 /* ------ Layout styles -------------------------------- */
 const headerStyle: React.CSSProperties = {
@@ -189,7 +189,7 @@ export default function AboutPage() {
       <main>
         <Header />
         <section className="crawl-wrap" aria-label="Our story (animated crawl)">
-          <StarWarsV2 />
+          <StarWarsIntro />
         </section>
         <Content />
       </main>
@@ -200,7 +200,7 @@ export default function AboutPage() {
     <main>
       <Header />
       <section className="crawl-wrap" aria-label="Our story (animated crawl)">
-        <StarWarsV2 />
+        <StarWarsIntro />
       </section>
       <Content />
     </main>

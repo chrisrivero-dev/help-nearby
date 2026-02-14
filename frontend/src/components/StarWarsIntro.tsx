@@ -2,8 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import styles from './Lightsaber.module.css';
 
-const StarWarsV2: React.FC = () => {
+const StarWarsIntro: React.FC = () => {
+  const [isHovering, setIsHovering] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+
   const containerStyle: React.CSSProperties = {
     position: 'relative',
     height: '400px',
@@ -12,6 +16,7 @@ const StarWarsV2: React.FC = () => {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    cursor: 'none', // Hide default cursor
   };
 
   const fadeTopStyle: React.CSSProperties = {
@@ -50,10 +55,33 @@ const StarWarsV2: React.FC = () => {
     zIndex: 2,
   };
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isHovering) {
+        setCursorPosition({
+          x: e.clientX,
+          y: e.clientY,
+        });
+      }
+    };
+
+    if (isHovering) {
+      window.addEventListener('mousemove', handleMouseMove);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [isHovering]);
+
   return (
     <div style={{ width: '100%' }}>
       <section className="crawl-wrap" aria-label="Our story (animated crawl)">
-        <div style={containerStyle}>
+        <div
+          style={containerStyle}
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
           <div style={fadeTopStyle} aria-hidden="true" />
           <div style={fadeBottomStyle} aria-hidden="true" />
 
@@ -86,13 +114,24 @@ const StarWarsV2: React.FC = () => {
             <p>
               We’re not trying to be heroes. We just want to build the thing
               we’d want for our own family and friends. The journey
-              continues............
+              continues.......... .
             </p>
           </motion.div>
+
+          {/* Rod cursor effect */}
+          {isHovering && (
+            <div
+              className={styles['rod-cursor']}
+              style={{
+                left: cursorPosition.x,
+                top: cursorPosition.y,
+              }}
+            />
+          )}
         </div>
       </section>
     </div>
   );
 };
 
-export default StarWarsV2;
+export default StarWarsIntro;
