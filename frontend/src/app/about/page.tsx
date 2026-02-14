@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
-import styles from './about.module.css';
 import Button from '@/components/Buttons';
 import { FiMapPin } from 'react-icons/fi';
-import { MdPause, MdPlayArrow } from 'react-icons/md';
+import StarWarsIntro from '@/components/StarWarsIntro';
+import styles from './about.module.css';
 
 /* ------ Layout styles -------------------------------- */
 const headerStyle: React.CSSProperties = {
@@ -48,9 +48,9 @@ const linkStyle: React.CSSProperties = {
   alignItems: 'center',
   whiteSpace: 'nowrap',
   minWidth: '8rem',
-  color: '#000',
-  backgroundColor: '#fff',
-  border: '4px solid #000',
+  color: '#ffffff',
+  backgroundColor: '#000000',
+  border: '4px solid #f9c700',
   padding: '0.25rem 0',
   textDecoration: 'none',
 };
@@ -76,19 +76,6 @@ export default function AboutPage() {
     setHasMounted(true);
   }, []);
 
-  const story = [
-    'We’re Mike and Chris. Two regular people who got tired of watching families scramble for help when things go sideways.',
-    'We come from humble backgrounds, and we built Help Nearby with a simple belief: people deserve clear next steps when life gets chaotic.',
-    'We met while traveling through Europe, stayed close, and kept talking about the same problem—resources exist, but they’re hard to find when you’re stressed, displaced, or trying to help someone you love.',
-    'So we’re building a hub that makes it easier to locate real help fast—disaster updates, food, housing, and cash assistance—without the noise.',
-    'We’re not trying to be heroes. We just want to build the thing we’d want for our own family and friends. The journey continues............',
-  ];
-
-  function handleSkip() {
-    const el = document.getElementById('about-content');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
   // Header component - static part that's always rendered
   const Header = () => (
     <header style={headerStyle}>
@@ -107,7 +94,7 @@ export default function AboutPage() {
           }}
           onClick={() => console.log('HELP! clicked')}
         >
-          HELP!
+          ABOUT!
         </motion.span>{' '}
         <span>NEARBY.</span>
       </motion.div>
@@ -128,7 +115,7 @@ export default function AboutPage() {
             transition: { duration: 0.15, ease: 'linear' },
           }}
         >
-          <FiMapPin />
+          <FiMapPin style={{ color: '#fff' }} />
         </motion.div>
 
         {/* Oval shadow – animated (kept from previous step) */}
@@ -219,71 +206,6 @@ export default function AboutPage() {
     </section>
   );
 
-  // Crawl component - static for SSR, animated for client
-  const Crawl = () => {
-    const [isPlaying, setIsPlaying] = useState(true);
-    const [hasMounted, setHasMounted] = useState(false);
-
-    useEffect(() => {
-      setHasMounted(true);
-    }, []);
-
-    const togglePlayPause = () => {
-      setIsPlaying(!isPlaying);
-    };
-
-    // For consistent hydration, always render the animated version
-    // but make sure we don't show the animation during SSR
-    const shouldAnimate = hasMounted ? isPlaying : false;
-
-    return (
-      <section
-        className={styles.crawlWrap}
-        aria-label="Our story (animated crawl)"
-      >
-        <div className={styles.starWarsContainer}>
-          <div className={styles.fadeTop} aria-hidden="true" />
-          <div className={styles.fadeBottom} aria-hidden="true" />
-
-          {/* Starfield */}
-          <div className={styles.stars} aria-hidden="true" />
-          <div className={styles.stars2} aria-hidden="true" />
-          <div className={styles.stars3} aria-hidden="true" />
-
-          {/* Play/Pause controls */}
-          <button
-            className={styles.playPauseButton}
-            onClick={togglePlayPause}
-            aria-label={isPlaying ? 'Pause animation' : 'Play animation'}
-          >
-            {isPlaying ? <MdPause size={32} /> : <MdPlayArrow size={32} />}
-          </button>
-
-          {/* Crawl - Improved for Star Wars effect */}
-          <div
-            className={
-              prefersReducedMotion
-                ? styles.crawlContentReduced
-                : styles.crawlContent
-            }
-            style={shouldAnimate ? {} : { animationPlayState: 'paused' }}
-          >
-            <div className={styles.crawlTitle}>
-              <p className={styles.episode}>Episode I</p>
-              <h2 className={styles.crawlHeading}>HELP NEARBY</h2>
-            </div>
-
-            {story.map((p, idx) => (
-              <p key={idx} className={styles.crawlParagraph}>
-                {p}
-              </p>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  };
-
   // Content section - always the same
   const Content = () => (
     <section id="about-content" className={styles.contentSection}>
@@ -327,8 +249,13 @@ export default function AboutPage() {
     return (
       <main className={styles.page}>
         <Header />
+        <section
+          className={styles.crawlWrap}
+          aria-label="Our story (animated crawl)"
+        >
+          <StarWarsIntro />
+        </section>
         <Hero />
-        <Crawl />
         <Content />
       </main>
     );
@@ -337,7 +264,12 @@ export default function AboutPage() {
   return (
     <main className={styles.page}>
       <Header />
-      <Crawl />
+      <section
+        className={styles.crawlWrap}
+        aria-label="Our story (animated crawl)"
+      >
+        <StarWarsIntro />
+      </section>
       <Hero />
       <Content />
     </main>
