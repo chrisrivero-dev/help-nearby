@@ -4,22 +4,29 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from './Lightsaber.module.css';
 
-const StarWarsIntro: React.FC = () => {
+interface StarWarsIntroProps {
+  onAnimationComplete?: () => void;
+}
+
+const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
+  onAnimationComplete,
+}) => {
   const [isHovering, setIsHovering] = useState(false);
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [isAnimating, setIsAnimating] = useState(true);
-  const [collapseStarted, setCollapseStarted] = useState(false);
+  const [isLastParagraphVisible, setIsLastParagraphVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
   const lastParagraphRef = useRef<HTMLParagraphElement>(null);
-  const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [animationDuration, setAnimationDuration] = useState(30); // Default 22 seconds
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   const containerStyle: React.CSSProperties = {
     position: 'relative',
     height: '400px',
     overflow: 'hidden',
-    perspective: '800px',
-    perspectiveOrigin: '50% 30%',
+    perspective: '1200px',
+    perspectiveOrigin: '50% 50%',
     background: '#000',
     display: 'flex',
     justifyContent: 'center',
@@ -54,11 +61,11 @@ const StarWarsIntro: React.FC = () => {
   const textContainerStyle: React.CSSProperties = {
     position: 'relative',
     width: '100%',
-    maxWidth: '720px',
+    maxWidth: '800px',
     textAlign: 'justify',
     color: '#f9c700',
     letterSpacing: '0.08em',
-    lineHeight: 1.55,
+    lineHeight: 2,
     fontWeight: 600,
     fontSize: '22px',
     padding: '0 10px',
@@ -85,36 +92,40 @@ const StarWarsIntro: React.FC = () => {
     };
   }, [isHovering]);
 
-  // Observe when the last paragraph comes into view to start collapse
+  // Set up intersection observer to detect when last paragraph is scrolled through
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            if (collapseTimeoutRef.current) {
-              clearTimeout(collapseTimeoutRef.current);
-            }
-            collapseTimeoutRef.current = setTimeout(() => {
-              setCollapseStarted(true);
-            }, 2000);
-            observer.disconnect();
-          }
-        });
-      },
-      {
-        root: null,
-        threshold: 0,
-        rootMargin: '0px 0px -50% 0px',
-      },
-    );
     if (lastParagraphRef.current) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          // When the last paragraph is no longer visible (scrolled past), trigger completion
+          if (!entry.isIntersecting) {
+            setIsLastParagraphVisible(true);
+            if (onAnimationComplete) {
+              onAnimationComplete();
+            }
+          }
+        },
+        {
+          root: containerRef.current,
+          threshold: 0, // Trigger when element is no longer visible
+        },
+      );
+
       observer.observe(lastParagraphRef.current);
+      observerRef.current = observer;
+
+      return () => {
+        observer.disconnect();
+      };
     }
+  }, [onAnimationComplete]);
+
+  // Cleanup observer on unmount
+  useEffect(() => {
     return () => {
-      if (collapseTimeoutRef.current) {
-        clearTimeout(collapseTimeoutRef.current);
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
-      observer.disconnect();
     };
   }, []);
 
@@ -136,23 +147,31 @@ const StarWarsIntro: React.FC = () => {
         <motion.div
           ref={containerRef}
           style={containerStyle}
-          initial={{ height: '400px' }}
-          animate={{
-            height: collapseStarted ? '0px' : '400px',
-          }}
-          transition={{ duration: 5, ease: 'linear' }}
+          initial={{ height: '600px' }}
+          animate={{ height: '600px' }}
+          transition={{ duration: 0.5, ease: 'linear' }}
         >
           <div style={fadeTopStyle} aria-hidden="true" />
           <div style={fadeBottomStyle} aria-hidden="true" />
 
           <motion.div
             ref={textContainerRef}
-            style={{ ...textContainerStyle, transformOrigin: '50% 0%' }}
-            initial={{ y: '100%', rotateX: 38, scale: 1.4 }}
-            animate={{ y: '-100%', rotateX: 38, scale: [1.4, 0.6] }}
-            transition={{ duration: 30, ease: 'linear' }}
+            style={{ ...textContainerStyle, transformOrigin: '50% 50%' }}
+            initial={{ y: '100%', rotateX: 38, scale: 1, opacity: 1 }}
+            animate={{
+              y: '-100%',
+              rotateX: 38,
+              scale: [1],
+              opacity: [1],
+            }}
+            transition={{ duration: animationDuration, ease: 'easeOut' }}
             onAnimationComplete={() => {
               setIsAnimating(false);
+              // Only call onAnimationComplete if the last paragraph is also visible
+              // This ensures we don't trigger early
+              if (isLastParagraphVisible && onAnimationComplete) {
+                onAnimationComplete();
+              }
             }}
           >
             <p>
@@ -188,7 +207,7 @@ const StarWarsIntro: React.FC = () => {
             >
               We’re not trying to be heroes. We just want to build the thing
               we’d want for our own family and friends. The journey
-              continues..........
+              continues.......
               <span style={{ display: 'inline-block' }}>PEW PEW PEW!</span>
             </p>
           </motion.div>

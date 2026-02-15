@@ -64,7 +64,7 @@ const activeShadowStyle: React.CSSProperties = {
   margin: '0 auto', // forces horizontal centering
   width: '4rem',
   height: '1.2rem',
-  backgroundColor: '#000', // solid black
+  backgroundColor: '#fff', // solid white
   borderRadius: '50%',
 };
 
@@ -100,162 +100,214 @@ const contentContainerStyle: React.CSSProperties = {
   gap: '1rem',
 };
 
+// Panel styles (similar to main page)
+const panelStyle: React.CSSProperties = {
+  backgroundColor: '#000',
+  width: '100%',
+  overflow: 'hidden', // Remove scrollbars
+  borderBottom: '4px solid white',
+  position: 'relative', // Attach to bottom of header
+  zIndex: 10, // Ensure it appears above content
+};
+
+// Create the title animation outside of the Header to prevent re-renders
+const TitleAnimation = () => (
+  <motion.div
+    style={titleStyle}
+    initial={{ x: '-100%' }}
+    animate={{ x: 0 }}
+    transition={{ duration: 0.8, ease: 'easeInOut' }}
+    key="title-animation"
+  >
+    <motion.span
+      style={{ display: 'inline-block', cursor: 'pointer' }}
+      whileHover={{
+        backgroundColor: '#ff0000ff',
+        color: '#fff',
+        transition: { duration: 0.2 },
+      }}
+      onClick={() => console.log('HELP! clicked')}
+    >
+      ABOUT!
+    </motion.span>{' '}
+    <span>NEARBY.</span>
+  </motion.div>
+);
+
+// Header component - static part that's always rendered
+const Header = ({ panelOpen, handleMapPinClick }) => (
+  <header style={headerStyle}>
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+      {/* Buttons row above title and icon */}
+      <div style={linkContainerStyle}>
+        <Button style={linkStyle} onClick={() => (window.location.href = '/')}>
+          HOME
+        </Button>
+        <Button
+          style={linkStyle}
+          onClick={() => (window.location.href = '/help')}
+        >
+          RESOURCES
+        </Button>
+        <Button
+          style={linkStyle}
+          onClick={() => (window.location.href = '/about')}
+        >
+          ABOUT
+        </Button>
+      </div>
+
+      {/* Title and icon container */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+        }}
+      >
+        <TitleAnimation />
+
+        {/* Wrapper now carries the same left‑margin as the icon */}
+        <div style={{ position: 'relative', marginLeft: '1rem' }}>
+          <motion.div
+            onClick={handleMapPinClick}
+            style={headerIconStyle}
+            initial={{ y: -800, opacity: 0 }}
+            animate={{
+              y: 0,
+              opacity: 1,
+              transition: { duration: 1.2, ease: 'easeInOut' },
+            }}
+            whileHover={{
+              y: -10,
+              transition: { duration: 0.15, ease: 'linear' },
+            }}
+          >
+            <FiMapPin style={{ color: '#fff' }} />
+          </motion.div>
+
+          {/* Oval shadow – animated (kept from previous step) */}
+          <AnimatePresence>
+            {panelOpen && (
+              <motion.div
+                style={activeShadowStyle}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  </header>
+);
+
+// Content section - always the same
+const Content = () => (
+  <section
+    id="about-content"
+    style={{ backgroundColor: '#000', color: '#fff', padding: '2rem' }}
+  >
+    <div style={contentContainerStyle}>
+      <motion.div
+        style={contentSectionStyle}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+      >
+        <h3 style={h3Style}>What we're building</h3>
+        <p style={pStyle}>
+          Help! Nearby. is a simple navigator that points people to the next
+          best step: live disaster info when available, and curated local
+          resources for food, housing, and cash assistance.
+        </p>
+      </motion.div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <motion.div
+          style={contentSectionStyle}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
+        >
+          <h3 style={h3Style}>Our rule</h3>
+          <p style={pStyle}>
+            If we wouldn't trust it for our own family, it doesn't ship.
+          </p>
+        </motion.div>
+        <motion.div
+          style={contentSectionStyle}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
+        >
+          <h3 style={h3Style}>Our focus</h3>
+          <p style={pStyle}>
+            Clear, local-first guidance. Minimal clicks. No drama.
+          </p>
+        </motion.div>
+        <motion.div
+          style={contentSectionStyle}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6, ease: 'easeOut' }}
+        >
+          <h3 style={h3Style}>How you can help</h3>
+          <p style={pStyle}>
+            Send resource leads, corrections, or gaps you see—we'll curate and
+            improve coverage.
+          </p>
+        </motion.div>
+      </div>
+    </div>
+  </section>
+);
+
 export default function AboutPage() {
   const [hasMounted, setHasMounted] = useState(false);
-  // Remove panelOpen state since clicking map pin should do nothing
   const [panelOpen, setPanelOpen] = useState(false);
+  const [animationComplete, setAnimationComplete] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
-  // Create the title animation outside of the Header to prevent re-renders
-  const TitleAnimation = () => (
-    <motion.div
-      style={titleStyle}
-      initial={{ x: '-100%' }}
-      animate={{ x: 0 }}
-      transition={{ duration: 0.8, ease: 'easeInOut' }}
-      key="title-animation"
-    >
-      <motion.span
-        style={{ display: 'inline-block', cursor: 'pointer' }}
-        whileHover={{
-          backgroundColor: '#ff0000ff',
-          color: '#fff',
-          transition: { duration: 0.2 },
-        }}
-        onClick={() => console.log('HELP! clicked')}
-      >
-        ABOUT!
-      </motion.span>{' '}
-      <span>NEARBY.</span>
-    </motion.div>
-  );
-
-  // Header component - static part that's always rendered
-  const Header = () => (
-    <header style={headerStyle}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        {/* Buttons row above title and icon */}
-        <div style={linkContainerStyle}>
-          <Button
-            style={linkStyle}
-            onClick={() => (window.location.href = '/')}
-          >
-            HOME
-          </Button>
-          <Button
-            style={linkStyle}
-            onClick={() => (window.location.href = '/help')}
-          >
-            RESOURCES
-          </Button>
-          <Button
-            style={linkStyle}
-            onClick={() => (window.location.href = '/about')}
-          >
-            ABOUT
-          </Button>
-        </div>
-
-        {/* Title and icon container */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-          }}
-        >
-          <TitleAnimation />
-
-          {/* Wrapper now carries the same left‑margin as the icon */}
-          <div style={{ position: 'relative', marginLeft: '1rem' }}>
-            <motion.div
-              // Remove the onClick handler so clicking map pin should do nothing
-              style={headerIconStyle}
-              initial={{ y: -800, opacity: 0 }}
-              animate={{
-                y: 0,
-                opacity: 1,
-                transition: { duration: 1.2, ease: 'easeInOut' },
-              }}
-              whileHover={{
-                y: -10,
-                transition: { duration: 0.15, ease: 'linear' },
-              }}
-            >
-              <FiMapPin style={{ color: '#fff' }} />
-            </motion.div>
-
-            {/* Oval shadow – animated (kept from previous step) */}
-            <AnimatePresence>
-              {panelOpen && (
-                <motion.div
-                  style={activeShadowStyle}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.25, ease: 'easeOut' }}
-                />
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-
-  // Content section - always the same
-  const Content = () => (
-    <section
-      id="about-content"
-      style={{ backgroundColor: '#000', color: '#fff', padding: '2rem' }}
-    >
-      <div style={contentContainerStyle}>
-        <motion.div style={contentSectionStyle}>
-          <h3 style={h3Style}>What we’re building</h3>
-          <p style={pStyle}>
-            Help! Nearby. is a simple navigator that points people to the next
-            best step: live disaster info when available, and curated local
-            resources for food, housing, and cash assistance.
-          </p>
-        </motion.div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <motion.div style={contentSectionStyle}>
-            <h3 style={h3Style}>Our rule</h3>
-            <p style={pStyle}>
-              If we wouldn't trust it for our own family, it doesn't ship.
-            </p>
-          </motion.div>
-          <motion.div style={contentSectionStyle}>
-            <h3 style={h3Style}>Our focus</h3>
-            <p style={pStyle}>
-              Clear, local-first guidance. Minimal clicks. No drama.
-            </p>
-          </motion.div>
-          <motion.div style={contentSectionStyle}>
-            <h3 style={h3Style}>How you can help</h3>
-            <p style={pStyle}>
-              Send resource leads, corrections, or gaps you see—we'll curate and
-              improve coverage.
-            </p>
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  );
+  const handleMapPinClick = () => {
+    setPanelOpen(!panelOpen);
+  };
 
   // Only render motion components on client side to prevent hydration mismatch
   if (!hasMounted) {
     return (
       <main style={{ backgroundColor: '#000', color: '#fff' }}>
-        <Header />
-        <section className="crawl-wrap" aria-label="Our story (animated crawl)">
-          <StarWarsIntro />
-        </section>
+        <Header panelOpen={panelOpen} handleMapPinClick={handleMapPinClick} />
+        <AnimatePresence>
+          {panelOpen && (
+            <motion.div
+              style={panelStyle}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: '50vh', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.5, ease: 'easeInOut' }}
+            >
+              <div
+                style={{
+                  padding: '2rem',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <StarWarsIntro
+                  onAnimationComplete={() => setAnimationComplete(true)}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <Content />
       </main>
     );
@@ -263,10 +315,31 @@ export default function AboutPage() {
 
   return (
     <main style={{ backgroundColor: '#000', color: '#fff' }}>
-      <Header />
-      <section className="crawl-wrap" aria-label="Our story (animated crawl)">
-        <StarWarsIntro />
-      </section>
+      <Header panelOpen={panelOpen} handleMapPinClick={handleMapPinClick} />
+      <AnimatePresence>
+        {panelOpen && (
+          <motion.div
+            style={panelStyle}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: '50vh', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+          >
+            <div
+              style={{
+                padding: '2rem',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <StarWarsIntro
+                onAnimationComplete={() => setAnimationComplete(true)}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <Content />
     </main>
   );
