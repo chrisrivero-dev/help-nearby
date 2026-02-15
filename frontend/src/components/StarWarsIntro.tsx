@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from './Lightsaber.module.css';
 import Starfield from './Starfield';
+import LightsaberCursor from './LightsaberCursor';
 
 interface StarWarsIntroProps {
   onAnimationComplete?: () => void;
@@ -13,7 +14,6 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
   onAnimationComplete,
 }) => {
   const [isHovering, setIsHovering] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [isAnimating, setIsAnimating] = useState(true);
   const [isLastParagraphVisible, setIsLastParagraphVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,25 +73,6 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
     margin: '0 auto',
     zIndex: 2,
   };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isHovering) {
-        setCursorPosition({
-          x: e.clientX,
-          y: e.clientY,
-        });
-      }
-    };
-
-    if (isHovering) {
-      window.addEventListener('mousemove', handleMouseMove);
-    }
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, [isHovering]);
 
   // Set up intersection observer to detect when last paragraph is scrolled through
   useEffect(() => {
@@ -216,15 +197,8 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
             </p>
           </motion.div>
         </motion.div>
-        {/* Rod cursor effect */}
-        <div
-          className={`${styles['rod-cursor']} ${isHovering ? styles.hovered : ''}`}
-          style={{
-            left: cursorPosition.x,
-            top: cursorPosition.y,
-            opacity: isHovering ? 1 : 0,
-          }}
-        />
+        {/* Lightsaber cursor effect */}
+        <LightsaberCursor isHovering={isHovering} />
       </section>
     </div>
   );
