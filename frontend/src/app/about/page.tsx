@@ -135,7 +135,10 @@ const TitleAnimation = () => (
 );
 
 // Header component - static part that's always rendered
-const Header = ({ panelOpen, handleMapPinClick }) => (
+const Header: React.FC<{
+  panelOpen: boolean;
+  handleMapPinClick: () => void;
+}> = ({ panelOpen, handleMapPinClick }) => (
   <header style={headerStyle}>
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       {/* Buttons row above title and icon */}

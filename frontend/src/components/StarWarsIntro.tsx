@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from './Lightsaber.module.css';
+import Starfield from './Starfield';
 
 interface StarWarsIntroProps {
   onAnimationComplete?: () => void;
@@ -23,11 +24,11 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
 
   const containerStyle: React.CSSProperties = {
     position: 'relative',
-    height: '400px',
+    height: '100%',
     overflow: 'hidden',
     perspective: '1200px',
     perspectiveOrigin: '50% 50%',
-    background: '#000',
+    background: '#07070b',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -132,9 +133,11 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
   return (
     <div
       style={{
-        width: '100%',
+        width: '100vw',
         cursor: 'none',
         overflow: 'hidden',
+        background: '#07070b',
+        height: '100%',
       }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -147,12 +150,13 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
         <motion.div
           ref={containerRef}
           style={containerStyle}
-          initial={{ height: '600px' }}
-          animate={{ height: '600px' }}
+          initial={{ height: '100%' }}
+          animate={{ height: '100%' }}
           transition={{ duration: 0.5, ease: 'linear' }}
         >
           <div style={fadeTopStyle} aria-hidden="true" />
           <div style={fadeBottomStyle} aria-hidden="true" />
+          <Starfield />
 
           <motion.div
             ref={textContainerRef}
