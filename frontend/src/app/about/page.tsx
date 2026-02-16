@@ -292,7 +292,7 @@ export default function AboutPage() {
             <motion.div
               style={panelStyle}
               initial={{ height: 0, opacity: 0 }}
-              animate={{ height: '50vh', opacity: 1 }}
+              animate={{ height: '100vh', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.5, ease: 'easeInOut' }}
             >
@@ -302,6 +302,7 @@ export default function AboutPage() {
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
+                  height: '100%', // Ensure full height
                 }}
               >
                 <StarWarsIntro
@@ -334,6 +335,7 @@ export default function AboutPage() {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
+                height: '100%', // Ensure full height
               }}
             >
               <StarWarsIntro
