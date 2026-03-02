@@ -96,8 +96,8 @@ export default function HelpPage() {
       <section className="bg-white border-b-4 border-black py-10 md:py-14">
         <div className="max-w-6xl mx-auto px-6 md:px-8">
 
-          {/* Eyebrow */}
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-black/40 mb-4">
+          {/* Eyebrow tag */}
+          <p className="inline-flex items-center text-xs font-bold uppercase tracking-[0.15em] text-black/50 border-[2px] border-black/25 px-2.5 py-1 mb-6">
             Local assistance — housing, food, cash &amp; disaster
           </p>
 
@@ -112,11 +112,8 @@ export default function HelpPage() {
             Nearby.
           </h1>
 
-          {/* Rule */}
-          <div className="mt-8 mb-6 h-[3px] w-24 bg-black" />
-
           {/* Subtitle */}
-          <p className="text-base md:text-lg text-black/60 max-w-xl leading-relaxed">
+          <p className="mt-6 text-base md:text-lg text-black/60 max-w-xl leading-relaxed">
             Find verified local programs near you. Select a category below to
             see what&apos;s available — nothing is submitted automatically.
           </p>
