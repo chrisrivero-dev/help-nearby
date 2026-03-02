@@ -136,11 +136,11 @@ export default function HelpPage() {
       {/* ══════════════ CATEGORY GRID ══════════════ */}
       <main className="pb-16">
         <div className="max-w-6xl mx-auto px-6 md:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-[3px] border-[3px] border-black">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-[3px] bg-black border-[3px] border-black">
             {CATEGORIES.map(({ key, number, label, Icon, tagline, items }) => (
               <div
                 key={key}
-                className="bg-white border-[3px] border-black p-6 md:p-8 flex flex-col gap-5 -m-[3px]"
+                className="bg-white p-5 md:p-6 flex flex-col gap-4"
               >
                 {/* Card header */}
                 <div className="flex items-start justify-between">
