@@ -137,18 +137,23 @@ export default function HelpPage() {
 
             {/* ── Left column: stacked panels ── */}
             <div>
-              {CATEGORIES.map(({ key, label, tagline }) => (
+              {CATEGORIES.map(({ key, number, label, tagline }) => (
                 <div
                   key={key}
-                  className="border-t-[3px] border-black last:border-b-[3px] py-6 flex justify-between items-start"
+                  className="border-t-[3px] border-black last:border-b-[3px] py-5 flex justify-between items-start gap-4"
                 >
-                  <div>
-                    <h3 className="text-base font-black uppercase tracking-tight leading-none">
-                      {label}
-                    </h3>
-                    <p className="mt-1.5 text-sm text-black/50 leading-snug max-w-xs">
-                      {tagline}
-                    </p>
+                  <div className="flex gap-4 items-start">
+                    <span className="text-[10px] font-black tracking-[0.15em] text-black/25 tabular-nums shrink-0 mt-[3px]">
+                      {number}
+                    </span>
+                    <div>
+                      <h3 className="text-base font-black uppercase tracking-tight leading-none">
+                        {label}
+                      </h3>
+                      <p className="mt-1.5 text-sm text-black/50 leading-snug max-w-xs">
+                        {tagline}
+                      </p>
+                    </div>
                   </div>
                   <FaChevronRight
                     size={13}
