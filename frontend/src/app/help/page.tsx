@@ -133,62 +133,39 @@ export default function HelpPage() {
       {/* ══════════════ CATEGORY GRID ══════════════ */}
       <main className="pb-16">
         <div className="max-w-6xl mx-auto px-6 md:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-[3px] bg-black border-[3px] border-black">
-            {CATEGORIES.map(({ key, number, label, Icon, tagline, items }) => (
-              <div
-                key={key}
-                className="bg-white p-5 md:p-6 flex flex-col gap-4"
-              >
-                {/* Card header */}
-                <div className="flex items-start justify-between">
-                  <span className="text-xs font-black tracking-[0.2em] text-black/30 uppercase">
-                    {number}
-                  </span>
-                  <Icon
-                    size={40}
-                    className="text-black/80"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+
+            {/* ── Left column: stacked panels ── */}
+            <div>
+              {CATEGORIES.map(({ key, label, tagline }) => (
+                <div
+                  key={key}
+                  className="border-t-[3px] border-black last:border-b-[3px] py-6 flex justify-between items-start"
+                >
+                  <div>
+                    <h3 className="text-base font-black uppercase tracking-tight leading-none">
+                      {label}
+                    </h3>
+                    <p className="mt-1.5 text-sm text-black/50 leading-snug max-w-xs">
+                      {tagline}
+                    </p>
+                  </div>
+                  <FaChevronRight
+                    size={13}
+                    className="text-black/25 shrink-0 mt-0.5"
                     aria-hidden="true"
                   />
                 </div>
+              ))}
+            </div>
 
-                {/* Category name */}
-                <div>
-                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight leading-none">
-                    {label}
-                  </h3>
-                  <p className="mt-2 text-sm text-black/50 leading-snug">
-                    {tagline}
-                  </p>
-                </div>
+            {/* ── Right column: preview panel ── */}
+            <div className="border-[3px] border-black min-h-[420px] bg-white flex items-center justify-center">
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">
+                Preview panel
+              </span>
+            </div>
 
-                {/* Divider */}
-                <div className="h-[2px] bg-black/10 w-full" />
-
-                {/* Subcategory list */}
-                <ul className="flex flex-col gap-2">
-                  {items.map((item) => (
-                    <li
-                      key={item}
-                      className="flex items-center justify-between
-                        px-3 py-2.5 border-[2px] border-black/10
-                        text-sm font-semibold text-black/70"
-                    >
-                      <span>{item}</span>
-                      <FaChevronRight
-                        size={11}
-                        className="text-black/25 shrink-0"
-                        aria-hidden="true"
-                      />
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Coming soon badge */}
-                <p className="text-[11px] font-black uppercase tracking-widest text-black/25 mt-auto pt-2">
-                  Interactive search — coming soon
-                </p>
-              </div>
-            ))}
           </div>
 
           {/* Fine print */}
