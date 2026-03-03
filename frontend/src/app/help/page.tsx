@@ -96,8 +96,8 @@ export default function HelpPage() {
       <section className="bg-white border-b-4 border-black py-10 md:py-14">
         <div className="max-w-6xl mx-auto px-6 md:px-8">
 
-          {/* Eyebrow */}
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-black/40 mb-4">
+          {/* Eyebrow tag */}
+          <p className="inline-flex items-center text-xs font-bold uppercase tracking-[0.15em] text-black/50 border-[2px] border-black/25 px-2.5 py-1 mb-6">
             Local assistance — housing, food, cash &amp; disaster
           </p>
 
@@ -112,11 +112,8 @@ export default function HelpPage() {
             Nearby.
           </h1>
 
-          {/* Rule */}
-          <div className="mt-8 mb-6 h-[3px] w-24 bg-black" />
-
           {/* Subtitle */}
-          <p className="text-base md:text-lg text-black/60 max-w-xl leading-relaxed">
+          <p className="mt-6 text-base md:text-lg text-black/60 max-w-xl leading-relaxed">
             Find verified local programs near you. Select a category below to
             see what&apos;s available — nothing is submitted automatically.
           </p>
@@ -136,62 +133,44 @@ export default function HelpPage() {
       {/* ══════════════ CATEGORY GRID ══════════════ */}
       <main className="pb-16">
         <div className="max-w-6xl mx-auto px-6 md:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-[3px] bg-black border-[3px] border-black">
-            {CATEGORIES.map(({ key, number, label, Icon, tagline, items }) => (
-              <div
-                key={key}
-                className="bg-white p-5 md:p-6 flex flex-col gap-4"
-              >
-                {/* Card header */}
-                <div className="flex items-start justify-between">
-                  <span className="text-xs font-black tracking-[0.2em] text-black/30 uppercase">
-                    {number}
-                  </span>
-                  <Icon
-                    size={40}
-                    className="text-black/80"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+
+            {/* ── Left column: stacked panels ── */}
+            <div>
+              {CATEGORIES.map(({ key, number, label, tagline }) => (
+                <div
+                  key={key}
+                  className="border-t-[3px] border-black last:border-b-[3px] py-5 flex justify-between items-start gap-4"
+                >
+                  <div className="flex gap-4 items-start">
+                    <span className="text-[10px] font-black tracking-[0.15em] text-black/25 tabular-nums shrink-0 mt-[3px]">
+                      {number}
+                    </span>
+                    <div>
+                      <h3 className="text-base font-black uppercase tracking-tight leading-none">
+                        {label}
+                      </h3>
+                      <p className="mt-1.5 text-sm text-black/50 leading-snug max-w-xs">
+                        {tagline}
+                      </p>
+                    </div>
+                  </div>
+                  <FaChevronRight
+                    size={13}
+                    className="text-black/25 shrink-0 mt-0.5"
                     aria-hidden="true"
                   />
                 </div>
+              ))}
+            </div>
 
-                {/* Category name */}
-                <div>
-                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight leading-none">
-                    {label}
-                  </h3>
-                  <p className="mt-2 text-sm text-black/50 leading-snug">
-                    {tagline}
-                  </p>
-                </div>
+            {/* ── Right column: preview panel ── */}
+            <div className="border-[3px] border-black min-h-[420px] bg-white flex items-center justify-center">
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">
+                Preview panel
+              </span>
+            </div>
 
-                {/* Divider */}
-                <div className="h-[2px] bg-black/10 w-full" />
-
-                {/* Subcategory list */}
-                <ul className="flex flex-col gap-2">
-                  {items.map((item) => (
-                    <li
-                      key={item}
-                      className="flex items-center justify-between
-                        px-3 py-2.5 border-[2px] border-black/10
-                        text-sm font-semibold text-black/70"
-                    >
-                      <span>{item}</span>
-                      <FaChevronRight
-                        size={11}
-                        className="text-black/25 shrink-0"
-                        aria-hidden="true"
-                      />
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Coming soon badge */}
-                <p className="text-[11px] font-black uppercase tracking-widest text-black/25 mt-auto pt-2">
-                  Interactive search — coming soon
-                </p>
-              </div>
-            ))}
           </div>
 
           {/* Fine print */}
