@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import HelpFlow from '@/components/HelpFlow';
-import { normalizeLocation } from '@/lib/location/normalizeLocation';
+import FindResources from '@/components/FindResources';
 import type { NormalizedLocation } from '@/lib/location/types';
 import ShelterResults from '@/components/results/ShelterResults';
 import Button from '@/components/Buttons';
@@ -10,6 +9,16 @@ import { FiMapPin } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /* ------ Layout styles -------------------------------- */
+const pageStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: '100vh',
+  width: '100%',
+  backgroundColor: '#fff',
+  color: '#000',
+  paddingBottom: '4rem',
+};
+
 const headerStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
@@ -60,11 +69,24 @@ const linkStyle: React.CSSProperties = {
 };
 
 const panelStyle: React.CSSProperties = {
-  backgroundColor: '#dcc3c3ff',
+  backgroundColor: 'rgb(25, 27, 53)',
   width: '100%',
-  overflow: 'auto',
+  overflow: 'hidden', // Changed from 'auto' to 'hidden'
   borderBottom: '4px solid #000',
   marginBottom: 'var(--banner-height)',
+  position: 'relative', // Added to position the panel properly
+  zIndex: 10, // Ensure it appears above content
+};
+
+// Panel content styles
+const panelContentStyle: React.CSSProperties = {
+  padding: '2rem',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  height: '100%',
+  flexDirection: 'column',
+  textAlign: 'center',
 };
 
 const mapPlaceholderStyle: React.CSSProperties = {
@@ -101,37 +123,29 @@ type HelpCategory = 'housing' | 'food' | 'cash' | 'disaster';
 
 export default function HelpPage() {
   // ✅ STATE LIVES HERE (the brain)
-  const [zip, setZip] = useState<string | null>(null);
-  const [location, setLocation] = useState<NormalizedLocation | null>(null);
   const [category, setCategory] = useState<HelpCategory | null>(null);
   const [subcategory, setSubcategory] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
 
-  const showResults = Boolean(location && category && subcategory);
+  const showResults = Boolean(category && subcategory);
 
   /* =====================
      ZIP HANDLER
   ===================== */
 
-  function handleZipSubmit(inputZip: string) {
-    const resolved = normalizeLocation(inputZip);
-
-    if (!resolved.isValid) {
-      alert('Please enter a valid ZIP code');
-      return;
-    }
-
-    setZip(inputZip);
-    setLocation(resolved);
-    localStorage.setItem('helpNearbyLocation', JSON.stringify(resolved));
-  }
+  // ZIP handling removed – location will no longer be set here
 
   /* =====================
      RENDER
   ===================== */
 
   return (
-    <div>
+    <motion.main
+      style={pageStyle}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.35 }}
+    >
       {/* Header - Match main page style */}
       <header style={headerStyle}>
         <div
@@ -147,7 +161,7 @@ export default function HelpPage() {
             </Button>
             <Button
               style={linkStyle}
-              onClick={() => (window.location.href = '/help')}
+              onClick={() => (window.location.href = '/resources')}
             >
               RESOURCES
             </Button>
@@ -224,48 +238,43 @@ export default function HelpPage() {
         </div>
       </header>
 
-      <main className="min-h-screen bg-neutral-50 flex justify-center">
-        <div className="w-full max-w-6xl px-6">
-          {/* 🔹 SHOW GRID (DEFAULT STATE) */}
-          {!showResults && (
-            <HelpFlow
-              locationReady={!!location}
-              onZipSubmit={handleZipSubmit}
-              onCategorySelect={setCategory}
-              onSubcategorySelect={setSubcategory}
-            />
-          )}
+      {/* Sliding panel - added to match main page */}
+      <AnimatePresence>
+        {panelOpen && (
+          <motion.div
+            style={panelStyle}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: '50vh', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+          >
+            {/* Panel content - empty as requested */}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          {/* 🔹 CENTERED RESULTS VIEW */}
-          {showResults &&
-            category === 'housing' &&
-            subcategory === 'shelter' && (
-              <div className="min-h-[70vh] flex items-start justify-center mt-12">
-                <div className="w-full max-w-3xl bg-white border rounded-lg shadow-lg p-6">
-                  <h3 className="text-2xl font-semibold mb-2">
-                    Shelter options near {location!.city}, {location!.stateCode}
-                  </h3>
+      {/* Zip lookup panel removed – no longer needed */}
 
-                  <p className="text-sm text-gray-600 mb-6">
-                    Showing emergency shelter options based on your ZIP code.
-                  </p>
+      {/* 🔹 SHOW GRID (DEFAULT STATE) */}
+      {!showResults && (
+        <FindResources
+          onCategorySelect={(category) => {
+            // Convert string to HelpCategory type
+            if (
+              category === 'housing' ||
+              category === 'food' ||
+              category === 'cash' ||
+              category === 'disaster'
+            ) {
+              setCategory(category);
+            }
+          }}
+          onSubcategorySelect={setSubcategory}
+        />
+      )}
 
-                  <ShelterResults location={location!} />
-
-                  <button
-                    className="mt-6 text-sm text-blue-600 hover:underline"
-                    onClick={() => {
-                      setCategory(null);
-                      setSubcategory(null);
-                    }}
-                  >
-                    ← Back to options
-                  </button>
-                </div>
-              </div>
-            )}
-        </div>
-      </main>
-    </div>
+      {/* 🔹 CENTERED RESULTS VIEW */}
+      {/* Shelter results removed – location no longer available */}
+    </motion.main>
   );
 }

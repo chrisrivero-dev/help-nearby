@@ -86,7 +86,7 @@ const pStyle: React.CSSProperties = {
 // New styles for content sections
 const contentSectionStyle: React.CSSProperties = {
   padding: '1rem',
-  border: '1px solid #fff', // white border
+  border: '10px solid #fff', // white border
   cursor: 'default',
   marginBottom: '1rem',
   width: '60%', // 60% of container width
@@ -148,7 +148,7 @@ const Header: React.FC<{
         </Button>
         <Button
           style={linkStyle}
-          onClick={() => (window.location.href = '/help')}
+          onClick={() => (window.location.href = '/resources')}
         >
           RESOURCES
         </Button>

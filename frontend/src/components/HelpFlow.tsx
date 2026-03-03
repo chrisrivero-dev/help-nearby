@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import HoverZipPrompt from '@/components/HoverZipPrompt';
 import {
   FaHome,
   FaUtensils,
@@ -10,6 +9,8 @@ import {
   FaExclamationTriangle,
   FaTimes,
   FaMapMarkerAlt,
+  FaArrowRight,
+  FaExclamationCircle,
 } from 'react-icons/fa';
 
 type HelpType = 'housing' | 'food' | 'cash' | 'disaster' | null;
@@ -121,6 +122,8 @@ export default function HelpFlow({
 }: HelpFlowProps) {
   const [hovered, setHovered] = useState<HelpType>(null);
   const [selected, setSelected] = useState<HelpType>(null);
+  const [zip, setZip] = useState('');
+  const [error, setError] = useState(false);
 
   // ✅ Must exist ABOVE return
   const handleIconClick = (key: HelpCategory) => {
@@ -144,6 +147,16 @@ export default function HelpFlow({
     onSubcategorySelect(normalizedSubcategory);
   };
 
+  const handleSubmit = () => {
+    if (!zip || zip.length < 5) {
+      setError(true);
+      return;
+    }
+
+    setError(false);
+    onZipSubmit(zip);
+  };
+
   return (
     <section className="hn-help-section">
       <div className="hn-help-container">
@@ -151,7 +164,55 @@ export default function HelpFlow({
           <div className="hn-context-label">HELP NEARBY</div>
 
           {/* ✅ ZIP prompt (calls parent via prop) */}
-          <HoverZipPrompt onZipSubmit={onZipSubmit} />
+          <div className="hn-guidance-row">
+            <span className="hn-guidance-text">See more info</span>
+
+            <div className="hn-arrow-input-bond">
+              <motion.div
+                className="hn-guidance-arrow"
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <FaArrowRight size={72} />
+              </motion.div>
+
+              <motion.div
+                className="hn-guidance-input-group"
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{
+                  duration: 0.5,
+                  ease: [0.4, 0, 0.2, 1],
+                  delay: 0.1,
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder="Enter ZIP code"
+                  value={zip}
+                  onChange={(e) => setZip(e.target.value)}
+                  maxLength={5}
+                  className="hn-guidance-input"
+                />
+
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  className="hn-guidance-btn"
+                >
+                  Go
+                </button>
+
+                {error && (
+                  <div className="hn-guidance-error">
+                    <FaExclamationCircle size={12} />
+                    <span>Enter valid ZIP</span>
+                  </div>
+                )}
+              </motion.div>
+            </div>
+          </div>
 
           <h2 className="hn-primary-instruction">
             Choose the option that best matches your situation

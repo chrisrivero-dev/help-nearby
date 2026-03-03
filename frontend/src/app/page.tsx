@@ -191,7 +191,7 @@ const Home: FC = () => {
             </Button>
             <Button
               style={linkStyle}
-              onClick={() => (window.location.href = '/help')}
+              onClick={() => (window.location.href = '/resources')}
             >
               RESOURCES
             </Button>
@@ -332,7 +332,7 @@ const Home: FC = () => {
                 alignItems: 'center',
               }}
             >
-              <div style={mapPlaceholderStyle}>I COULD BE A MAP</div>
+              <div style={mapPlaceholderStyle}>I WILL BE A MAP</div>
             </div>
           </motion.div>
         )}
