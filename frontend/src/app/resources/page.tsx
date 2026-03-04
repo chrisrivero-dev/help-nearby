@@ -1,9 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import FindResources from '@/components/FindResources';
-import type { NormalizedLocation } from '@/lib/location/types';
-import ShelterResults from '@/components/results/ShelterResults';
 import Button from '@/components/Buttons';
 import { FiMapPin } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,7 +11,7 @@ const pageStyle: React.CSSProperties = {
   flexDirection: 'column',
   minHeight: '100vh',
   width: '100%',
-  backgroundColor: '#fff',
+  backgroundColor: '#f3f3f3',
   color: '#000',
   paddingBottom: '4rem',
 };
@@ -112,10 +109,17 @@ const activeShadowStyle: React.CSSProperties = {
 };
 
 /* =====================
-   TYPES
+   TYPES & DATA
 ===================== */
 
-type HelpCategory = 'housing' | 'food' | 'cash' | 'disaster';
+type HelpCategory = 'housing' | 'food' | 'safety' | 'finance';
+
+const SUB_OPTIONS: Record<HelpCategory, string[]> = {
+  housing:  ['Emergency Shelter', 'Rent Assistance', 'Temporary Housing'],
+  food:     ['Food Banks', 'Free Meals', 'SNAP Enrollment'],
+  safety:   ['Domestic Violence Help', 'Emergency Services', 'Crisis Lines'],
+  finance:  ['Cash Assistance', 'Utility Help', 'Debt Counseling'],
+};
 
 /* =====================
    PAGE
@@ -126,8 +130,6 @@ export default function HelpPage() {
   const [category, setCategory] = useState<HelpCategory | null>(null);
   const [subcategory, setSubcategory] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
-
-  const showResults = Boolean(category && subcategory);
 
   /* =====================
      ZIP HANDLER
@@ -253,28 +255,145 @@ export default function HelpPage() {
         )}
       </AnimatePresence>
 
-      {/* Zip lookup panel removed – no longer needed */}
+      {/* ── Main content (max-width container) ─────────────────── */}
+      <div style={{ maxWidth: '1100px', width: '100%', margin: '0 auto', padding: '0 2rem' }}>
 
-      {/* 🔹 SHOW GRID (DEFAULT STATE) */}
-      {!showResults && (
-        <FindResources
-          onCategorySelect={(category) => {
-            // Convert string to HelpCategory type
-            if (
-              category === 'housing' ||
-              category === 'food' ||
-              category === 'cash' ||
-              category === 'disaster'
-            ) {
-              setCategory(category);
-            }
-          }}
-          onSubcategorySelect={setSubcategory}
-        />
-      )}
+        {/* ── Category cards ──────────────────────────────────── */}
+        <div style={{ display: 'flex', gap: '1.25rem', marginTop: '2rem' }}>
+          {(Object.keys(SUB_OPTIONS) as HelpCategory[]).map((cat) => {
+            const isActive = category === cat;
+            return (
+              <div key={cat} style={{ position: 'relative', flex: 1, height: '80px' }}>
+                {/* Brutalist offset shadow */}
+                <div style={{
+                  position: 'absolute', backgroundColor: '#000',
+                  width: '100%', height: '100%',
+                  zIndex: 0, left: '-5px', top: '5px',
+                }} />
+                <button
+                  onClick={() => { setCategory(isActive ? null : cat); setSubcategory(null); }}
+                  aria-pressed={isActive}
+                  style={{
+                    position: 'relative', zIndex: 1,
+                    width: '100%', height: '100%',
+                    backgroundColor: isActive ? '#000' : '#fff',
+                    color: isActive ? '#fff' : '#000',
+                    border: `${isActive ? '4px' : '3px'} solid #000`,
+                    boxShadow: isActive ? 'none' : undefined,
+                    fontWeight: 700, fontSize: '1.1rem', letterSpacing: '0.08em',
+                    textTransform: 'uppercase', cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {cat.toUpperCase()}
+                </button>
+              </div>
+            );
+          })}
+        </div>
 
-      {/* 🔹 CENTERED RESULTS VIEW */}
-      {/* Shelter results removed – location no longer available */}
+        {/* ── Sub-options + preview panel ─────────────────────── */}
+        <AnimatePresence initial={false}>
+          {category && (
+            <motion.div
+              key={category}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.35, ease: 'easeInOut' }}
+              style={{ overflow: 'hidden', marginTop: '1.25rem' }}
+            >
+              <div style={{ border: '3px solid #000', backgroundColor: '#fff', display: 'flex' }}>
+
+                {/* Left: sub-option buttons */}
+                <div style={{
+                  width: '220px', flexShrink: 0,
+                  borderRight: '3px solid #000',
+                  backgroundColor: '#f3f3f3',
+                  display: 'flex', flexDirection: 'column',
+                }}>
+                  <p style={{
+                    fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.15em',
+                    textTransform: 'uppercase', padding: '0.75rem 1rem',
+                    borderBottom: '2px solid #000', margin: 0, color: '#666',
+                  }}>
+                    {category.toUpperCase()} — SELECT TOPIC
+                  </p>
+                  {SUB_OPTIONS[category].map((sub) => {
+                    const isSubActive = subcategory === sub;
+                    return (
+                      <button
+                        key={sub}
+                        onClick={() => setSubcategory(sub)}
+                        aria-pressed={isSubActive}
+                        style={{
+                          padding: '0.85rem 1rem', textAlign: 'left',
+                          fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.03em',
+                          cursor: 'pointer', border: 'none', borderBottom: '1px solid #000',
+                          backgroundColor: isSubActive ? '#000' : 'transparent',
+                          color: isSubActive ? '#fff' : '#000',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        {sub}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Right: results preview */}
+                <div style={{
+                  flex: 1, padding: '1.5rem', minHeight: '200px',
+                  display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                }}>
+                  <AnimatePresence initial={false} mode="wait">
+                    {subcategory ? (
+                      <motion.div
+                        key={subcategory}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <p style={{
+                          fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.15em',
+                          textTransform: 'uppercase', color: '#666', marginBottom: '0.5rem',
+                        }}>
+                          PREVIEW
+                        </p>
+                        <p style={{ fontSize: '1.25rem', fontWeight: 700, lineHeight: 1.3 }}>
+                          Showing local {category.charAt(0).toUpperCase() + category.slice(1)} resources for{' '}
+                          <span style={{ borderBottom: '3px solid #000' }}>{subcategory}</span>.
+                        </p>
+                        <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#555' }}>
+                          API connection coming soon — results will appear here.
+                        </p>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="empty"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{ textAlign: 'center', color: '#bbb' }}
+                      >
+                        <p style={{
+                          fontSize: '1rem', fontWeight: 700,
+                          letterSpacing: '0.08em', textTransform: 'uppercase',
+                        }}>
+                          ← Select a topic
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </div>{/* end max-width container */}
     </motion.main>
   );
 }
