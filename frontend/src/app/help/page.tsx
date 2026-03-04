@@ -63,7 +63,7 @@ const CATEGORIES = [
 
 export default function HelpPage() {
   return (
-    <div className="min-h-screen bg-[#eef0f2]">
+    <div>
 
       {/* ══════════════ NAV ══════════════ */}
       <nav className="flex items-center justify-between px-6 md:px-10 py-4 bg-[#e4e9ef] border-b-4 border-black">
@@ -91,6 +91,8 @@ export default function HelpPage() {
           ))}
         </div>
       </nav>
+
+      <div className="bg-white text-black min-h-screen">
 
       {/* ══════════════ HERO ══════════════ */}
       <section className="bg-white border-b-4 border-black py-10 md:py-14">
@@ -189,6 +191,8 @@ export default function HelpPage() {
         </span>
         <FaMapMarkerAlt className="text-3xl text-black/70" aria-hidden="true" />
       </footer>
+
+      </div>{/* /bg-white */}
 
     </div>
   );
