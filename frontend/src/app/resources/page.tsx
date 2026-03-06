@@ -210,76 +210,6 @@ const RESOURCE_DATA: Record<HelpCategory, Record<string, ResourceLink[]>> = {
 
 type LocalEntry = { title: string; url: string };
 
-const LOCAL_RESOURCES: Record<HelpCategory, Record<string, LocalEntry[]>> = {
-  housing: {
-    'Emergency Shelter': [
-      { title: 'Local Rescue Mission',        url: 'https://www.cityrescuemission.com' },
-      { title: 'County Emergency Shelter',    url: 'https://www.hud.gov/findhelp' },
-      { title: '211 Local Shelter Finder',    url: 'https://www.211.org' },
-    ],
-    'Rent Assistance': [
-      { title: 'County Housing Authority',    url: 'https://www.hud.gov/program_offices/public_indian_housing/pha/contacts' },
-      { title: 'Local Legal Aid — Rental',    url: 'https://www.lawhelp.org' },
-      { title: '211 Local Rent Help',         url: 'https://www.211.org' },
-    ],
-    'Temporary Housing': [
-      { title: 'Local YMCA Transitional Housing', url: 'https://www.ymca.org' },
-      { title: 'County Social Services',          url: 'https://www.benefits.gov' },
-      { title: '211 Transitional Housing',        url: 'https://www.211.org' },
-    ],
-  },
-  food: {
-    'Food Banks': [
-      { title: 'Local Food Bank',             url: 'https://www.feedingamerica.org/find-your-local-foodbank' },
-      { title: 'County Food Pantry Network',  url: 'https://www.foodpantries.org' },
-      { title: '211 Local Food Programs',     url: 'https://www.211.org' },
-    ],
-    'Free Meals': [
-      { title: 'Local Soup Kitchen',          url: 'https://www.salvationarmyusa.org' },
-      { title: 'Meals on Wheels Local',       url: 'https://www.mealsonwheelsamerica.org/find-a-program' },
-      { title: '211 Free Meals Near You',     url: 'https://www.211.org' },
-    ],
-    'SNAP Enrollment': [
-      { title: 'County SNAP Office',          url: 'https://www.fns.usda.gov/snap/state-directory' },
-      { title: 'Benefits.gov SNAP Screener',  url: 'https://www.benefits.gov/benefit/361' },
-      { title: '211 SNAP Enrollment Help',    url: 'https://www.211.org' },
-    ],
-  },
-  safety: {
-    'Domestic Violence Help': [
-      { title: 'Local DV Shelter',            url: 'https://www.thehotline.org/get-help/' },
-      { title: 'Legal Aid — DV Cases',        url: 'https://www.lawhelp.org' },
-      { title: 'National DV Hotline',         url: 'https://www.thehotline.org' },
-    ],
-    'Emergency Services': [
-      { title: 'County Emergency Management', url: 'https://www.ready.gov' },
-      { title: 'Local Red Cross Chapter',     url: 'https://www.redcross.org/local' },
-      { title: '211 Emergency Services',      url: 'https://www.211.org' },
-    ],
-    'Crisis Lines': [
-      { title: 'Local Crisis Center',         url: 'https://988lifeline.org' },
-      { title: '988 Suicide & Crisis Line',   url: 'https://988lifeline.org' },
-      { title: 'Crisis Text Line',            url: 'https://www.crisistextline.org' },
-    ],
-  },
-  finance: {
-    'Cash Assistance': [
-      { title: 'County Assistance Office',        url: 'https://www.benefits.gov' },
-      { title: 'Local Salvation Army Aid',        url: 'https://www.salvationarmyusa.org/usn/financial-assistance/' },
-      { title: '211 Local Financial Aid',         url: 'https://www.211.org' },
-    ],
-    'Utility Help': [
-      { title: 'Local LIHEAP Office',             url: 'https://liheapch.acf.hhs.gov/Grantees/grantees.htm' },
-      { title: 'County Utility Assistance',       url: 'https://www.benefits.gov' },
-      { title: '211 Utility Help Programs',       url: 'https://www.211.org' },
-    ],
-    'Debt Counseling': [
-      { title: 'Local Credit Counseling Center',  url: 'https://www.nfcc.org/find-a-counselor/' },
-      { title: 'Legal Aid — Debt Issues',         url: 'https://www.lawhelp.org' },
-      { title: '211 Financial Counseling',        url: 'https://www.211.org' },
-    ],
-  },
-};
 
 /* =====================
    PAGE
@@ -296,6 +226,7 @@ export default function HelpPage() {
   const previewRef = useRef<HTMLDivElement>(null);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [resolvedLocation, setResolvedLocation] = useState<{ city: string; stateCode: string } | null>(null);
+  const [localResources, setLocalResources] = useState<LocalEntry[]>([]);
 
   useEffect(() => {
     const zip = locationZip.replace(/\D/g, '').slice(0, 5);
@@ -304,6 +235,25 @@ export default function HelpPage() {
       setResolvedLocation(loc.isValid ? { city: loc.city, stateCode: loc.stateCode } : null);
     });
   }, [locationZip]);
+
+  async function fetchLocalResources(
+    cat: HelpCategory,
+    sub: string,
+    city: string,
+    state: string,
+  ): Promise<LocalEntry[]> {
+    const params = new URLSearchParams({ category: cat, subcategory: sub, city, state });
+    const res = await fetch(`/api/local-resources?${params}`);
+    if (!res.ok) return [];
+    return res.json() as Promise<LocalEntry[]>;
+  }
+
+  useEffect(() => {
+    if (!resolvedLocation || !category || !subcategory) { setLocalResources([]); return; }
+    fetchLocalResources(category, subcategory, resolvedLocation.city, resolvedLocation.stateCode)
+      .then(setLocalResources);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvedLocation, category, subcategory]);
 
   /* =====================
      RENDER
@@ -612,7 +562,7 @@ export default function HelpPage() {
                         </p>
 
                         {/* ── Local resources (ZIP-resolved) ──────── */}
-                        {resolvedLocation && (LOCAL_RESOURCES[category as HelpCategory]?.[subcategory!] ?? []).length > 0 && (
+                        {resolvedLocation && localResources.length > 0 && (
                           <div style={{
                             marginBottom: '1.25rem', paddingBottom: '1rem',
                             borderBottom: '2px solid #000',
@@ -626,7 +576,7 @@ export default function HelpPage() {
                               LOCAL RESOURCES — {resolvedLocation.city}, {resolvedLocation.stateCode}
                             </p>
                             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                              {(LOCAL_RESOURCES[category as HelpCategory]?.[subcategory!] ?? []).map((entry) => (
+                              {localResources.map((entry) => (
                                 <li key={entry.url}>
                                   <a
                                     href={entry.url}
