@@ -227,6 +227,7 @@ export default function HelpPage() {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [resolvedLocation, setResolvedLocation] = useState<{ city: string; stateCode: string } | null>(null);
   const [localResources, setLocalResources] = useState<LocalEntry[]>([]);
+  const [loadingResources, setLoadingResources] = useState(false);
 
   useEffect(() => {
     const zip = locationZip.replace(/\D/g, '').slice(0, 5);
@@ -250,8 +251,10 @@ export default function HelpPage() {
 
   useEffect(() => {
     if (!resolvedLocation || !category || !subcategory) { setLocalResources([]); return; }
+    setLoadingResources(true);
     fetchLocalResources(category, subcategory, resolvedLocation.city, resolvedLocation.stateCode)
-      .then(setLocalResources);
+      .then(setLocalResources)
+      .finally(() => setLoadingResources(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedLocation, category, subcategory]);
 
@@ -433,11 +436,21 @@ export default function HelpPage() {
               whiteSpace: 'nowrap',
             }}>
               {locationZip.trim() !== ''
-                ? `Showing results near ZIP ${locationZip.trim()}`
+                ? resolvedLocation
+                  ? `Showing results near ${resolvedLocation.city}, ${resolvedLocation.stateCode} (${locationZip.trim()})`
+                  : `Showing results near ZIP ${locationZip.trim()}`
                 : 'Showing results near your current location'}
             </span>
           )}
         </div>
+
+        {/* ── Page description ────────────────────────────────── */}
+        <p style={{
+          fontSize: '0.8rem', fontWeight: 600, color: '#555',
+          marginTop: '0.65rem', marginBottom: 0, letterSpacing: '0.02em', lineHeight: 1.5,
+        }}>
+          Enter your ZIP code, pick a category, and find local and national resources near you.
+        </p>
 
         {/* ── Category cards ──────────────────────────────────── */}
         <div style={{ display: 'flex', gap: '1.25rem', marginTop: '1.25rem' }}>
@@ -562,7 +575,7 @@ export default function HelpPage() {
                         </p>
 
                         {/* ── Local resources (ZIP-resolved) ──────── */}
-                        {resolvedLocation && localResources.length > 0 && (
+                        {resolvedLocation && (loadingResources || localResources.length > 0 || (!loadingResources && localResources.length === 0)) && (
                           <div style={{
                             marginBottom: '1.25rem', paddingBottom: '1rem',
                             borderBottom: '2px solid #000',
@@ -575,23 +588,39 @@ export default function HelpPage() {
                             }}>
                               LOCAL RESOURCES — {resolvedLocation.city}, {resolvedLocation.stateCode}
                             </p>
-                            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                              {localResources.map((entry) => (
-                                <li key={entry.url}>
-                                  <a
-                                    href={entry.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={{
-                                      fontSize: '0.85rem', fontWeight: 700, color: '#000',
-                                      textDecoration: 'none', borderBottom: '1px solid #000',
-                                    }}
-                                  >
-                                    • {entry.title} ↗
-                                  </a>
-                                </li>
-                              ))}
-                            </ul>
+                            {loadingResources ? (
+                              <p style={{
+                                fontSize: '0.8rem', fontWeight: 600, color: '#666',
+                                margin: 0, letterSpacing: '0.04em',
+                              }}>
+                                Finding resources near you…
+                              </p>
+                            ) : localResources.length === 0 ? (
+                              <p style={{
+                                fontSize: '0.8rem', fontWeight: 600, color: '#666',
+                                margin: 0, letterSpacing: '0.04em',
+                              }}>
+                                No local results found for this area. Try the national resources below.
+                              </p>
+                            ) : (
+                              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                {localResources.map((entry) => (
+                                  <li key={entry.url}>
+                                    <a
+                                      href={entry.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      style={{
+                                        fontSize: '0.85rem', fontWeight: 700, color: '#000',
+                                        textDecoration: 'none', borderBottom: '1px solid #000',
+                                      }}
+                                    >
+                                      • {entry.title} ↗
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
                           </div>
                         )}
 
