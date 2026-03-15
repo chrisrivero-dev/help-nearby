@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Title from '@/components/Title';
 import MapPanel from '@/components/MapPanel';
+import Navbar from '@/components/Navbar';
+import { MapProvider } from '@/components/MapPanel';
 
 // Styles
 const pageStyle: React.CSSProperties = {
@@ -20,25 +22,26 @@ const pageStyle: React.CSSProperties = {
   position: 'relative',
   overflowX: 'hidden',
 };
-
+ 
 const Home: FC = () => {
   return (
-    <motion.main
-      style={pageStyle}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.35 }}
-    >
-      {/* Top Left Nav Links */}
-      <Header />
+    <MapProvider>
+      <motion.main
+        style={pageStyle}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35 }}
+      >
+        {/* Floating Map Panel */}
+        <MapPanel />
 
-      {/* Title in header center */}
-      <Title />
+        {/* Title in header center */}
+        <Title />
 
-      {/* Floating Map Panel */}
-      <MapPanel />
+        <Navbar />
 
-    </motion.main>
+      </motion.main>
+    </MapProvider>
   );
 };
 

@@ -1,4 +1,4 @@
-export interface NormalizedLocation {
+export interface ZipCodeLocation {
   zipCode: string;
   city: string;
   stateCode: string;
@@ -8,12 +8,12 @@ export interface NormalizedLocation {
 }
 
 // In-memory cache — avoids repeated network calls for the same ZIP
-const _cache = new Map<string, NormalizedLocation>();
+const _cache = new Map<string, ZipCodeLocation>();
 
-export async function normalizeLocation(zip: string): Promise<NormalizedLocation> {
+export async function lookupZipCode(zip: string): Promise<ZipCodeLocation> {
   const cleanZip = zip.replace(/\D/g, '').slice(0, 5);
 
-  const fallback: NormalizedLocation = {
+  const fallback: ZipCodeLocation = {
     zipCode: cleanZip,
     city: 'Unknown',
     stateCode: 'US',
@@ -41,19 +41,19 @@ export async function normalizeLocation(zip: string): Promise<NormalizedLocation
       return fallback;
     }
 
-    const result: NormalizedLocation = {
+    const result: ZipCodeLocation = {
       zipCode: cleanZip,
-      city:       place['place name']         ?? 'Unknown',
-      stateCode:  place['state abbreviation'] ?? 'US',
-      latitude:   lat,
-      longitude:  lng,
+      city: place['place name'] ?? 'Unknown',
+      stateCode: place['state abbreviation'] ?? 'US',
+      latitude: lat,
+      longitude: lng,
       isValid: true,
     };
 
     _cache.set(cleanZip, result);
     return result;
   } catch (error) {
-    console.error('Error normalizing location:', error);
+    console.error('Error looking up zip code:', error);
     return fallback;
   }
 }
