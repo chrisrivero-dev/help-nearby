@@ -109,7 +109,7 @@ const containerStyle: React.CSSProperties = {
   width: '100%',
   margin: '0 auto',
   padding: '0 2rem',
-  paddingTop: '300px',  // Position content 300px from the top
+  paddingTop: '160px',  // Position content 300px from the top
 };
 
 const locationInputStyle: React.CSSProperties = {

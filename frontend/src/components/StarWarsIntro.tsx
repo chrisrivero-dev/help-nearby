@@ -6,10 +6,14 @@ import OurStory from './OurStory';
 
 interface StarWarsIntroProps {
   onAnimationComplete?: () => void;
+  panelHeight?: string;
+  panelWidth?: string;
 }
 
 const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
   onAnimationComplete,
+  panelHeight = 'auto',
+  panelWidth = 'min(1600px, max(200px, calc(100vw - 150px)))',
 }) => {
   const [showOurStory, setShowOurStory] = useState(false);
   const posRef = useRef({ x: 0, y: 0 });
@@ -120,18 +124,23 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
     };
   }, []);
 
+  const containerStyle: React.CSSProperties = {
+    width: panelWidth,
+    aspectRatio: '21/9',
+    border: '2px solid black',
+    boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
+    cursor: 'none',
+    overflow: 'hidden',
+    background: '#07070b',
+    position: 'fixed',
+    top: '200px',
+    left: '75px',
+    right: '75px',
+  };
+
   return (
     <div
-      style={{
-        width: '100%',
-        height: '100%',
-        cursor: 'none',
-        overflow: 'hidden',
-        background: '#07070b',
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
+      style={containerStyle}
     >
       {/* Lightsaber cursor */}
       <motion.div
@@ -204,6 +213,8 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
               lineHeight: 2,
               fontWeight: 600,
               fontSize: '22px',
+              height: '100%',
+              overflow: 'hidden',
             }}
           >
             {textContent.map((item, index) => (

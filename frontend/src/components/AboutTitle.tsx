@@ -3,22 +3,20 @@
 import type { FC } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 const titleContainerStyle: React.CSSProperties = {
   position: 'fixed',
   top: '60px',
   left: '30px',
-  width: 'min(90vw, 800px)',
   zIndex: 40,
 };
 
 const titleWrapperStyle: React.CSSProperties = {
   position: 'relative',
-  width: '100%',
   display: 'flex',
   alignItems: 'center',
-  gap: '10px',
+  gap: '20px',
 };
 
 const titleStyle: React.CSSProperties = {
@@ -28,7 +26,6 @@ const titleStyle: React.CSSProperties = {
   color: '#000',
   padding: '0.5rem 0',
   fontSize: '4rem',
-  whiteSpace: 'nowrap',
 };
 
 const titleLinkStyle: React.CSSProperties = {
@@ -36,7 +33,7 @@ const titleLinkStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-const ResourcesTitle: FC = () => {
+const AboutTitle: FC = () => {
   const [isClicked, setIsClicked] = useState(false);
 
   const handlePinClick = () => {
@@ -55,9 +52,11 @@ const ResourcesTitle: FC = () => {
       animate={{ opacity: 1, x: 0, y: 0, zIndex: 3 }}
       transition={{ duration: 0.7, ease: 'easeOut' }}
     >
-      <div style={titleWrapperStyle}>
+      <div style={{ ...titleWrapperStyle }}>
         <div style={titleStyle}>
-          <span style={titleLinkStyle}>
+          <span
+            style={titleLinkStyle}
+          >
             <motion.span
               style={{ display: 'inline-block', cursor: 'pointer' }}
               whileHover={{
@@ -68,7 +67,7 @@ const ResourcesTitle: FC = () => {
                 transition: { duration: 0.1 },
               }}
             >
-              RESOURCES!
+              ABOUT!
             </motion.span>{' '}
             <span>NEARBY.</span>
           </span>
@@ -102,4 +101,4 @@ const ResourcesTitle: FC = () => {
   );
 };
 
-export default ResourcesTitle;
+export default AboutTitle;
