@@ -10,7 +10,7 @@ const OurStory = () => {
     // Trigger fade-in animation with 16 second delay after component mounts
     const timer = setTimeout(() => {
       setIsVisible(true);
-    }, 20000); // 16 second delay as specified
+    }, 20000); // 20 second delay
 
     return () => clearTimeout(timer);
   }, []);
@@ -20,70 +20,24 @@ const OurStory = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: isVisible ? 1 : 0 }}
       transition={{ duration: 2, ease: 'easeInOut' }}
-      style={{
-        width: '100%',
-        height: '100%',
-        background: 'transparent',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000,
-        overflow: 'hidden',
-        flex: 1, // Allow flex behavior
-        position: 'relative', // Changed from absolute to relative
-        boxSizing: 'border-box', // Ensure padding doesn't affect dimensions
-      }}
+      className="relative z-[1000] flex h-full w-full items-center justify-center overflow-hidden"
     >
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: isVisible ? 1 : 0 }}
         transition={{ duration: 1.5, ease: 'easeOut' }}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          maxWidth: '1200px',
-          width: '90%',
-          gap: '40px',
-          padding: '20px',
-          borderRadius: '10px',
-          position: 'relative',
-          transform: 'translateZ(0)',
-          flex: 1, // Allow flex behavior
-          boxSizing: 'border-box', // Ensure padding doesn't affect dimensions
-        }}
+        className="relative flex w-[90%] max-w-[1200px] flex-1 items-center gap-10 rounded-lg p-5"
       >
-        <div style={{ flex: '0 0 auto' }}>
-          <div
-            style={{
-              position: 'relative',
-              background: '#000',
-              padding: '8px',
-            }}
-          >
+        <div className="flex-none">
+          <div className="relative bg-black p-2">
             <img
               src="/images/ourstory.jpg"
               alt="Our story"
-              style={{
-                width: '300px',
-                height: '300px',
-                objectFit: 'cover',
-                display: 'block',
-                flex: 'none', // Prevent image from shrinking
-              }}
+              className="h-[300px] w-[300px] object-cover flex-none"
             />
           </div>
         </div>
-        <div
-          style={{
-            flex: 1,
-            color: '#ffffff',
-            fontSize: '24px',
-            lineHeight: '1.6',
-            fontWeight: 400,
-            letterSpacing: '0.05em',
-            textAlign: 'left',
-          }}
-        >
+        <div className="flex-1 text-white text-lg leading-6 font-light tracking-[0.05em] text-left">
           <p>
             conquering Ha Long Bary after help by an old cat lady, a internet
             travel forum, and 2 young people along the hike up the mountain

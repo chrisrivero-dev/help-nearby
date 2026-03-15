@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Button from '@/components/Buttons';
+import Link from 'next/link';
 import { FiMapPin } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { normalizeLocation } from '@/lib/location/normalizeLocation';
@@ -274,26 +274,26 @@ export default function HelpPage() {
         <div
           style={{ display: 'flex', flexDirection: 'column', width: '100%' }}
         >
-          {/* Buttons row above title and map pin */}
+          {/* Navigation row above title and map pin */}
           <div style={linkContainerStyle}>
-            <Button
-              style={linkStyle}
-              onClick={() => (window.location.href = '/')}
+            <Link
+              href="/"
+              style={{ ...linkStyle, backgroundColor: 'transparent', border: 'none' }}
             >
               HOME
-            </Button>
-            <Button
-              style={linkStyle}
-              onClick={() => (window.location.href = '/resources')}
+            </Link>
+            <Link
+              href="/resources"
+              style={{ ...linkStyle, backgroundColor: 'transparent', border: 'none' }}
             >
               RESOURCES
-            </Button>
-            <Button
-              style={linkStyle}
-              onClick={() => (window.location.href = '/about')}
+            </Link>
+            <Link
+              href="/about"
+              style={{ ...linkStyle, backgroundColor: 'transparent', border: 'none' }}
             >
               ABOUT
-            </Button>
+            </Link>
           </div>
 
           {/* Title and map pin container */}

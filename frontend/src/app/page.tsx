@@ -1,174 +1,85 @@
 'use client';
 
-import { useState, useEffect, KeyboardEvent } from 'react';
 import type { FC } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import MovingBanner from '@/components/MovingBanner';
-import { FiMapPin } from 'react-icons/fi';
-import Button from '@/components/Buttons';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
 
-/* ------ Layout styles -------------------------------- */
-
+// Styles
 const pageStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   minHeight: '100vh',
   width: '100%',
-  backgroundColor: '#fff',
+  backgroundColor: '#f5f5f5',
   color: '#000',
   paddingBottom: '4rem',
+  fontSize: '16px',
+  position: 'relative',
+  overflowX: 'hidden',
 };
 
-const headerStyle: React.CSSProperties = {
+const navContainerStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: '2rem',
+  right: '2rem',
   display: 'flex',
-  alignItems: 'center',
-  width: '100%',
-  padding: '1rem 2rem',
-  backgroundColor: '#e6ecf1ff',
-  borderBottom: '4px solid #000',
-};
-
-const titleStyle: React.CSSProperties = {
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  textAlign: 'left',
-  color: '#000',
-  padding: '0.5rem',
-  fontSize: 'clamp(2rem, 8vw, 12vh)',
-};
-
-const headerIconStyle: React.CSSProperties = {
-  fontSize: 'clamp(4rem, 8vw, 10rem)',
-  cursor: 'pointer',
-};
-
-const linkContainerStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'row', // buttons in line horizontally
-  gap: '1rem', // space between buttons
-  fontSize: '1.25rem',
-  marginLeft: 'auto',
-  marginRight: 'auto',
-  alignItems: 'center', // center buttons vertically
-  height: '100%',
-  justifyContent: 'center', // center the buttons horizontally in the container
-};
-
-const linkStyle: React.CSSProperties = {
-  display: 'flex',
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  whiteSpace: 'nowrap',
-  minWidth: '8rem',
-  color: '#000',
-  backgroundColor: '#fff',
-  border: '4px solid #000',
-  padding: '0.25rem 0',
-  textDecoration: 'none',
+  gap: '0.5rem',
+  zIndex: 100,
 };
 
 const panelStyle: React.CSSProperties = {
-  backgroundColor: '#dcc3c3ff',
-  width: '100%',
-  overflow: 'auto',
-  borderBottom: '4px solid #000',
-  marginBottom: 'var(--banner-height)',
+  backgroundColor: '#f5f5f5',
+  width: 'min(90vw, 900px)',
+  aspectRatio: '4/3',
+  border: '2px solid Black',
+  borderRadius: '12px',
+  boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
+  zIndex: 50,
+  padding: '1.5rem',
+  position: 'fixed',
+  top: '50%',
+  left: '50%',
+  translate: '-50% -50%',
 };
 
-const mapPlaceholderStyle: React.CSSProperties = {
-  fontSize: 'clamp(2rem, 10vw, 5rem)',
-  fontWeight: 700,
-  color: '#000',
-  backgroundColor: '#fff',
-  border: '4px solid #000',
-  padding: '1rem 2rem',
-  textAlign: 'center',
-};
-
-const activeShadowStyle: React.CSSProperties = {
+const titleContainerStyle: React.CSSProperties = {
   position: 'absolute',
-  top: 'calc(100% + 4px)', // distance below the icon (tweak if needed)
-  left: 0,
-  right: 0,
-  margin: '0 auto', // forces horizontal centering
-  width: '4rem',
-  height: '1.2rem',
-  backgroundColor: '#000', // solid black
-  borderRadius: '50%',
+  top: '50%',
+  left: '50%',
+  width: 'min(90vw, 900px)',
+  zIndex: 40,
 };
 
-const fixedBannerStyle: React.CSSProperties = {
-  position: 'fixed',
-  left: 0,
-  right: 0,
-  bottom: 0,
-  marginTop: '1rem',
+const titleWrapperStyle: React.CSSProperties = {
+  position: 'relative',
+  width: '100%',
+  maxWidth: '600px',
 };
 
-const modalOverlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: 'rgba(0,0,0,0.4)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 1000,
+const titleStyle: React.CSSProperties = {
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  textAlign: 'left',
+  color: '#000',
+  padding: '0.5rem 0',
+  fontSize: '4rem',
+  position: 'absolute',
+  top: '-3.5rem',
+  left: '0',
 };
 
-const modalContentStyle: React.CSSProperties = {
-  backgroundColor: '#fff',
-  border: '4px solid #000',
-  padding: '2rem',
-  maxWidth: '90%',
-  width: '800px',
-  boxShadow: '0 4px 12px rgba(0,0,0,.3)',
+const titleLinkStyle: React.CSSProperties = {
+  display: 'inline-block',
+  cursor: 'pointer',
+};
+
+const navLinkStyle: React.CSSProperties = {
+  textDecoration: 'none',
+  padding: '0.5rem 1rem',
+  fontWeight: 500,
 };
 
 const Home: FC = () => {
-  const [panelOpen, setPanelOpen] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [newMessage, setNewMessage] = useState('');
-  const [announcements, setAnnouncements] = useState<string[]>([]);
-
-  /* ------ Load / persist announcements (optional) ------ */
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const stored = localStorage.getItem('announcements');
-    if (stored) {
-      try {
-        setAnnouncements(JSON.parse(stored));
-      } catch {
-        setAnnouncements([]);
-      }
-    } else {
-      setAnnouncements([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem('announcements', JSON.stringify(announcements));
-  }, [announcements]);
-
-  /* ------ Handlers for the modal ------ */
-  const handleAdd = () => {
-    if (!newMessage.trim()) return;
-    setAnnouncements((prev) => [...prev, newMessage.trim()]);
-    setNewMessage('');
-    setModalOpen(false);
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAdd();
-    }
-  };
-
   return (
     <motion.main
       style={pageStyle}
@@ -176,173 +87,75 @@ const Home: FC = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
     >
-      {/* ----- Header ----- */}
-      <header style={headerStyle}>
-        <div
-          style={{ display: 'flex', flexDirection: 'column', width: '100%' }}
+      {/* Top Right Nav Links */}
+      <div style={navContainerStyle}>
+        <motion.div
+          style={{ ...navLinkStyle, cursor: 'pointer', color: '#000' }}
+          whileHover={{
+            backgroundColor: '#000',
+            color: '#fff',
+            borderRadius: '4px',
+          }}
         >
-          {/* Buttons row above title and icon */}
-          <div style={linkContainerStyle}>
-            <Button
-              style={linkStyle}
-              onClick={() => (window.location.href = '/')}
-            >
-              HOME
-            </Button>
-            <Button
-              style={linkStyle}
-              onClick={() => (window.location.href = '/resources')}
-            >
-              RESOURCES
-            </Button>
-            <Button
-              style={linkStyle}
-              onClick={() => (window.location.href = '/about')}
-            >
-              ABOUT
-            </Button>
-          </div>
+          <Link href="/" style={{ color: 'inherit', textDecoration: 'none', fontWeight: 500 }}>HOME</Link>
+        </motion.div>
+        <motion.div
+          style={{ ...navLinkStyle, cursor: 'pointer', color: '#000' }}
+          whileHover={{
+            backgroundColor: '#000',
+            color: '#fff',
+            borderRadius: '4px',
+          }}
+        >
+          <Link href="/resources" style={{ color: 'inherit', textDecoration: 'none', fontWeight: 500 }}>RESOURCES</Link>
+        </motion.div>
+        <motion.div
+          style={{ ...navLinkStyle, cursor: 'pointer', color: '#000' }}
+          whileHover={{
+            backgroundColor: '#000',
+            color: '#fff',
+            borderRadius: '4px',
+          }}
+        >
+          <Link href="/about" style={{ color: 'inherit', textDecoration: 'none', fontWeight: 500 }}>ABOUT</Link>
+        </motion.div>
+      </div>
 
-          {/* Title and icon container */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%',
-            }}
-          >
-            <motion.div
-              style={titleStyle}
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              transition={{ duration: 0.8, ease: 'easeInOut' }}
-            >
-              <motion.span
-                style={{ display: 'inline-block', cursor: 'pointer' }}
-                whileHover={{
-                  backgroundColor: '#ff0000ff',
-                  color: '#fff',
-                  transition: { duration: 0.2 },
-                }}
-                onClick={() => setModalOpen(true)}
+      {/* Floating Map Panel */}
+      <motion.div
+        style={panelStyle}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
+        {/* Title and Map Pin Container - visible and sitting above the panel */}
+        <div
+          style={{ ...titleContainerStyle, position: 'absolute', top: '-3rem', left: '0', width: '100%' }}
+        >
+          <div style={{ ...titleWrapperStyle, display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+            <div style={titleStyle}>
+              <span
+                style={titleLinkStyle}
               >
-                HELP!
-              </motion.span>{' '}
-              <span>NEARBY.</span>
-            </motion.div>
-
-            {/* Wrapper now carries the same left‑margin as the icon */}
-            <div style={{ position: 'relative', marginLeft: '1rem' }}>
-              <motion.div
-                onClick={() => setPanelOpen((o) => !o)}
-                style={headerIconStyle}
-                initial={{ y: -800, opacity: 0 }}
-                animate={{
-                  y: 0,
-                  opacity: 1,
-                  transition: { duration: 1.2, ease: 'easeInOut' },
-                }}
-                whileHover={{
-                  y: -10,
-                  transition: { duration: 0.15, ease: 'linear' },
-                }}
-              >
-                <FiMapPin />
-              </motion.div>
-
-              {/* Oval shadow – animated (kept from previous step) */}
-              <AnimatePresence>
-                {panelOpen && (
-                  <motion.div
-                    style={activeShadowStyle}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.25, ease: 'easeOut' }}
-                  />
-                )}
-              </AnimatePresence>
+                <motion.span
+                  style={{ display: 'inline-block', cursor: 'pointer' }}
+                  whileHover={{
+                    backgroundColor: '#ff0000',
+                    color: '#fff',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '4px',
+                    transition: { duration: 0.1 },
+                  }}
+                >
+                  HELP!
+                </motion.span>{' '}
+                <span>NEARBY.</span>
+              </span>
             </div>
           </div>
         </div>
-      </header>
+      </motion.div>
 
-      {/* ----- Modal for creating an announcement ----- */}
-      <AnimatePresence>
-        {modalOpen && (
-          <motion.div
-            style={modalOverlayStyle}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              style={modalContentStyle}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-            >
-              <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>
-                New Announcement
-              </h2>
-              <input
-                type="text"
-                placeholder="Type your message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  marginBottom: '1.5rem',
-                  border: '1px solid #ccc',
-                }}
-                autoFocus
-              />
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button
-                  style={{ marginRight: '0.5rem' }}
-                  onClick={() => setModalOpen(false)}
-                >
-                  CANCEL
-                </Button>
-                <Button onClick={handleAdd}>ADD</Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ----- Sliding Panel ----- */}
-      <AnimatePresence>
-        {panelOpen && (
-          <motion.div
-            style={panelStyle}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: '50vh', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-          >
-            <div
-              style={{
-                padding: '2rem',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <div style={mapPlaceholderStyle}>I WILL BE A MAP</div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ----- Fixed Bottom Moving Banner ----- */}
-      <div style={fixedBannerStyle}>
-        {/* Props for speed/background are intentionally omitted */}
-        <MovingBanner announcements={announcements} />
-      </div>
     </motion.main>
   );
 };

@@ -2,180 +2,46 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
-import Button from '@/components/Buttons';
+import Link from 'next/link';
 import { FiMapPin } from 'react-icons/fi';
 import StarWarsIntro from '@/components/StarWarsIntro';
-
-/* ------ Layout styles -------------------------------- */
-const headerStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  width: '100%',
-  padding: '1rem 2rem',
-  backgroundColor: 'rgb(0, 0, 0)',
-  borderBottom: '4px solid white',
-};
-
-const titleStyle: React.CSSProperties = {
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  textAlign: 'left',
-  color: '#ffffff',
-  padding: '0.5rem',
-  fontSize: 'clamp(2rem, 8vw, 12vh)',
-};
-
-const headerIconStyle: React.CSSProperties = {
-  fontSize: 'clamp(4rem, 8vw, 10rem)',
-  cursor: 'pointer',
-};
-
-const linkContainerStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'row', // buttons in line horizontally
-  gap: '1rem', // space between buttons
-  fontSize: '1.25rem',
-  marginLeft: 'auto',
-  marginRight: 'auto',
-  alignItems: 'center', // center buttons vertically
-  height: '100%',
-  justifyContent: 'center', // center the buttons horizontally in the container
-};
-
-const linkStyle: React.CSSProperties = {
-  display: 'flex',
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  whiteSpace: 'nowrap',
-  minWidth: '8rem',
-  color: '#ffffff',
-  backgroundColor: '#000000',
-  border: '4px solid #f9c700',
-  padding: '0.25rem 0',
-  textDecoration: 'none',
-};
-
-const activeShadowStyle: React.CSSProperties = {
-  position: 'absolute',
-  top: 'calc(100% + 4px)', // distance below the icon (tweak if needed)
-  left: 0,
-  right: 0,
-  margin: '0 auto', // forces horizontal centering
-  width: '4rem',
-  height: '1.2rem',
-  backgroundColor: '#fff', // solid white
-  borderRadius: '50%',
-};
-
-// New styles for h3 and p elements
-const h3Style: React.CSSProperties = {
-  fontSize: '1.5rem', // larger font size
-  textTransform: 'uppercase', // all caps
-  fontWeight: 700,
-  marginBottom: '0.5rem',
-  textAlign: 'center', // center text
-};
-
-const pStyle: React.CSSProperties = {
-  fontSize: '1.1rem', // a little larger
-  lineHeight: '1.6',
-  textAlign: 'center', // center text
-};
-
-// New styles for content sections
-const contentSectionStyle: React.CSSProperties = {
-  padding: '1rem',
-  border: '10px solid #fff', // white border
-  cursor: 'default',
-  marginBottom: '1rem',
-  width: '60%', // 60% of container width
-  margin: '0 auto', // center the section
-};
-
-const contentContainerStyle: React.CSSProperties = {
-  padding: '0 2rem',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1rem',
-};
-
-// Panel styles (similar to main page)
-const panelStyle: React.CSSProperties = {
-  backgroundColor: '#000',
-  width: '100%',
-  overflow: 'hidden', // Remove scrollbars
-  borderBottom: '4px solid white',
-  position: 'relative', // Attach to bottom of header
-  zIndex: 10, // Ensure it appears above content
-};
-
-// Create the title animation outside of the Header to prevent re-renders
-const TitleAnimation = () => (
-  <motion.div
-    style={titleStyle}
-    initial={{ x: '-100%' }}
-    animate={{ x: 0 }}
-    transition={{ duration: 0.8, ease: 'easeInOut' }}
-    key="title-animation"
-  >
-    <motion.span
-      style={{ display: 'inline-block', cursor: 'pointer' }}
-      whileHover={{
-        backgroundColor: '#ff0000ff',
-        color: '#fff',
-        transition: { duration: 0.2 },
-      }}
-      onClick={() => console.log('HELP! clicked')}
-    >
-      ABOUT!
-    </motion.span>{' '}
-    <span>NEARBY.</span>
-  </motion.div>
-);
 
 // Header component - static part that's always rendered
 const Header: React.FC<{
   panelOpen: boolean;
   handleMapPinClick: () => void;
 }> = ({ panelOpen, handleMapPinClick }) => (
-  <header style={headerStyle}>
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      {/* Buttons row above title and icon */}
-      <div style={linkContainerStyle}>
-        <Button style={linkStyle} onClick={() => (window.location.href = '/')}>
+  <header className="flex items-center w-full p-4 bg-black border-b-[4px] border-white">
+    <div className="flex flex-col w-full">
+      {/* Navigation row above title and icon */}
+      <div className="flex flex-row gap-4 text-xl mx-auto items-center justify-center h-full">
+        <Link href="/" className="text-white hover:text-red-500 transition-colors">
           HOME
-        </Button>
-        <Button
-          style={linkStyle}
-          onClick={() => (window.location.href = '/resources')}
+        </Link>
+        <Link
+          href="/resources"
+          className="text-white hover:text-red-500 transition-colors"
         >
           RESOURCES
-        </Button>
-        <Button
-          style={linkStyle}
-          onClick={() => (window.location.href = '/about')}
+        </Link>
+        <Link
+          href="/about"
+          className="text-white hover:text-red-500 transition-colors"
         >
           ABOUT
-        </Button>
+        </Link>
       </div>
 
       {/* Title and icon container */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '100%',
-        }}
-      >
+      <div className="flex items-center justify-center w-full">
         <TitleAnimation />
 
         {/* Wrapper now carries the same left‑margin as the icon */}
-        <div style={{ position: 'relative', marginLeft: '1rem' }}>
+        <div className="relative ml-4">
           <motion.div
             onClick={handleMapPinClick}
-            style={headerIconStyle}
+            className="cursor-pointer"
+            style={{ fontSize: 'clamp(4rem, 8vw, 10rem)' }}
             initial={{ y: -800, opacity: 0 }}
             animate={{
               y: 0,
@@ -194,7 +60,7 @@ const Header: React.FC<{
           <AnimatePresence>
             {panelOpen && (
               <motion.div
-                style={activeShadowStyle}
+                className="absolute -top-[10px] left-0 right-0 mx-auto w-16 h-4 bg-white rounded-full"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
@@ -208,59 +74,88 @@ const Header: React.FC<{
   </header>
 );
 
+// Create the title animation outside of the Header to prevent re-renders
+const TitleAnimation = () => (
+  <motion.div
+    style={{ fontWeight: 700, textTransform: 'uppercase', textAlign: 'left', color: '#ffffff', padding: '0.5rem', fontSize: 'clamp(2rem, 8vw, 12vh)' }}
+    initial={{ x: '-100%' }}
+    animate={{ x: 0 }}
+    transition={{ duration: 0.8, ease: 'easeInOut' }}
+    key="title-animation"
+  >
+    <motion.span
+      className="inline-block cursor-pointer"
+      whileHover={{
+        backgroundColor: '#ff0000ff',
+        color: '#fff',
+        transition: { duration: 0.2 },
+      }}
+      onClick={() => console.log('HELP! clicked')}
+    >
+      ABOUT!
+    </motion.span>{' '}
+    <span>NEARBY.</span>
+  </motion.div>
+);
+
 // Content section - always the same
 const Content = () => (
-  <section
-    id="about-content"
-    style={{ backgroundColor: '#000', color: '#fff', padding: '2rem' }}
-  >
-    <div style={contentContainerStyle}>
+  <section className="bg-black text-white p-8">
+    <div className="px-8 flex flex-col gap-4">
       <motion.div
-        style={contentSectionStyle}
+        className="p-4 border-[10px] border-white cursor-default mb-4 w-[60%] mx-auto"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
-        <h3 style={h3Style}>What we're building</h3>
-        <p style={pStyle}>
+        <h3 className="text-2xl uppercase font-bold mb-2 text-center">
+          What we're building
+        </h3>
+        <p className="text-lg leading-6 text-center">
           Help! Nearby. is a simple navigator that points people to the next
           best step: live disaster info when available, and curated local
           resources for food, housing, and cash assistance.
         </p>
       </motion.div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="flex flex-col gap-4">
         <motion.div
-          style={contentSectionStyle}
+          className="p-4 border-[10px] border-white cursor-default mb-4 w-[60%] mx-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
         >
-          <h3 style={h3Style}>Our rule</h3>
-          <p style={pStyle}>
-            If we wouldn't trust it for our own family, it doesn't ship.
+          <h3 className="text-2xl uppercase font-bold mb-2 text-center">
+            Our rule
+          </h3>
+          <p className="text-lg leading-6 text-center">
+            If we wouldn&lsquo;t trust it for our own family, it doesn&lsquo;t ship.
           </p>
         </motion.div>
         <motion.div
-          style={contentSectionStyle}
+          className="p-4 border-[10px] border-white cursor-default mb-4 w-[60%] mx-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
         >
-          <h3 style={h3Style}>Our focus</h3>
-          <p style={pStyle}>
+          <h3 className="text-2xl uppercase font-bold mb-2 text-center">
+            Our focus
+          </h3>
+          <p className="text-lg leading-6 text-center">
             Clear, local-first guidance. Minimal clicks. No drama.
           </p>
         </motion.div>
         <motion.div
-          style={contentSectionStyle}
+          className="p-4 border-[10px] border-white cursor-default mb-4 w-[60%] mx-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6, ease: 'easeOut' }}
         >
-          <h3 style={h3Style}>How you can help</h3>
-          <p style={pStyle}>
-            Send resource leads, corrections, or gaps you see—we'll curate and
+          <h3 className="text-2xl uppercase font-bold mb-2 text-center">
+            How you can help
+          </h3>
+          <p className="text-lg leading-6 text-center">
+            Send resource leads, corrections, or gaps you see—we&lsquo;ll curate and
             improve coverage.
           </p>
         </motion.div>
@@ -274,7 +169,8 @@ export default function AboutPage() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [animationComplete, setAnimationComplete] = useState(false);
 
-  useEffect(() => {
+  // UseLayoutEffect instead of useEffect to prevent hydration mismatch
+  React.useLayoutEffect(() => {
     setHasMounted(true);
   }, []);
 
@@ -285,26 +181,18 @@ export default function AboutPage() {
   // Only render motion components on client side to prevent hydration mismatch
   if (!hasMounted) {
     return (
-      <main style={{ backgroundColor: '#000', color: '#fff' }}>
+      <main className="bg-black text-white">
         <Header panelOpen={panelOpen} handleMapPinClick={handleMapPinClick} />
         <AnimatePresence>
           {panelOpen && (
             <motion.div
-              style={panelStyle}
+              className="bg-black w-full overflow-hidden border-b-[4px] border-white relative z-10"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: '100vh', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.5, ease: 'easeInOut' }}
             >
-              <div
-                style={{
-                  padding: '2rem',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  height: '100%', // Ensure full height
-                }}
-              >
+              <div className="p-8 flex justify-center items-center h-full">
                 <StarWarsIntro
                   onAnimationComplete={() => setAnimationComplete(true)}
                 />
@@ -318,26 +206,18 @@ export default function AboutPage() {
   }
 
   return (
-    <main style={{ backgroundColor: '#000', color: '#fff' }}>
+    <main className="bg-black text-white">
       <Header panelOpen={panelOpen} handleMapPinClick={handleMapPinClick} />
       <AnimatePresence>
         {panelOpen && (
           <motion.div
-            style={panelStyle}
+            className="bg-black w-full overflow-hidden border-b-[4px] border-white relative z-10"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: '50vh', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
           >
-            <div
-              style={{
-                padding: '2rem',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100%', // Ensure full height
-              }}
-            >
+            <div className="p-8 flex justify-center items-center h-full">
               <StarWarsIntro
                 onAnimationComplete={() => setAnimationComplete(true)}
               />
