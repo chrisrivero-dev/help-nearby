@@ -55,19 +55,13 @@
   box-sizing: border-box;
 }
 
-html,
-body {
-  width: 100%;
-  min-height: 100vh;
-}
-
 html {
   font-size: 16px;
 }
 
 body {
   margin: 0;
-  width: 100%;
+  min-height: 100dvh; /* Dynamic viewport height - accounts for mobile browser UI */
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 1rem;
   line-height: 1.5;
@@ -75,6 +69,7 @@ body {
   background-color: #f5f5f5;
   color: #000;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* Links */
