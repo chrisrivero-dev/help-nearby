@@ -5,28 +5,33 @@ import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import { useState } from 'react';
 
+interface TitleProps {
+  title?: string;
+  subtitle?: string;
+  showMapPin?: boolean;
+}
+
 const titleContainerStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: '60px',
-  left: '30px',
-  width: 'min(90vw, 800px)',
-  zIndex: 40,
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  height: '100px',
+  position: 'relative',
+  overflow: 'visible',
 };
 
 const titleWrapperStyle: React.CSSProperties = {
   position: 'relative',
-  width: '100%',
   display: 'flex',
   alignItems: 'center',
   gap: '10px',
 };
 
 const titleStyle: React.CSSProperties = {
-  fontWeight: 600,
+  fontWeight: 900,
   textTransform: 'uppercase',
   textAlign: 'left',
   color: '#000',
-  padding: '0.5rem 0',
   fontSize: '4rem',
   whiteSpace: 'nowrap',
 };
@@ -36,26 +41,32 @@ const titleLinkStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-const ResourcesTitle: FC = () => {
+const ResourcesTitle: FC<TitleProps> = ({
+  title = 'RESOURCES! NEARBY.',
+  subtitle,
+  showMapPin = true,
+}) => {
   const [isClicked, setIsClicked] = useState(false);
-
   const handlePinClick = () => {
     setIsClicked(true);
-    
-    // Change the pin color to gold
     setTimeout(() => {
       setIsClicked(false);
     }, 300);
   };
 
+  // Split title into word parts for highlighting
+  const titleParts = title.split(' ');
+  const highlightedWord = titleParts[0] || '';
+  const remainingTitle = titleParts.slice(1).join(' ');
+
   return (
     <motion.div
       style={titleContainerStyle}
-      initial={{ opacity: 0, x: -100, y: 0, zIndex: 2 }}
-      animate={{ opacity: 1, x: 0, y: 0, zIndex: 3 }}
+      initial={{ opacity: 0, y: -100, zIndex: 2 }}
+      animate={{ opacity: 1, y: 0, zIndex: 3 }}
       transition={{ duration: 0.7, ease: 'easeOut' }}
     >
-      <div style={titleWrapperStyle}>
+      <div style={{ ...titleWrapperStyle }}>
         <div style={titleStyle}>
           <span style={titleLinkStyle}>
             <motion.span
@@ -68,35 +79,37 @@ const ResourcesTitle: FC = () => {
                 transition: { duration: 0.1 },
               }}
             >
-              RESOURCES!
+              {highlightedWord}
             </motion.span>{' '}
-            <span>NEARBY.</span>
+            <span>{remainingTitle}</span>
           </span>
         </div>
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.1, delay: 0 }}
-          onClick={handlePinClick}
-          whileHover={{
-            scale: 1.1,
-            y: -5, // slight lift on hover
-            transition: { duration: 0.1, ease: 'easeOut' },
-          }}
-          whileTap={{
-            scale: 0.95,
-            y: 2, // soft landing effect when clicked
-            transition: { duration: 0.2, ease: 'easeOut' },
-          }}
-        >
-          <MapPin 
-            size={70} 
-            stroke="#000" // always black stroke
-            fill={isClicked ? "#FFD700" : "none"} // gold fill when clicked, none by default
-            strokeWidth={2}
-            style={{ cursor: 'pointer' }}
-          />
-        </motion.div>
+        {showMapPin && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.1, delay: 0 }}
+            onClick={handlePinClick}
+            whileHover={{
+              scale: 1.1,
+              y: -5,
+              transition: { duration: 0.1, ease: 'easeOut' },
+            }}
+            whileTap={{
+              scale: 0.95,
+              y: 2,
+              transition: { duration: 0.2, ease: 'easeOut' },
+            }}
+          >
+            <MapPin
+              size={80}
+              stroke="#000"
+              fill={isClicked ? '#FFD700' : 'none'}
+              strokeWidth={2}
+              style={{ cursor: 'pointer' }}
+            />
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );

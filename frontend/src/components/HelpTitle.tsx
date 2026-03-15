@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import { useState } from 'react';
 
+
 interface TitleProps {
   title?: string;
   subtitle?: string;
@@ -41,18 +42,16 @@ const titleLinkStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-const AboutTitle: FC<TitleProps> = ({
-  title = 'ABOUT! NEARBY.',
-  subtitle,
-  showMapPin = true,
-}) => {
+const Title: FC<TitleProps> = ({ title = 'HELP! NEARBY.', subtitle, showMapPin = true }) => {
   const [isClicked, setIsClicked] = useState(false);
-  const handlePinClick = () => {
-    setIsClicked(true);
-    setTimeout(() => {
-      setIsClicked(false);
-    }, 300);
-  };
+const handlePinClick = () => {
+  setIsClicked(true);
+  setTimeout(() => {
+    setIsClicked(false);
+  }, 300);
+};
+  
+  
 
   // Split title into word parts for highlighting
   const titleParts = title.split(' ');
@@ -68,7 +67,9 @@ const AboutTitle: FC<TitleProps> = ({
     >
       <div style={{ ...titleWrapperStyle }}>
         <div style={titleStyle}>
-          <span style={titleLinkStyle}>
+          <span
+            style={titleLinkStyle}
+          >
             <motion.span
               style={{ display: 'inline-block', cursor: 'pointer' }}
               whileHover={{
@@ -92,19 +93,19 @@ const AboutTitle: FC<TitleProps> = ({
             onClick={handlePinClick}
             whileHover={{
               scale: 1.1,
-              y: -5,
+              y: -5, // slight lift on hover
               transition: { duration: 0.1, ease: 'easeOut' },
             }}
             whileTap={{
               scale: 0.95,
-              y: 2,
+              y: 2, // soft landing effect when clicked
               transition: { duration: 0.2, ease: 'easeOut' },
             }}
           >
-            <MapPin
-              size={80}
-              stroke="#000"
-              fill={isClicked ? '#FFD700' : 'none'}
+            <MapPin 
+              size={80} 
+              stroke="#000" // always black stroke
+              fill={isClicked ? "#FFD700" : "none"} // gold fill when clicked, none by default
               strokeWidth={2}
               style={{ cursor: 'pointer' }}
             />
@@ -115,4 +116,4 @@ const AboutTitle: FC<TitleProps> = ({
   );
 };
 
-export default AboutTitle;
+export default Title;

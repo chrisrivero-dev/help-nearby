@@ -76,7 +76,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
             initial={{ top: '100%' }}
             animate={{ top: '-150%' }}
             transition={{
-              duration: 25,
+              duration: 20,
               ease: 'linear',
               delay: 0,
             }}

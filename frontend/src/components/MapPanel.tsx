@@ -180,11 +180,12 @@ const MapContent: FC<{
     }
   };
 
-  // ZIP search input floating above the map panel
+  // ZIP search input floating above the map panel (top of map panel, centered)
   const zipSearchAbovePanelStyle: React.CSSProperties = {
     position: 'fixed',
-    top: '180px', // 10px below the top of the panel
-    right: '110px', // 10px left from the right border of the panel
+    left: 'calc(50vw - 200px)', // Centered relative to the panel (400px / 2 = 200px)
+    top: '160px', // 10px below the top of the map panel (250px + 10px)
+    width: '400px',
     backgroundColor: 'white',
     padding: '10px 15px',
     borderRadius: '8px',
@@ -325,16 +326,18 @@ const buttonStyle: React.CSSProperties = {
 
 const panelStyle: React.CSSProperties = {
   backgroundColor: '#edeaea',
-  width: 'min(1600px, max(200px, calc(100vw - 150px)))',
+  width: 'calc(100vw - 200px)',
+  maxWidth: '1600px',
   aspectRatio: '21/9',
   border: '2px solid Black',
   boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
   zIndex: 0,
   padding: '0',
   position: 'fixed',
-  top: '250px',
-  left: '75px',
-  right: '75px',
+  top: '150px',
+  left: '100px',
+  right: '100px',
+  margin: '0 auto',
 };
 
 export default MapPanel;
