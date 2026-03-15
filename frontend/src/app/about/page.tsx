@@ -2,7 +2,7 @@
 
 import type { FC } from 'react';
 import { motion } from 'framer-motion';
-import Title from '@/components/HelpTitle';
+import Title from '@/components/AboutTitle';
 import Navbar from '@/components/Navbar';
 import StarWarsIntro from '@/components/StarWarsIntro';
 
@@ -50,7 +50,7 @@ const AboutPage: FC = () => {
 
       {/* Header with Title and Navbar */}
       <motion.header style={headerStyle}>
-        <div style={{ flex: 1, maxWidth: '600px' }}>
+        <div style={{ flex: 1, maxWidth: '800px' }}>
           <Title title="ABOUT! NEARBY." showMapPin={true} />
         </div>
         <Navbar />

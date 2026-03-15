@@ -55,7 +55,7 @@ const Home: FC = () => {
 
         {/* Header with Title and Navbar */}
         <motion.header style={headerStyle}>
-          <div style={{ flex: 1, maxWidth: '600px' }}>
+          <div style={{ flex: 1, maxWidth: '800px' }}>
             <Title title="HELP! NEARBY." showMapPin={true} />
           </div>
           <Navbar />
