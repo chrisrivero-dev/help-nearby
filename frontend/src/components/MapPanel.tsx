@@ -2,9 +2,10 @@
 
 import { FC, useEffect, useState, useRef, createContext, useContext, ReactNode, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Marker, Popup } from 'react-leaflet';
-import { Crosshair, Search } from 'lucide-react';
+import { Crosshair, FlagTriangleLeft, Search, CircleDot } from 'lucide-react';
 import { useMap } from 'react-leaflet';
 import { lookupLocation, ZipCodeLocation } from '@/lib/location/locationLookup';
 
@@ -95,6 +96,16 @@ const MapInstanceSetter: FC<{ onMapReady: (map: L.Map) => void }> = ({ onMapRead
   return null;
 };
 
+/* Input styling for the search field (placed before its usage) */
+const inputStyle: React.CSSProperties = {
+  padding: '8px 12px',
+  borderRadius: '4px',
+  border: '1px solid #ccc',
+  fontSize: '14px',
+  width: '250px',
+  outline: 'none',
+};
+
 // Internal component that consumes the map context
 const MapContent: FC<{ 
   zip: string;
@@ -109,6 +120,7 @@ const MapContent: FC<{
 }> = ({ zip, setZip, isSearching, setIsSearching, mapLoaded, setMapLoaded, mapInstanceRef, MapContainer, TileLayer }) => {
   const { setZoomTarget, mapInstance } = useMapContext();
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [pendingZoomTarget, setPendingZoomTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchResultMessage, setSearchResultMessage] = useState<string | null>(null);
@@ -149,14 +161,15 @@ const MapContent: FC<{
     setIsSearching(true);
     try {
       const result: ZipCodeLocation = await lookupLocation(zip);
-      if (result.isValid) {
-        if (mapInstance) {
-          setZoomTarget(result.latitude, result.longitude, 13);
+        if (result.isValid) {
+          if (mapInstance) {
+            setZoomTarget(result.latitude, result.longitude, 13);
+          } else {
+            setPendingZoomTarget({ lat: result.latitude, lng: result.longitude, zoom: 13 });
+          }
+          setSearchLocation({ lat: result.latitude, lng: result.longitude });
+          setSearchError(null);
         } else {
-          setPendingZoomTarget({ lat: result.latitude, lng: result.longitude, zoom: 13 });
-        }
-        setSearchError(null);
-      } else {
         setSearchError('Location not found. Please check your input and try again.');
       }
     } catch (error) {
@@ -230,6 +243,17 @@ const MapContent: FC<{
               <Popup>You are here</Popup>
             </Marker>
           )}
+          {searchLocation && (
+            <Marker
+              position={[searchLocation.lat, searchLocation.lng]}
+              icon={L.divIcon({
+                html: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>',
+                iconSize: [24, 24],
+                iconAnchor: [12, 12],
+                className: "",
+              })}
+            />
+          )}
         </MapContainer>
       </motion.div>
       {/* Zip search input floating above the map panel */}
@@ -256,16 +280,16 @@ const MapContent: FC<{
           value={zip}
           onChange={(e) => setZip(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Enter ZIP code..."
+          placeholder="Search for a Location"
           disabled={isSearching}
           style={inputStyle}
         />
         <button onClick={handleLocate} disabled={isSearching} style={buttonStyle}>
           <Crosshair size={20} />
         </button>
-        <button onClick={handleSearch} disabled={isSearching} style={{ ...buttonStyle, marginLeft: '8px' }}>
-          <Search size={20} />
-        </button>
+<button onClick={handleSearch} disabled={isSearching} style={{ ...buttonStyle, marginLeft: '8px' }}>
+  <Search size={20} />
+</button>
       </motion.div>
     </>
   );
@@ -326,27 +350,6 @@ const MapPanel: FC = () => {
       />
     </MapProvider>
   );
-};
-
-const zipSearchStyle: React.CSSProperties = {
-  position: 'absolute',
-  top: '10px',
-  right: '10px',
-  backgroundColor: 'white',
-  padding: '10px 15px',
-  borderRadius: '8px',
-  boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-  display: 'flex',
-  gap: '10px',
-};
-
-const inputStyle: React.CSSProperties = {
-  padding: '8px 12px',
-  borderRadius: '4px',
-  border: '1px solid #ccc',
-  fontSize: '14px',
-  width: '150px',
-  outline: 'none',
 };
 
 const buttonStyle: React.CSSProperties = {
