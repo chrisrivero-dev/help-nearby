@@ -8,7 +8,7 @@ import { useMapContext } from '@/components/MapPanel';
 
 const titleContainerStyle: React.CSSProperties = {
   position: 'fixed',
-  top: '100px',
+  top: '60px',
   left: '30px',
   width: 'min(90vw, 600px)',
   zIndex: 40,  /* Behind map panel (z-index 50) */

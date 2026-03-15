@@ -2,24 +2,23 @@
 
 import { FC, useEffect, useState, useRef, createContext, useContext, ReactNode, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Marker, Popup } from 'react-leaflet';
 import { Crosshair, Search } from 'lucide-react';
 import { useMap } from 'react-leaflet';
 import { lookupLocation, ZipCodeLocation } from '@/lib/location/locationLookup';
+import dynamic from 'next/dynamic';
 
 // Dynamic imports to prevent SSR issues with leaflet
-const DynamicMapContainer = async () => {
-  const { MapContainer, TileLayer, Marker, Popup } = await import('react-leaflet');
-  return { MapContainer, TileLayer, Marker, Popup };
-};
+const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false, loading: () => <div className="flex items-center justify-center h-full w-full">Loading map...</div> });
+const TileLayer = dynamic(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
+const Marker = dynamic(() => import('react-leaflet').then((mod) => mod.Marker), { ssr: false });
+const Popup = dynamic(() => import('react-leaflet').then((mod) => mod.Popup), { ssr: false });
 
 // Type for the map context value
 interface MapContextValue {
   setZoomTarget: (lat: number, lng: number, zoom?: number) => void;
-  mapInstance: L.Map | null;
-  setMapInstance: (map: L.Map | null) => void;
+  mapInstance: import('leaflet').Map | null;
+  setMapInstance: (map: import('leaflet').Map | null) => void;
 }
 
 // Create the context
@@ -27,10 +26,10 @@ const MapContext = createContext<MapContextValue | undefined>(undefined);
 
 // Context Provider Component
 const MapProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+  const [mapInstance, setMapInstance] = useState<import('leaflet').Map | null>(null);
   const [zoomTarget, setZoomTargetState] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
 
-  const setMapInstanceRef = useCallback((map: L.Map | null) => {
+  const setMapInstanceRef = useCallback((map: import('leaflet').Map | null) => {
     setMapInstance(map);
   }, []);
 
@@ -72,19 +71,8 @@ const useMapContext = () => {
   return context;
 };
 
-// Internal component that uses the map instance and sets it in context
-const MapInstanceHandler: FC<{ onMapReady: (map: L.Map) => void }> = ({ onMapReady }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (map) {
-      onMapReady(map);
-    }
-  }, [map, onMapReady]);
-  return null;
-};
-
 // Context consumer component to set map instance in provider
-const MapInstanceSetter: FC<{ onMapReady: (map: L.Map) => void }> = ({ onMapReady }) => {
+const MapInstanceSetter: FC<{ onMapReady: (map: import('leaflet').Map) => void }> = ({ onMapReady }) => {
   const map = useMap();
   const { setMapInstance } = useMapContext();
   useEffect(() => {
@@ -114,16 +102,22 @@ const MapContent: FC<{
   setIsSearching: (isSearching: boolean) => void;
   mapLoaded: boolean;
   setMapLoaded: (mapLoaded: boolean) => void;
-  mapInstanceRef: React.RefObject<L.Map | null>;
-  MapContainer: React.ElementType;
-  TileLayer: React.ElementType;
-}> = ({ zip, setZip, isSearching, setIsSearching, mapLoaded, setMapLoaded, mapInstanceRef, MapContainer, TileLayer }) => {
+  mapInstanceRef: React.RefObject<import('leaflet').Map | null>;
+}> = ({ zip, setZip, isSearching, setIsSearching, mapLoaded, setMapLoaded, mapInstanceRef }) => {
   const { setZoomTarget, mapInstance } = useMapContext();
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [pendingZoomTarget, setPendingZoomTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchResultMessage, setSearchResultMessage] = useState<string | null>(null);
+  const [leafletModule, setLeafletModule] = useState<typeof import('leaflet') | null>(null);
+
+  // Load leaflet module on client side
+  useEffect(() => {
+    import('leaflet').then((mod) => {
+      setLeafletModule(mod);
+    });
+  }, []);
 
   // Update map instance ref when context provides one
   useEffect(() => {
@@ -189,8 +183,8 @@ const MapContent: FC<{
   // ZIP search input floating above the map panel
   const zipSearchAbovePanelStyle: React.CSSProperties = {
     position: 'fixed',
-    top: '260px', // 10px below the top of the panel
-    right: '85px', // 10px left from the right border of the panel
+    top: '180px', // 10px below the top of the panel
+    right: '110px', // 10px left from the right border of the panel
     backgroundColor: 'white',
     padding: '10px 15px',
     borderRadius: '8px',
@@ -212,6 +206,14 @@ const MapContent: FC<{
     textAlign: 'center',
     maxWidth: '300px',
   };
+
+  // Custom icon for search location
+  const searchIcon = leafletModule?.divIcon({
+    html: '<div style="width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #000;"></div>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+    className: "",
+  });
 
   return (
     <>
@@ -243,16 +245,8 @@ const MapContent: FC<{
               <Popup>You are here</Popup>
             </Marker>
           )}
-          {searchLocation && (
-            <Marker
-              position={[searchLocation.lat, searchLocation.lng]}
-              icon={L.divIcon({
-                html: '<div style="width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #000;"></div>',
-                iconSize: [24, 24],
-                iconAnchor: [12, 24],
-                className: "",
-              })}
-            />
+          {searchLocation && searchIcon && (
+            <Marker position={[searchLocation.lat, searchLocation.lng]} icon={searchIcon} />
           )}
         </MapContainer>
       </motion.div>
@@ -287,53 +281,20 @@ const MapContent: FC<{
         <button onClick={handleLocate} disabled={isSearching} style={buttonStyle}>
           <Crosshair size={20} />
         </button>
-<button onClick={handleSearch} disabled={isSearching} style={{ ...buttonStyle, marginLeft: '8px' }}>
-  <Search size={20} />
-</button>
+        <button onClick={handleSearch} disabled={isSearching} style={{ ...buttonStyle, marginLeft: '8px' }}>
+          <Search size={20} />
+        </button>
       </motion.div>
     </>
   );
 };
 
+// Use the dynamic components directly
 const MapPanel: FC = () => {
-  const [MapContainer, setMapContainer] = useState<React.ElementType | null>(null);
-  const [TileLayer, setTileLayer] = useState<React.ElementType | null>(null);
-  const [Marker, setMarker] = useState<React.ElementType | null>(null);
-  const [Popup, setPopup] = useState<React.ElementType | null>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
+  const mapInstanceRef = useRef<import('leaflet').Map | null>(null);
   const [zip, setZip] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    DynamicMapContainer().then(({ MapContainer, TileLayer, Marker, Popup }) => {
-      if (mounted) {
-        setMapContainer(MapContainer);
-        setTileLayer(TileLayer);
-        setMarker(Marker);
-        setPopup(Popup);
-      }
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  if (!MapContainer || !TileLayer) {
-    return (
-      <motion.div
-        style={panelStyle}
-        initial={{ opacity: 1, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      >
-        <div className="flex items-center justify-center h-full w-full">
-          Loading map...
-        </div>
-      </motion.div>
-    );
-  }
 
   return (
     <MapProvider>
@@ -345,8 +306,6 @@ const MapPanel: FC = () => {
         mapLoaded={mapLoaded}
         setMapLoaded={setMapLoaded}
         mapInstanceRef={mapInstanceRef}
-        MapContainer={MapContainer}
-        TileLayer={TileLayer}
       />
     </MapProvider>
   );
