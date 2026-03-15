@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Marker, Popup } from 'react-leaflet';
-import { Crosshair, FlagTriangleLeft, Search, CircleDot } from 'lucide-react';
+import { Crosshair, Search } from 'lucide-react';
 import { useMap } from 'react-leaflet';
 import { lookupLocation, ZipCodeLocation } from '@/lib/location/locationLookup';
 
@@ -247,9 +247,9 @@ const MapContent: FC<{
             <Marker
               position={[searchLocation.lat, searchLocation.lng]}
               icon={L.divIcon({
-                html: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>',
+                html: '<div style="width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #000;"></div>',
                 iconSize: [24, 24],
-                iconAnchor: [12, 12],
+                iconAnchor: [12, 24],
                 className: "",
               })}
             />
