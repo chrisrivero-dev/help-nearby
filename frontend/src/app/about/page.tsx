@@ -19,6 +19,7 @@ const pageStyle: React.CSSProperties = {
   marginRight: 'auto',
   paddingTop: '60px',
   paddingBottom: '4rem',
+  marginBottom: '4rem',
   fontSize: '16px',
   position: 'relative',
   overflowX: 'hidden',

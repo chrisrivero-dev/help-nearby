@@ -21,6 +21,7 @@ const pageStyle: React.CSSProperties = {
   paddingBottom: '4rem',
   fontSize: '16px',
   position: 'relative',
+  overflowY: 'auto',
   overflowX: 'hidden',
   backgroundColor: 'var(--color-bg)',
   color: 'var(--color-text)',
@@ -71,7 +72,7 @@ const Home: FC = () => {
           position: 'fixed',
           bottom: '50px',
           right: '50px',
-          zIndex: 100,
+          zIndex: 9999,
         }}
       >
         <Clock />

@@ -87,20 +87,17 @@ const useMapStyles = () => {
   return {
     mapContainerStyle: {
       backgroundColor: '#0f0f0f',
-      width: 'calc(100vw - 200px)',
-      maxWidth: '1600px',
-      height: 'calc(100vw - 200px) * 9 / 21',
-      aspectRatio: '21/9',
+      width: '90%',
+      maxWidth: '1400px',
+      height: '500px',
       border: 'none',
       borderRadius: '8px',
       boxShadow: '0 10px 20px rgba(0,0,0,0.3)',
-      zIndex: 0,
       padding: '0',
-      position: 'fixed',
-      top: '150px',
-      left: '100px',
-      right: '100px',
-      margin: '0 auto',
+      position: 'relative',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      marginTop: '150px',
       color: '#e8e8e8',
     } as React.CSSProperties,
     buttonStyle: {
@@ -114,22 +111,23 @@ const useMapStyles = () => {
       fontWeight: '500',
       outline: 'none',
     } as React.CSSProperties,
-        zipSearchAbovePanelStyle: {
-          position: 'fixed',
-          left: 'calc(50vw - 200px)',
-          top: '160px',
-          width: '400px',
-          backgroundColor: 'transparent',
-          padding: '10px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-          zIndex: 100,
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: '8px',
-          color: 'var(--color-text)',
-        } as React.CSSProperties,
+    placeSearchOnPanelStyle: {
+      position: 'absolute',
+          top: 20,
+          left: '33%',
+          transform: 'translateX(-50%)',
+      width: '400px',
+      backgroundColior: 'transparent',
+      padding: '10px',
+      borderRadius: '8px',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: '8px',
+      zIndex: 999,
+      color: 'var(--color-text)',
+    } as React.CSSProperties,
     errorBannerStyle: {
       backgroundColor: 'var(--color-bg)',
       color: 'var(--color-text)',
@@ -139,10 +137,8 @@ const useMapStyles = () => {
       textAlign: 'center',
       maxWidth: '400px',
       border: '1px solid var(--color-border)',
-      position: 'fixed',
-      left: 'calc(50vw - 200px)',
-      top: '300px',
-      zIndex: 101,
+      position: 'relative',
+      margin: '0 auto 16px auto',
     } as React.CSSProperties,
   };
 };
@@ -159,7 +155,7 @@ const MapContent: FC<{
 }> = ({ zip, setZip, isSearching, setIsSearching, mapLoaded, setMapLoaded, mapInstanceRef }) => {
   const { setZoomTarget, mapInstance } = useMapContext();
   const { theme } = useTheme();
-  const { mapContainerStyle, buttonStyle, zipSearchAbovePanelStyle, errorBannerStyle } = useMapStyles();
+  const { mapContainerStyle, buttonStyle, placeSearchOnPanelStyle, errorBannerStyle } = useMapStyles();
   const adjustedMapContainerStyle = {
     ...mapContainerStyle,
     boxShadow: theme === 'dark' ? '0 10px 30px rgba(0,0,0,1)' : mapContainerStyle.boxShadow,
@@ -271,23 +267,47 @@ const MapContent: FC<{
 
   return (
     <>
-        <motion.div
-          style={adjustedMapContainerStyle}
+      <motion.div
+        style={adjustedMapContainerStyle}
         initial={{ opacity: 1, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
-<MapContainer 
-  center={[40.7506, -73.9972]} 
-  zoom={13} 
-  style={{ height: '100%', width: '100%' }}
-  className="leaflet-map"
-  attributionControl={false}
->
-  <MapInstanceSetter onMapReady={(map) => {
-    mapInstanceRef.current = map;
-    setMapLoaded(true);
-  }} />
+        {/* Zip search input at top center of map panel */}
+        <motion.div
+          style={placeSearchOnPanelStyle}
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6, ease: 'easeOut' }}
+        >
+          <input
+            type="text"
+            value={zip}
+            onChange={(e) => setZip(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Search for a Location"
+            disabled={isSearching}
+            style={inputStyle}
+          />
+          <style jsx>{`input::placeholder { color: var(--color-text); }`}</style>
+          <button onClick={handleLocate} disabled={isSearching} style={buttonStyle}>
+            <Crosshair size={20} fill="none" />
+          </button>
+          <button onClick={handleSearch} disabled={isSearching} style={{ ...buttonStyle, marginLeft: '8px' }}>
+            <Search size={20} fill="none" />
+          </button>
+        </motion.div>
+        <MapContainer 
+          center={[40.7506, -73.9972]} 
+          zoom={13} 
+          style={{ height: '100%', width: '100%' }}
+          className="leaflet-map"
+          attributionControl={false}
+        >
+          <MapInstanceSetter onMapReady={(map) => {
+            mapInstanceRef.current = map;
+            setMapLoaded(true);
+          }} />
           <TileLayer
             url={theme === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'}
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -328,30 +348,6 @@ const MapContent: FC<{
           {searchError}
         </motion.div>
       )}
-      {/* Zip search input floating above the map panel */}
-      <motion.div
-        style={zipSearchAbovePanelStyle}
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.6, ease: 'easeOut' }}
-      >
-        <input
-          type="text"
-          value={zip}
-          onChange={(e) => setZip(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Search for a Location"
-          disabled={isSearching}
-          style={inputStyle}
-        />
-        <style jsx>{`input::placeholder { color: var(--color-text); }`}</style>
-        <button onClick={handleLocate} disabled={isSearching} style={buttonStyle}>
-          <Crosshair size={20} fill="none" />
-        </button>
-        <button onClick={handleSearch} disabled={isSearching} style={{ ...buttonStyle, marginLeft: '8px' }}>
-          <Search size={20} fill="none" />
-        </button>
-      </motion.div>
     </>
   );
 };

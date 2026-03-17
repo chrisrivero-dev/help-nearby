@@ -45,6 +45,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
     left: '100px',
     right: '100px',
     margin: '0 auto',
+    maxHeight: 'calc(100vh - 250px)',
   };
 
   return (
@@ -81,6 +82,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
               left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 2,
+              overflow: 'hidden',
             }}
             initial={{ top: '100%' }}
             animate={{ top: '-150%' }}
@@ -107,7 +109,9 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
                 fontWeight: 600,
                 fontSize: '22px',
                 height: '100%',
-                overflow: 'hidden',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                WebkitOverflowScrolling: 'touch',
               }}
             >
               {paragraphs.map((text, index) => (
@@ -117,7 +121,6 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
               ))}
             </div>
           </motion.div>
-
           {/* Our Story component that appears after animation with 1 second delay */}
           {showOurStory && (
             <motion.div

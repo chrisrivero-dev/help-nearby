@@ -119,14 +119,13 @@ const useResourceFinderStyles = () => {
 
   return {
     containerStyle: {
-      position: 'fixed',
-      top: '150px',
-      left: '100px',
-      right: '100px',
+      position: 'relative',
       maxWidth: '1100px',
       width: '100%',
       margin: '0 auto',
       padding: '0 2rem',
+      paddingBottom: '4rem',
+      overflowY: 'auto',
       color: textColor,
     } as React.CSSProperties,
     locationInputStyle: {

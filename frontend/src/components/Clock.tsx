@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTheme } from './useTheme';
+import { Clock as ClockIcon } from 'lucide-react';
 
 interface FlipDigitProps {
   currentValue: string;
@@ -125,6 +126,7 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
 const Clock: FC = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [nextTime, setNextTime] = useState<string>('');
+const [isOpen, setIsOpen] = useState<boolean>(true);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const reduceMotion = useReducedMotion();
@@ -182,33 +184,57 @@ const Clock: FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '0',
+        gap: '0.5rem',
         padding: '0 0.5rem',
+        zIndex: 9999,
+        position: 'relative',
       }}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
-      <FlipDigit currentValue={currentHourDigit1} nextValue={nextHourDigit1} />
-      <FlipDigit currentValue={currentHourDigit2} nextValue={nextHourDigit2} />
+      {/* Clock display container - tiles in/out to the left of icon */}
       <motion.div
         style={{
-          width: 'min(20px, 2.5vw)',
-          height: 'min(60px, 6vw)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          color: isDark ? '#e8e8e8' : '#111111',
-          backgroundColor: colonPanelColor,
-          fontSize: 'min(48px, 5vw)',
-          fontWeight: 700,
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          overflow: 'hidden',
+          width: 'auto',
         }}
+        animate={{
+          opacity: isOpen ? 1 : 0,
+        }}
+        transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
       >
-        :
+        <FlipDigit currentValue={currentHourDigit1} nextValue={nextHourDigit1} />
+        <FlipDigit currentValue={currentHourDigit2} nextValue={nextHourDigit2} />
+        <motion.div
+          style={{
+            width: 'min(20px, 2.5vw)',
+            height: 'min(60px, 6vw)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: isDark ? '#e8e8e8' : '#111111',
+            backgroundColor: colonPanelColor,
+            fontSize: 'min(48px, 5vw)',
+            fontWeight: 700,
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          :
+        </motion.div>
+        <FlipDigit currentValue={currentMinuteDigit1} nextValue={nextMinuteDigit1} />
+        <FlipDigit currentValue={currentMinuteDigit2} nextValue={nextMinuteDigit2} />
       </motion.div>
-      <FlipDigit currentValue={currentMinuteDigit1} nextValue={nextMinuteDigit1} />
-      <FlipDigit currentValue={currentMinuteDigit2} nextValue={nextMinuteDigit2} />
+      {/* Clock icon - stays in fixed position (last in flex row) */}
+      <ClockIcon
+        onClick={() => setIsOpen(!isOpen)} 
+        style={{ 
+          cursor: 'pointer', 
+          color: isDark ? '#e8e8e8' : '#111111' 
+        }} 
+      />
     </motion.div>
   );
 };
