@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Title from '@/components/HelpTitle';
 import Navbar from '@/components/Navbar';
 import MapPanel from '@/components/MapPanel';
+import FlipClock from '@/components/FlipClock';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 
 // Styles using CSS variables
@@ -53,11 +54,12 @@ const Home: FC = () => {
       {/* Floating Map Panel */}
       <MapPanel />
 
-      {/* Header with Title and Navbar */}
+      {/* Header with Title, FlipClock, and Navbar */}
       <motion.header style={headerStyle}>
         <div style={{ flex: 1, maxWidth: '800px' }}>
           <Title title="HELP! NEARBY." showMapPin={true} />
         </div>
+        <FlipClock />
         <Navbar />
       </motion.header>
     </motion.main>

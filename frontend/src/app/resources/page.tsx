@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Title from '@/components/ResourcesTitle';
 import Navbar from '@/components/Navbar';
 import ResourceFinder from '@/components/ResourceFinder';
+import FlipClock from '@/components/FlipClock';
 
 const pageStyle: React.CSSProperties = {
   display: 'flex',
@@ -63,11 +64,12 @@ const ResourcesPage: FC = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
     >
-      {/* Header with Title and Navbar */}
+      {/* Header with Title, FlipClock, and Navbar */}
       <motion.header style={headerStyle}>
         <div style={{ flex: 1, maxWidth: '800px' }}>
           <Title showMapPin={true} />
         </div>
+        <FlipClock />
         <Navbar />
       </motion.header>
 
