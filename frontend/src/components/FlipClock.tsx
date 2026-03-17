@@ -11,17 +11,19 @@ const ColonSeparator: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const reduceMotion = useReducedMotion();
+  const panelColor = isDark ? '#333' : '#f0f0f0';
 
   return (
     <motion.div
       style={{
-        width: 'min(40px, 4vw)',
-        height: 'min(120px, 12vw)',
+        width: 'min(20px, 2.5vw)',
+        height: 'min(50px, 5vw)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         color: isDark ? '#e8e8e8' : '#111111',
-        fontSize: 'min(64px, 10vw)',
+        backgroundColor: panelColor,
+        fontSize: 'min(40px, 5vw)',
         fontWeight: 700,
       }}
     >

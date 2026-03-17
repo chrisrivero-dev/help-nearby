@@ -11,9 +11,9 @@ interface FlipDigitProps {
 }
 
 const digitSize = {
-  width: '72px',
-  height: 'min(110px, 11vw)',
-  fontSize: 'min(72px, 11vw)',
+  width: '96px',
+  height: 'min(60px, 6vw)',
+  fontSize: 'min(48px, 5vw)',
 };
 
 const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
@@ -23,6 +23,8 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
 
   const textColor = isDark ? '#e8e8e8' : '#111111';
   const panelColor = isDark ? '#333' : '#f0f0f0';
+
+  // fontFamily removed - Poppins is now set as default in globals.css
 
   const [shouldFlip, setShouldFlip] = useState(false);
 
@@ -54,6 +56,7 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
           justifyContent: 'center',
           backgroundColor: panelColor,
           color: textColor,
+          fontWeight: 700,
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         }}
       >
@@ -99,7 +102,7 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
             alignItems: 'flex-end',
             justifyContent: 'center',
             fontSize: digitSize.fontSize,
-            fontWeight: 'bold',
+            fontWeight: 700,
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             backfaceVisibility: 'hidden',
           }}
@@ -122,7 +125,7 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
             alignItems: 'flex-start',
             justifyContent: 'center',
             fontSize: digitSize.fontSize,
-            fontWeight: 'bold',
+            fontWeight: 700,
             boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
             backfaceVisibility: 'hidden',
             transformStyle: 'preserve-3d',

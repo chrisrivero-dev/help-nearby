@@ -33,7 +33,8 @@ const titleLinkStyle: React.CSSProperties = {
 };
 
 const titleStyle: React.CSSProperties = {
-  fontWeight: 900,
+  fontFamily: "'Poppins', sans-serif",
+  fontWeight: 800,
   textTransform: 'uppercase',
   textAlign: 'left',
   fontSize: '4rem',
@@ -53,7 +54,7 @@ const ResourcesTitle: FC<TitleProps> = ({
   const pinFill = isDark ? '#d4af37' : '#fbbf24';  // Gold colors for pin fill
   
   const [isClicked, setIsClicked] = useState(false);
-  const [isTitleHovered, setIsTitleHovered] = useState(false);
+  const [isResourcesHovered, setIsResourcesHovered] = useState(false);
   const handlePinClick = () => {
     setIsClicked(true);
     setTimeout(() => {
@@ -68,26 +69,28 @@ const ResourcesTitle: FC<TitleProps> = ({
 
   // Hover styles for the RESOURCES! portion
   const titleResourcesStyle: React.CSSProperties = {
-    fontWeight: 900,
+    fontFamily: "'Poppins', sans-serif",
+    fontWeight: 800,
     textTransform: 'uppercase',
     textAlign: 'left',
     fontSize: '4rem',
     whiteSpace: 'nowrap',
     cursor: 'pointer',
     transition: 'background-color 0.3s ease, color 0.3s ease, transform 0.3s ease',
-    backgroundColor: isTitleHovered 
+    backgroundColor: isResourcesHovered 
       ? (isDark ? '#28a745' : '#228B22')  // Green background on hover
       : 'transparent',
-    color: isTitleHovered 
+    color: isResourcesHovered 
       ? '#ffffff'  // White text on hover
       : textColor,
     padding: '0 5px',
     borderRadius: '4px',
-    transform: isTitleHovered ? 'scale(1.05)' : 'scale(1)',
+    transform: isResourcesHovered ? 'scale(1.05)' : 'scale(1)',
   };
 
   const titleNearbyStyle: React.CSSProperties = {
-    fontWeight: 900,
+    fontFamily: "'Poppins', sans-serif",
+    fontWeight: 800,
     textTransform: 'uppercase',
     textAlign: 'left',
     fontSize: '4rem',
@@ -105,10 +108,11 @@ const ResourcesTitle: FC<TitleProps> = ({
       <div style={{ ...titleWrapperStyle }}>
         <div style={{ ...titleContainerStyle, display: 'flex', alignItems: 'center', height: '100px' }}>
           <div style={{ ...titleStyle, color: textColor }}>
-            <span onMouseEnter={() => setIsTitleHovered(true)} onMouseLeave={() => setIsTitleHovered(false)}>
-              <span style={titleResourcesStyle}>{highlightedWord}</span>{' '}
-              <span style={titleNearbyStyle}>{remainingTitle}</span>
+            <span onMouseEnter={() => setIsResourcesHovered(true)} onMouseLeave={() => setIsResourcesHovered(false)}>
+              <span style={titleResourcesStyle}>{highlightedWord}</span>
             </span>
+            {' '}
+            <span style={titleNearbyStyle}>{remainingTitle}</span>
           </div>
         </div>
         {showMapPin && (
