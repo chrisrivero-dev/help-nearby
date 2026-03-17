@@ -114,7 +114,7 @@ const useMapStyles = () => {
     placeSearchOnPanelStyle: {
       position: 'absolute',
           top: 20,
-          left: '33%',
+          left: '35%',
           transform: 'translateX(-50%)',
       width: '400px',
       backgroundColior: 'transparent',
