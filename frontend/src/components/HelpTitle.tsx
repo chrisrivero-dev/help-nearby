@@ -49,6 +49,7 @@ const Title: FC<TitleProps> = ({ title = 'HELP! NEARBY.', subtitle, showMapPin =
   const pinFill = isDark ? '#d4af37' : '#fbbf24';  // Gold colors for pin fill
   
   const [isClicked, setIsClicked] = useState(false);
+  const [isTitleHovered, setIsTitleHovered] = useState(false);
   const handlePinClick = () => {
     setIsClicked(true);
     setTimeout(() => {
@@ -61,6 +62,34 @@ const Title: FC<TitleProps> = ({ title = 'HELP! NEARBY.', subtitle, showMapPin =
   const highlightedWord = titleParts[0] || '';
   const remainingTitle = titleParts.slice(1).join(' ');
 
+  // Hover styles for the HELP! portion
+  const titleHelpStyle: React.CSSProperties = {
+    fontWeight: 900,
+    textTransform: 'uppercase',
+    textAlign: 'left',
+    fontSize: '4rem',
+    whiteSpace: 'nowrap',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease, color 0.3s ease',
+    backgroundColor: isTitleHovered 
+      ? (isDark ? '#dc3545' : '#ff0000')  // Red background on hover
+      : 'transparent',
+    color: isTitleHovered 
+      ? '#ffffff'  // White text on hover
+      : textColor,
+    padding: '0 5px',
+    borderRadius: '4px',
+  };
+
+  const titleNearbyStyle: React.CSSProperties = {
+    fontWeight: 900,
+    textTransform: 'uppercase',
+    textAlign: 'left',
+    fontSize: '4rem',
+    whiteSpace: 'nowrap',
+    color: textColor,
+  };
+
   return (
     <motion.div
       style={titleContainerStyle}
@@ -71,9 +100,9 @@ const Title: FC<TitleProps> = ({ title = 'HELP! NEARBY.', subtitle, showMapPin =
       <div style={{ ...titleWrapperStyle }}>
         <div style={{ ...titleContainerStyle, display: 'flex', alignItems: 'center', height: '100px' }}>
           <div style={{ ...titleStyle, color: textColor }}>
-            <span>
-              <span>{highlightedWord}</span>{' '}
-              <span>{remainingTitle}</span>
+            <span onMouseEnter={() => setIsTitleHovered(true)} onMouseLeave={() => setIsTitleHovered(false)}>
+              <span style={titleHelpStyle}>{highlightedWord}</span>{' '}
+              <span style={titleNearbyStyle}>{remainingTitle}</span>
             </span>
           </div>
         </div>

@@ -53,6 +53,7 @@ const AboutTitle: FC<TitleProps> = ({
   const pinFill = isDark ? '#d4af37' : '#fbbf24';  // Gold colors for pin fill
   
   const [isClicked, setIsClicked] = useState(false);
+  const [isTitleHovered, setIsTitleHovered] = useState(false);
   const handlePinClick = () => {
     setIsClicked(true);
     setTimeout(() => {
@@ -65,6 +66,35 @@ const AboutTitle: FC<TitleProps> = ({
   const highlightedWord = titleParts[0] || '';
   const remainingTitle = titleParts.slice(1).join(' ');
 
+  // Hover styles for the ABOUT! portion
+  const titleAboutStyle: React.CSSProperties = {
+    fontWeight: 900,
+    textTransform: 'uppercase',
+    textAlign: 'left',
+    fontSize: '4rem',
+    whiteSpace: 'nowrap',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease, color 0.3s ease, transform 0.3s ease',
+    backgroundColor: isTitleHovered 
+      ? (isDark ? '#0d6efd' : '#007bff')  // Blue background on hover
+      : 'transparent',
+    color: isTitleHovered 
+      ? '#ffffff'  // White text on hover
+      : textColor,
+    padding: '0 5px',
+    borderRadius: '4px',
+    transform: isTitleHovered ? 'scale(1.05)' : 'scale(1)',
+  };
+
+  const titleNearbyStyle: React.CSSProperties = {
+    fontWeight: 900,
+    textTransform: 'uppercase',
+    textAlign: 'left',
+    fontSize: '4rem',
+    whiteSpace: 'nowrap',
+    color: textColor,
+  };
+
   return (
     <motion.div
       style={titleContainerStyle}
@@ -73,11 +103,13 @@ const AboutTitle: FC<TitleProps> = ({
       transition={{ duration: 0.7, ease: 'easeOut' }}
     >
       <div style={{ ...titleWrapperStyle }}>
-        <div style={{ ...titleStyle, color: textColor }}>
-          <span>
-            <span>{highlightedWord}</span>{' '}
-            <span>{remainingTitle}</span>
-          </span>
+        <div style={{ ...titleContainerStyle, display: 'flex', alignItems: 'center', height: '100px' }}>
+          <div style={{ ...titleStyle, color: textColor }}>
+            <span onMouseEnter={() => setIsTitleHovered(true)} onMouseLeave={() => setIsTitleHovered(false)}>
+              <span style={titleAboutStyle}>{highlightedWord}</span>{' '}
+              <span style={titleNearbyStyle}>{remainingTitle}</span>
+            </span>
+          </div>
         </div>
         {showMapPin && (
           <motion.div
