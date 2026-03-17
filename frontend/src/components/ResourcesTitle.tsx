@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import { useState } from 'react';
+import { useTheme } from './useTheme';
 
 interface TitleProps {
   title?: string;
@@ -27,18 +28,16 @@ const titleWrapperStyle: React.CSSProperties = {
   gap: '10px',
 };
 
+const titleLinkStyle: React.CSSProperties = {
+  display: 'inline-block',
+};
+
 const titleStyle: React.CSSProperties = {
   fontWeight: 900,
   textTransform: 'uppercase',
   textAlign: 'left',
-  color: '#000',
   fontSize: '4rem',
   whiteSpace: 'nowrap',
-};
-
-const titleLinkStyle: React.CSSProperties = {
-  display: 'inline-block',
-  cursor: 'pointer',
 };
 
 const ResourcesTitle: FC<TitleProps> = ({
@@ -46,6 +45,13 @@ const ResourcesTitle: FC<TitleProps> = ({
   subtitle,
   showMapPin = true,
 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  
+  const textColor = isDark ? '#e8e8e8' : '#111111';
+  const pinStroke = isDark ? '#e8e8e8' : '#111111';
+  const pinFill = isDark ? '#d4af37' : '#fbbf24';  // Gold colors for pin fill
+  
   const [isClicked, setIsClicked] = useState(false);
   const handlePinClick = () => {
     setIsClicked(true);
@@ -67,20 +73,9 @@ const ResourcesTitle: FC<TitleProps> = ({
       transition={{ duration: 0.7, ease: 'easeOut' }}
     >
       <div style={{ ...titleWrapperStyle }}>
-        <div style={titleStyle}>
-          <span style={titleLinkStyle}>
-            <motion.span
-              style={{ display: 'inline-block', cursor: 'pointer' }}
-              whileHover={{
-                backgroundColor: '#ff0000',
-                color: '#fff',
-                padding: '0.25rem 0.5rem',
-                borderRadius: '4px',
-                transition: { duration: 0.1 },
-              }}
-            >
-              {highlightedWord}
-            </motion.span>{' '}
+        <div style={{ ...titleStyle, color: textColor }}>
+          <span>
+            <span>{highlightedWord}</span>{' '}
             <span>{remainingTitle}</span>
           </span>
         </div>
@@ -103,8 +98,8 @@ const ResourcesTitle: FC<TitleProps> = ({
           >
             <MapPin
               size={80}
-              stroke="#000"
-              fill={isClicked ? '#FFD700' : 'none'}
+              stroke={pinStroke}
+              fill={isClicked ? pinFill : 'none'}
               strokeWidth={2}
               style={{ cursor: 'pointer' }}
             />

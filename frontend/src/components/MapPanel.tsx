@@ -3,16 +3,15 @@
 import { FC, useEffect, useState, useRef, createContext, useContext, ReactNode, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import 'leaflet/dist/leaflet.css';
-import { Crosshair, Search } from 'lucide-react';
 import { useMap } from 'react-leaflet';
-import { lookupLocation, ZipCodeLocation } from '@/lib/location/locationLookup';
+import { Crosshair, Search } from 'lucide-react';
+import { useTheme } from './useTheme';
 import dynamic from 'next/dynamic';
-
-// Dynamic imports to prevent SSR issues with leaflet
-const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false, loading: () => <div className="flex items-center justify-center h-full w-full">Loading map...</div> });
-const TileLayer = dynamic(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import('react-leaflet').then((mod) => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import('react-leaflet').then((mod) => mod.Popup), { ssr: false });
+const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
+const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
+const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
+const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), { ssr: false });
+import { lookupLocation, ZipCodeLocation } from '@/lib/location/locationLookup';
 
 // Type for the map context value
 interface MapContextValue {
@@ -84,14 +83,75 @@ const MapInstanceSetter: FC<{ onMapReady: (map: import('leaflet').Map) => void }
   return null;
 };
 
-/* Input styling for the search field (placed before its usage) */
-const inputStyle: React.CSSProperties = {
-  padding: '8px 12px',
-  borderRadius: '4px',
-  border: '1px solid #ccc',
-  fontSize: '14px',
-  width: '250px',
-  outline: 'none',
+// Styles using CSS variables
+const useMapStyles = () => {
+  return {
+    mapContainerStyle: {
+      backgroundColor: '#0f0f0f',
+      width: 'calc(100vw - 200px)',
+      maxWidth: '1600px',
+      height: 'calc(100vw - 200px) * 9 / 21',
+      aspectRatio: '21/9',
+      border: 'none',
+      borderRadius: '8px',
+      boxShadow: '0 10px 20px rgba(0,0,0,0.3)',
+      zIndex: 0,
+      padding: '0',
+      position: 'fixed',
+      top: '150px',
+      left: '100px',
+      right: '100px',
+      margin: '0 auto',
+      color: '#e8e8e8',
+    } as React.CSSProperties,
+    inputStyle: {
+      padding: '8px 12px',
+      borderRadius: '4px',
+      border: '1px solid var(--color-border)',
+      fontSize: '14px',
+      width: '250px',
+      outline: 'none',
+      backgroundColor: 'transparent',
+      color: 'var(--color-text)',
+    } as React.CSSProperties,
+    buttonStyle: {
+      padding: '8px 16px',
+      borderRadius: '4px',
+      backgroundColor: 'var(--color-bg)',
+      color: 'var(--color-text)',
+      border: '1px solid var(--color-border)',
+      cursor: 'pointer',
+      fontSize: '14px',
+      fontWeight: '500',
+      outline: 'none',
+    } as React.CSSProperties,
+        zipSearchAbovePanelStyle: {
+          position: 'fixed',
+          left: 'calc(50vw - 200px)',
+          top: '160px',
+          width: '400px',
+          backgroundColor: 'transparent',
+          padding: '10px 15px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+          zIndex: 100,
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: '8px',
+          color: 'var(--color-text)',
+        } as React.CSSProperties,
+    errorBannerStyle: {
+      backgroundColor: 'var(--color-bg)',
+      color: 'var(--color-text)',
+      padding: '10px 15px',
+      borderRadius: '6px',
+      fontSize: '14px',
+      textAlign: 'center',
+      maxWidth: '300px',
+      border: '1px solid var(--color-border)',
+    } as React.CSSProperties,
+  };
 };
 
 // Internal component that consumes the map context
@@ -105,6 +165,13 @@ const MapContent: FC<{
   mapInstanceRef: React.RefObject<import('leaflet').Map | null>;
 }> = ({ zip, setZip, isSearching, setIsSearching, mapLoaded, setMapLoaded, mapInstanceRef }) => {
   const { setZoomTarget, mapInstance } = useMapContext();
+  const { theme } = useTheme();
+  const { mapContainerStyle, inputStyle, buttonStyle, zipSearchAbovePanelStyle, errorBannerStyle } = useMapStyles();
+  const adjustedMapContainerStyle = {
+    ...mapContainerStyle,
+    boxShadow: theme === 'dark' ? '0 10px 30px rgba(0,0,0,0.7)' : mapContainerStyle.boxShadow,
+    backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.8)' : mapContainerStyle.backgroundColor,
+  };
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [pendingZoomTarget, setPendingZoomTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
@@ -180,63 +247,27 @@ const MapContent: FC<{
     }
   };
 
-  // ZIP search input floating above the map panel (top of map panel, centered)
-  const zipSearchAbovePanelStyle: React.CSSProperties = {
-    position: 'fixed',
-    left: 'calc(50vw - 200px)', // Centered relative to the panel (400px / 2 = 200px)
-    top: '160px', // 10px below the top of the map panel (250px + 10px)
-    width: '400px',
-    backgroundColor: 'white',
-    padding: '10px 15px',
-    borderRadius: '8px',
-    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-    zIndex: 100,
-    display: 'flex',
-    flexDirection: 'row', // inline layout
-    alignItems: 'center',
-    gap: '8px',
-  };
-
-  // Error banner style
-  const errorBannerStyle: React.CSSProperties = {
-    backgroundColor: '#fee2e2',
-    color: '#991b1b',
-    padding: '10px 15px',
-    borderRadius: '6px',
-    fontSize: '14px',
-    textAlign: 'center',
-    maxWidth: '300px',
-  };
-
-  // Custom icon for search location
-  const searchIcon = leafletModule?.divIcon({
-    html: '<div style="width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #000;"></div>',
-    iconSize: [24, 24],
-    iconAnchor: [12, 24],
-    className: "",
-  });
-
   return (
     <>
-      <motion.div
-        style={panelStyle}
+        <motion.div
+          style={adjustedMapContainerStyle}
         initial={{ opacity: 1, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
-        <MapContainer 
-          center={[40.7506, -73.9972]} 
-          zoom={13} 
-          style={{ height: '100%', width: '100%' }}
-          className="rounded"
-          attributionControl={false}
-        >
-          <MapInstanceSetter onMapReady={(map) => {
-            mapInstanceRef.current = map;
-            setMapLoaded(true);
-          }} />
+<MapContainer 
+  center={[40.7506, -73.9972]} 
+  zoom={13} 
+  style={{ height: '100%', width: '100%' }}
+  className="leaflet-map"
+  attributionControl={false}
+>
+  <MapInstanceSetter onMapReady={(map) => {
+    mapInstanceRef.current = map;
+    setMapLoaded(true);
+  }} />
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            url={theme === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'}
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             subdomains="abcd"
             maxZoom={20}
@@ -246,8 +277,13 @@ const MapContent: FC<{
               <Popup>You are here</Popup>
             </Marker>
           )}
-          {searchLocation && searchIcon && (
-            <Marker position={[searchLocation.lat, searchLocation.lng]} icon={searchIcon} />
+          {searchLocation && (
+            <Marker position={[searchLocation.lat, searchLocation.lng]} icon={leafletModule?.divIcon({
+              html: '<div style="width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid var(--color-text);"></div>',
+              iconSize: [24, 24],
+              iconAnchor: [12, 24],
+              className: "",
+            })} />
           )}
         </MapContainer>
       </motion.div>
@@ -279,11 +315,12 @@ const MapContent: FC<{
           disabled={isSearching}
           style={inputStyle}
         />
+        <style jsx>{`input::placeholder { color: var(--color-text); }`}</style>
         <button onClick={handleLocate} disabled={isSearching} style={buttonStyle}>
-          <Crosshair size={20} />
+          <Crosshair size={20} fill="none" />
         </button>
         <button onClick={handleSearch} disabled={isSearching} style={{ ...buttonStyle, marginLeft: '8px' }}>
-          <Search size={20} />
+          <Search size={20} fill="none" />
         </button>
       </motion.div>
     </>
@@ -310,34 +347,6 @@ const MapPanel: FC = () => {
       />
     </MapProvider>
   );
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: '8px 16px',
-  borderRadius: '4px',
-  backgroundColor: '#000',
-  color: '#fff',
-  border: 'none',
-  cursor: 'pointer',
-  fontSize: '14px',
-  fontWeight: '500',
-  outline: 'none',
-};
-
-const panelStyle: React.CSSProperties = {
-  backgroundColor: '#edeaea',
-  width: 'calc(100vw - 200px)',
-  maxWidth: '1600px',
-  aspectRatio: '21/9',
-  border: '2px solid Black',
-  boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
-  zIndex: 0,
-  padding: '0',
-  position: 'fixed',
-  top: '150px',
-  left: '100px',
-  right: '100px',
-  margin: '0 auto',
 };
 
 export default MapPanel;

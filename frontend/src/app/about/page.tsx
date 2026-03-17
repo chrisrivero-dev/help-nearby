@@ -5,16 +5,20 @@ import { motion } from 'framer-motion';
 import Title from '@/components/AboutTitle';
 import Navbar from '@/components/Navbar';
 import StarWarsIntro from '@/components/StarWarsIntro';
+import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 
-// Styles
+// Styles using CSS variables
 const pageStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   minHeight: '100vh',
   width: '100%',
-  backgroundColor: '#f5f5f5',
-  color: '#000',
-  paddingTop: '120px',
+  maxWidth: '1600px',
+  marginLeft: 'auto',
+  marginRight: 'auto',
+  backgroundColor: 'var(--color-bg)',
+  color: 'var(--color-text)',
+  paddingTop: '60px',
   paddingBottom: '4rem',
   fontSize: '16px',
   position: 'relative',
@@ -28,7 +32,8 @@ const headerStyle: React.CSSProperties = {
   right: 20,
   height: '100px',
   zIndex: 100,
-  backgroundColor: '#f5f5f5',
+  backgroundColor: 'transparent',
+  color: 'var(--color-text)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { normalizeLocation } from '@/lib/location/normalizeLocation';
+import { useTheme } from '@/components/useTheme';
 
 /* Types */
 type HelpCategory = 'housing' | 'food' | 'safety' | 'finance';
@@ -103,369 +104,355 @@ const RESOURCE_DATA: Record<HelpCategory, Record<string, ResourceLink[]>> = {
 
 type LocalEntry = { title: string; url: string };
 
-/* Styles */
-const containerStyle: React.CSSProperties = {
-  maxWidth: '1100px',
-  width: '100%',
-  margin: '0 auto',
-  padding: '0 2rem',
-  paddingTop: '100px',
-};
+/* Styles with theme awareness */
+const useResourceFinderStyles = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
-const locationInputStyle: React.CSSProperties = {
-  marginTop: '2rem',
-  padding: '0.9rem 1.25rem',
-  border: '3px solid #000',
-  backgroundColor: '#fff',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.75rem',
-  flexWrap: 'wrap',
-};
+  const textColor = isDark ? '#e8e8e8' : '#111111';
+  const textMuted = isDark ? '#888888' : '#666666';
+  const textSecondary = isDark ? '#aaaaaa' : '#444444';
+  const bgSurface = isDark ? '#1e1e1e' : '#ffffff';
+  const bgAlt = isDark ? '#2a2a2a' : '#f3f3f3';
+  const border = isDark ? '#3e3e3e' : '#000000';
+  const primary = isDark ? '#60a5fa' : '#2563eb';
 
-const locationLabelStyle: React.CSSProperties = {
-  fontWeight: 700,
-  fontSize: '0.7rem',
-  letterSpacing: '0.15em',
-  textTransform: 'uppercase',
-  whiteSpace: 'nowrap',
-  color: '#444',
-};
-
-const inputStyle: React.CSSProperties = {
-  border: '2px solid #000',
-  backgroundColor: '#f3f3f3',
-  padding: '0.4rem 0.75rem',
-  fontWeight: 600,
-  fontSize: '0.9rem',
-  fontFamily: 'inherit',
-  width: '140px',
-  outline: 'none',
-};
-
-const buttonStyle: React.CSSProperties = {
-  border: '2px solid #000',
-  backgroundColor: '#000',
-  color: '#fff',
-  padding: '0.4rem 0.9rem',
-  fontWeight: 700,
-  fontSize: '0.7rem',
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase',
-  cursor: 'pointer',
-  fontFamily: 'inherit',
-  whiteSpace: 'nowrap',
-};
-
-const locationBadgeStyle: React.CSSProperties = {
-  marginLeft: 'auto',
-  fontSize: '0.8rem',
-  fontWeight: 700,
-  letterSpacing: '0.04em',
-  border: '2px solid #000',
-  padding: '0.3rem 0.75rem',
-  backgroundColor: '#f3f3f3',
-  whiteSpace: 'nowrap',
-};
-
-const descriptionStyle: React.CSSProperties = {
-  fontSize: '0.8rem',
-  fontWeight: 600,
-  color: '#555',
-  marginTop: '0.65rem',
-  marginBottom: 0,
-  letterSpacing: '0.02em',
-  lineHeight: 1.5,
-};
-
-const categoryContainerStyle: React.CSSProperties = {
-  display: 'flex',
-  gap: '1.25rem',
-  marginTop: '1.25rem',
-};
-
-const categoryButtonStyle: React.CSSProperties = {
-  position: 'relative',
-  zIndex: 1,
-  flex: 1,
-  height: '80px',
-  width: '100%',
-  backgroundColor: '#fff',
-  color: '#000',
-  border: '3px solid #000',
-  fontWeight: 700,
-  fontSize: '1.1rem',
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  cursor: 'pointer',
-  fontFamily: 'inherit',
-};
-
-const categoryShadowStyle: React.CSSProperties = {
-  position: 'absolute',
-  backgroundColor: '#000',
-  width: '100%',
-  height: '100%',
-  zIndex: 0,
-  left: '-5px',
-  top: '5px',
-};
-
-const categoryButtonActiveStyle: React.CSSProperties = {
-  position: 'relative',
-  zIndex: 1,
-  flex: 1,
-  height: '80px',
-  width: '100%',
-  backgroundColor: '#000',
-  color: '#fff',
-  border: '4px solid #000',
-  boxShadow: 'none',
-  fontWeight: 700,
-  fontSize: '1.1rem',
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  cursor: 'pointer',
-  fontFamily: 'inherit',
-};
-
-const panelStyle: React.CSSProperties = {
-  border: '3px solid #000',
-  backgroundColor: '#fff',
-  display: 'flex',
-  overflow: 'hidden',
-  marginTop: '1.25rem',
-};
-
-const subOptionsStyle: React.CSSProperties = {
-  width: '220px',
-  flexShrink: 0,
-  borderRight: '3px solid #000',
-  backgroundColor: '#f3f3f3',
-  display: 'flex',
-  flexDirection: 'column',
-};
-
-const subOptionsHeaderStyle: React.CSSProperties = {
-  fontSize: '0.65rem',
-  fontWeight: 700,
-  letterSpacing: '0.15em',
-  textTransform: 'uppercase',
-  padding: '0.75rem 1rem',
-  borderBottom: '2px solid #000',
-  margin: 0,
-  color: '#666',
-};
-
-const subOptionButtonStyle: React.CSSProperties = {
-  padding: '0.85rem 1rem',
-  textAlign: 'left',
-  fontWeight: 700,
-  fontSize: '0.85rem',
-  letterSpacing: '0.03em',
-  cursor: 'pointer',
-  border: 'none',
-  borderBottom: '1px solid #000',
-  fontFamily: 'inherit',
-};
-
-const subOptionButtonActiveStyle: React.CSSProperties = {
-  padding: '0.85rem 1rem',
-  textAlign: 'left',
-  fontWeight: 700,
-  fontSize: '0.85rem',
-  letterSpacing: '0.03em',
-  cursor: 'pointer',
-  border: 'none',
-  borderBottom: '1px solid #000',
-  backgroundColor: '#000',
-  color: '#fff',
-  fontFamily: 'inherit',
-};
-
-const previewPanelStyle: React.CSSProperties = {
-  flex: 1,
-  padding: '1.5rem',
-  minHeight: '200px',
-  maxHeight: '420px',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start',
-  overflowY: 'auto',
-};
-
-const resourceHeadingStyle: React.CSSProperties = {
-  fontSize: '0.65rem',
-  fontWeight: 700,
-  letterSpacing: '0.15em',
-  textTransform: 'uppercase',
-  color: '#666',
-  marginBottom: '0.4rem',
-  margin: 0,
-};
-
-const resourceSubheadingStyle: React.CSSProperties = {
-  fontSize: '1.1rem',
-  fontWeight: 700,
-  lineHeight: 1.3,
-  marginTop: '0.3rem',
-  marginBottom: '1.25rem',
-  paddingBottom: '0.75rem',
-  borderBottom: '2px solid #000',
-};
-
-const localResourcesHeaderStyle: React.CSSProperties = {
-  fontSize: '0.65rem',
-  fontWeight: 700,
-  letterSpacing: '0.15em',
-  textTransform: 'uppercase',
-  margin: '0 0 0.65rem',
-  backgroundColor: '#000',
-  color: '#fff',
-  padding: '0.3rem 0.65rem',
-  display: 'inline-block',
-};
-
-const loadingStyle: React.CSSProperties = {
-  fontSize: '0.8rem',
-  fontWeight: 600,
-  color: '#666',
-  margin: 0,
-  letterSpacing: '0.04em',
-};
-
-const noResultsStyle: React.CSSProperties = {
-  fontSize: '0.8rem',
-  fontWeight: 600,
-  color: '#666',
-  margin: 0,
-  letterSpacing: '0.04em',
-};
-
-const resourceLinkStyle: React.CSSProperties = {
-  fontSize: '0.85rem',
-  fontWeight: 700,
-  color: '#000',
-  textDecoration: 'none',
-  borderBottom: '1px solid #000',
-};
-
-const resourceItemStyle: React.CSSProperties = {
-  borderBottom: '2px solid #000',
-};
-
-const resourceCardCollapsedStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'flex-start',
-  gap: '0.75rem',
-  padding: '0.8rem 0',
-};
-
-const resourceTitleStyle: React.CSSProperties = {
-  fontWeight: 700,
-  fontSize: '0.95rem',
-  color: '#000',
-  textDecoration: 'none',
-  borderBottom: '2px solid #000',
-  display: 'inline-block',
-  marginBottom: '0.15rem',
-};
-
-const resourceDescriptionStyle: React.CSSProperties = {
-  margin: 0,
-  fontSize: '0.8rem',
-  color: '#555',
-  lineHeight: 1.4,
-};
-
-const expandButtonStyle: React.CSSProperties = {
-  flexShrink: 0,
-  border: '2px solid #000',
-  backgroundColor: '#f3f3f3',
-  color: '#000',
-  padding: '0.25rem 0.6rem',
-  cursor: 'pointer',
-  fontSize: '0.65rem',
-  fontWeight: 700,
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  fontFamily: 'inherit',
-  whiteSpace: 'nowrap',
-  alignSelf: 'flex-start',
-  marginTop: '0.1rem',
-};
-
-const expandButtonActiveStyle: React.CSSProperties = {
-  flexShrink: 0,
-  border: '2px solid #000',
-  backgroundColor: '#000',
-  color: '#fff',
-  padding: '0.25rem 0.6rem',
-  cursor: 'pointer',
-  fontSize: '0.65rem',
-  fontWeight: 700,
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  fontFamily: 'inherit',
-  whiteSpace: 'nowrap',
-  alignSelf: 'flex-start',
-  marginTop: '0.1rem',
-};
-
-const detailBlockStyle: React.CSSProperties = {
-  borderTop: '1px solid #ddd',
-  padding: '0.85rem 0 1.1rem',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.75rem',
-  backgroundColor: '#fafafa',
-  paddingLeft: '0.75rem',
-  paddingRight: '0.75rem',
-  marginBottom: '0.5rem',
-};
-
-const detailLabelStyle: React.CSSProperties = {
-  fontSize: '0.6rem',
-  fontWeight: 700,
-  letterSpacing: '0.14em',
-  textTransform: 'uppercase',
-  color: '#888',
-  margin: '0 0 0.25rem',
-};
-
-const detailTextStyle: React.CSSProperties = {
-  margin: 0,
-  fontSize: '0.85rem',
-  color: '#222',
-  lineHeight: 1.55,
-};
-
-const detailLinkStyle: React.CSSProperties = {
-  color: '#000',
-  fontWeight: 600,
-  borderBottom: '1px solid #999',
-};
-
-const detailActionLinkStyle: React.CSSProperties = {
-  color: '#000',
-  fontWeight: 700,
-  borderBottom: '2px solid #000',
-};
-
-const emptyStateStyle: React.CSSProperties = {
-  flex: 1,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: '180px',
-  color: '#bbb',
-};
-
-const emptyStateTextStyle: React.CSSProperties = {
-  fontSize: '1rem',
-  fontWeight: 700,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
+  return {
+    containerStyle: {
+      maxWidth: '1100px',
+      width: '100%',
+      margin: '0 auto',
+      padding: '0 2rem',
+      paddingTop: '100px',
+      color: textColor,
+    } as React.CSSProperties,
+    locationInputStyle: {
+      marginTop: '2rem',
+      padding: '0.9rem 1.25rem',
+      border: `3px solid ${border}`,
+      backgroundColor: bgSurface,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.75rem',
+      flexWrap: 'wrap',
+    } as React.CSSProperties,
+    locationLabelStyle: {
+      fontWeight: 700,
+      fontSize: '0.7rem',
+      letterSpacing: '0.15em',
+      textTransform: 'uppercase',
+      whiteSpace: 'nowrap',
+      color: textMuted,
+    } as React.CSSProperties,
+    inputStyle: {
+      border: `2px solid ${border}`,
+      backgroundColor: bgAlt,
+      padding: '0.4rem 0.75rem',
+      fontWeight: 600,
+      fontSize: '0.9rem',
+      fontFamily: 'inherit',
+      width: '140px',
+      outline: 'none',
+      color: textColor,
+    } as React.CSSProperties,
+    buttonStyle: {
+      border: `2px solid ${border}`,
+      backgroundColor: border,
+      color: isDark ? '#0f0f0f' : '#ffffff',
+      padding: '0.4rem 0.9rem',
+      fontWeight: 700,
+      fontSize: '0.7rem',
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase',
+      cursor: 'pointer',
+      fontFamily: 'inherit',
+      whiteSpace: 'nowrap',
+    } as React.CSSProperties,
+    locationBadgeStyle: {
+      marginLeft: 'auto',
+      fontSize: '0.8rem',
+      fontWeight: 700,
+      letterSpacing: '0.04em',
+      border: `2px solid ${border}`,
+      padding: '0.3rem 0.75rem',
+      backgroundColor: bgAlt,
+      whiteSpace: 'nowrap',
+      color: textColor,
+    } as React.CSSProperties,
+    descriptionStyle: {
+      fontSize: '0.8rem',
+      fontWeight: 600,
+      color: textMuted,
+      marginTop: '0.65rem',
+      marginBottom: 0,
+      letterSpacing: '0.02em',
+      lineHeight: 1.5,
+    } as React.CSSProperties,
+    categoryContainerStyle: {
+      display: 'flex',
+      gap: '1.25rem',
+      marginTop: '1.25rem',
+    } as React.CSSProperties,
+    categoryButtonStyle: {
+      position: 'relative',
+      zIndex: 1,
+      flex: 1,
+      height: '80px',
+      width: '100%',
+      backgroundColor: bgSurface,
+      color: textColor,
+      border: `3px solid ${border}`,
+      fontWeight: 700,
+      fontSize: '1.1rem',
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+      cursor: 'pointer',
+      fontFamily: 'inherit',
+    } as React.CSSProperties,
+    categoryShadowStyle: {
+      position: 'absolute',
+      backgroundColor: border,
+      width: '100%',
+      height: '100%',
+      zIndex: 0,
+      left: '-5px',
+      top: '5px',
+    } as React.CSSProperties,
+    categoryButtonActiveStyle: {
+      position: 'relative',
+      zIndex: 1,
+      flex: 1,
+      height: '80px',
+      width: '100%',
+      backgroundColor: border,
+      color: isDark ? '#0f0f0f' : '#ffffff',
+      border: `4px solid ${border}`,
+      boxShadow: 'none',
+      fontWeight: 700,
+      fontSize: '1.1rem',
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+      cursor: 'pointer',
+      fontFamily: 'inherit',
+    } as React.CSSProperties,
+    panelStyle: {
+      border: `3px solid ${border}`,
+      backgroundColor: bgSurface,
+      display: 'flex',
+      overflow: 'hidden',
+      marginTop: '1.25rem',
+    } as React.CSSProperties,
+    subOptionsStyle: {
+      width: '220px',
+      flexShrink: 0,
+      borderRight: `3px solid ${border}`,
+      backgroundColor: bgAlt,
+      display: 'flex',
+      flexDirection: 'column',
+    } as React.CSSProperties,
+    subOptionsHeaderStyle: {
+      fontSize: '0.65rem',
+      fontWeight: 700,
+      letterSpacing: '0.15em',
+      textTransform: 'uppercase',
+      padding: '0.75rem 1rem',
+      borderBottom: `2px solid ${border}`,
+      margin: 0,
+      color: textMuted,
+    } as React.CSSProperties,
+    subOptionButtonStyle: {
+      padding: '0.85rem 1rem',
+      textAlign: 'left',
+      fontWeight: 700,
+      fontSize: '0.85rem',
+      letterSpacing: '0.03em',
+      cursor: 'pointer',
+      border: 'none',
+      borderBottom: `1px solid ${border}`,
+      fontFamily: 'inherit',
+      color: textColor,
+      backgroundColor: 'transparent',
+    } as React.CSSProperties,
+    subOptionButtonActiveStyle: {
+      padding: '0.85rem 1rem',
+      textAlign: 'left',
+      fontWeight: 700,
+      fontSize: '0.85rem',
+      letterSpacing: '0.03em',
+      cursor: 'pointer',
+      border: 'none',
+      borderBottom: `1px solid ${border}`,
+      backgroundColor: border,
+      color: isDark ? '#0f0f0f' : '#ffffff',
+      fontFamily: 'inherit',
+    } as React.CSSProperties,
+    previewPanelStyle: {
+      flex: 1,
+      padding: '1.5rem',
+      minHeight: '200px',
+      maxHeight: '420px',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+      overflowY: 'auto',
+    } as React.CSSProperties,
+    resourceHeadingStyle: {
+      fontSize: '0.65rem',
+      fontWeight: 700,
+      letterSpacing: '0.15em',
+      textTransform: 'uppercase',
+      color: textMuted,
+      marginBottom: '0.4rem',
+      margin: 0,
+    } as React.CSSProperties,
+    resourceSubheadingStyle: {
+      fontSize: '1.1rem',
+      fontWeight: 700,
+      lineHeight: 1.3,
+      marginTop: '0.3rem',
+      marginBottom: '1.25rem',
+      paddingBottom: '0.75rem',
+      borderBottom: `2px solid ${border}`,
+      color: textColor,
+    } as React.CSSProperties,
+    localResourcesHeaderStyle: {
+      fontSize: '0.65rem',
+      fontWeight: 700,
+      letterSpacing: '0.15em',
+      textTransform: 'uppercase',
+      margin: '0 0 0.65rem',
+      backgroundColor: border,
+      color: isDark ? '#0f0f0f' : '#ffffff',
+      padding: '0.3rem 0.65rem',
+      display: 'inline-block',
+    } as React.CSSProperties,
+    loadingStyle: {
+      fontSize: '0.8rem',
+      fontWeight: 600,
+      color: textMuted,
+      margin: 0,
+      letterSpacing: '0.04em',
+    } as React.CSSProperties,
+    noResultsStyle: {
+      fontSize: '0.8rem',
+      fontWeight: 600,
+      color: textMuted,
+      margin: 0,
+      letterSpacing: '0.04em',
+    } as React.CSSProperties,
+    resourceLinkStyle: {
+      fontSize: '0.85rem',
+      fontWeight: 700,
+      color: primary,
+      textDecoration: 'none',
+      borderBottom: `1px solid ${border}`,
+    } as React.CSSProperties,
+    resourceItemStyle: {
+      borderBottom: `2px solid ${border}`,
+    } as React.CSSProperties,
+    resourceCardCollapsedStyle: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: '0.75rem',
+      padding: '0.8rem 0',
+    } as React.CSSProperties,
+    resourceTitleStyle: {
+      fontWeight: 700,
+      fontSize: '0.95rem',
+      color: primary,
+      textDecoration: 'none',
+      borderBottom: `2px solid ${border}`,
+      display: 'inline-block',
+      marginBottom: '0.15rem',
+    } as React.CSSProperties,
+    resourceDescriptionStyle: {
+      margin: 0,
+      fontSize: '0.8rem',
+      color: textSecondary,
+      lineHeight: 1.4,
+    } as React.CSSProperties,
+    expandButtonStyle: {
+      flexShrink: 0,
+      border: `2px solid ${border}`,
+      backgroundColor: bgAlt,
+      color: textColor,
+      padding: '0.25rem 0.6rem',
+      cursor: 'pointer',
+      fontSize: '0.65rem',
+      fontWeight: 700,
+      letterSpacing: '0.06em',
+      textTransform: 'uppercase',
+      fontFamily: 'inherit',
+      whiteSpace: 'nowrap',
+      alignSelf: 'flex-start',
+      marginTop: '0.1rem',
+    } as React.CSSProperties,
+    expandButtonActiveStyle: {
+      flexShrink: 0,
+      border: `2px solid ${border}`,
+      backgroundColor: border,
+      color: isDark ? '#0f0f0f' : '#ffffff',
+      padding: '0.25rem 0.6rem',
+      cursor: 'pointer',
+      fontSize: '0.65rem',
+      fontWeight: 700,
+      letterSpacing: '0.06em',
+      textTransform: 'uppercase',
+      fontFamily: 'inherit',
+      whiteSpace: 'nowrap',
+      alignSelf: 'flex-start',
+      marginTop: '0.1rem',
+    } as React.CSSProperties,
+    detailBlockStyle: {
+      borderTop: `1px solid ${border}`,
+      padding: '0.85rem 0 1.1rem',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.75rem',
+      backgroundColor: bgAlt,
+      paddingLeft: '0.75rem',
+      paddingRight: '0.75rem',
+      marginBottom: '0.5rem',
+    } as React.CSSProperties,
+    detailLabelStyle: {
+      fontSize: '0.6rem',
+      fontWeight: 700,
+      letterSpacing: '0.14em',
+      textTransform: 'uppercase',
+      color: textMuted,
+      margin: '0 0 0.25rem',
+    } as React.CSSProperties,
+    detailTextStyle: {
+      margin: 0,
+      fontSize: '0.85rem',
+      color: textColor,
+      lineHeight: 1.55,
+    } as React.CSSProperties,
+    detailLinkStyle: {
+      color: primary,
+      fontWeight: 600,
+      borderBottom: `1px solid ${textMuted}`,
+    } as React.CSSProperties,
+    detailActionLinkStyle: {
+      color: primary,
+      fontWeight: 700,
+      borderBottom: `2px solid ${border}`,
+    } as React.CSSProperties,
+    emptyStateStyle: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '180px',
+      color: textMuted,
+    } as React.CSSProperties,
+    emptyStateTextStyle: {
+      fontSize: '1rem',
+      fontWeight: 700,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+    } as React.CSSProperties,
+  };
 };
 
 export interface ResourceFinderProps {
@@ -474,6 +461,10 @@ export interface ResourceFinderProps {
 }
 
 const ResourceFinder: React.FC = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const styles = useResourceFinderStyles();
+  
   const [category, setCategory] = useState<HelpCategory | null>(null);
   const [subcategory, setSubcategory] = useState<string | null>(null);
   const [locationZip, setLocationZip] = useState('');
@@ -541,10 +532,10 @@ const ResourceFinder: React.FC = () => {
   };
 
   return (
-    <div style={containerStyle}>
+    <div style={styles.containerStyle}>
       {/* Location Input */}
-      <div style={locationInputStyle}>
-        <span style={locationLabelStyle}>LOCATION</span>
+      <div style={styles.locationInputStyle}>
+        <span style={styles.locationLabelStyle}>LOCATION</span>
         <input
           type="text"
           value={locationZip}
@@ -555,16 +546,16 @@ const ResourceFinder: React.FC = () => {
           }}
           placeholder="Enter ZIP code"
           maxLength={10}
-          style={inputStyle}
+          style={styles.inputStyle}
         />
         <button
           onClick={handleLocate}
-          style={buttonStyle}
+          style={styles.buttonStyle}
         >
           Use My Location
         </button>
         {(locationZip.trim() !== '' || locationLat !== null) && (
-          <span style={locationBadgeStyle}>
+          <span style={styles.locationBadgeStyle}>
             {locationZip.trim() !== ''
               ? resolvedLocation
                 ? `Showing results near ${resolvedLocation.city}, ${resolvedLocation.stateCode} (${locationZip.trim()})`
@@ -575,21 +566,21 @@ const ResourceFinder: React.FC = () => {
       </div>
 
       {/* Page description */}
-      <p style={descriptionStyle}>
+      <p style={styles.descriptionStyle}>
         Enter your ZIP code, pick a category, and find local and national resources near you.
       </p>
 
       {/* Category cards */}
-      <div style={categoryContainerStyle}>
+      <div style={styles.categoryContainerStyle}>
         {(Object.keys(SUB_OPTIONS) as HelpCategory[]).map((cat) => {
           const isActive = category === cat;
           return (
             <div key={cat} style={{ position: 'relative', flex: 1, height: '80px' }}>
-              <div style={categoryShadowStyle} />
+              <div style={styles.categoryShadowStyle} />
               <button
                 onClick={() => handleCategoryClick(cat)}
                 aria-pressed={isActive}
-                style={isActive ? categoryButtonActiveStyle : categoryButtonStyle}
+                style={isActive ? styles.categoryButtonActiveStyle : styles.categoryButtonStyle}
               >
                 {cat.toUpperCase()}
               </button>
@@ -609,10 +600,10 @@ const ResourceFinder: React.FC = () => {
             transition={{ duration: 0.35, ease: 'easeInOut' }}
             style={{ overflow: 'hidden', marginTop: '1.25rem' }}
           >
-            <div style={panelStyle}>
+            <div style={styles.panelStyle}>
               {/* Left: sub-option buttons */}
-              <div style={subOptionsStyle}>
-                <p style={subOptionsHeaderStyle}>
+              <div style={styles.subOptionsStyle}>
+                <p style={styles.subOptionsHeaderStyle}>
                   {category.toUpperCase()} — SELECT TOPIC
                 </p>
                 {SUB_OPTIONS[category].map((sub) => {
@@ -622,7 +613,7 @@ const ResourceFinder: React.FC = () => {
                       key={sub}
                       onClick={() => handleSubcategoryClick(sub)}
                       aria-pressed={isSubActive}
-                      style={isSubActive ? subOptionButtonActiveStyle : subOptionButtonStyle}
+                      style={isSubActive ? styles.subOptionButtonActiveStyle : styles.subOptionButtonStyle}
                     >
                       {sub}
                     </button>
@@ -633,7 +624,7 @@ const ResourceFinder: React.FC = () => {
               {/* Right: results preview */}
               <div
                 ref={previewRef}
-                style={previewPanelStyle}
+                style={styles.previewPanelStyle}
               >
                 <AnimatePresence initial={false} mode="wait">
                   {subcategory ? (
@@ -645,12 +636,12 @@ const ResourceFinder: React.FC = () => {
                       transition={{ duration: 0.2 }}
                     >
                       {/* Heading */}
-                      <p style={resourceHeadingStyle}>
+                      <p style={styles.resourceHeadingStyle}>
                         {category.charAt(0).toUpperCase() + category.slice(1)} — {subcategory}
                       </p>
-                      <p style={resourceSubheadingStyle}>
+                      <p style={styles.resourceSubheadingStyle}>
                         Showing resources for{' '}
-                        <span style={{ borderBottom: '3px solid #000' }}>{subcategory}</span>.
+                        <span style={{ borderBottom: `3px solid ${isDark ? '#60a5fa' : '#2563eb'}` }}>{subcategory}</span>.
                       </p>
 
                       {/* Local resources */}
@@ -658,17 +649,17 @@ const ResourceFinder: React.FC = () => {
                         <div style={{
                           marginBottom: '1.25rem',
                           paddingBottom: '1rem',
-                          borderBottom: '2px solid #000',
+                          borderBottom: `2px solid ${isDark ? '#60a5fa' : '#2563eb'}`,
                         }}>
-                          <p style={localResourcesHeaderStyle}>
+                          <p style={styles.localResourcesHeaderStyle}>
                             LOCAL RESOURCES — {resolvedLocation.city}, {resolvedLocation.stateCode}
                           </p>
                           {loadingResources ? (
-                            <p style={loadingStyle}>
+                            <p style={styles.loadingStyle}>
                               Finding resources near you…
                             </p>
                           ) : localResources.length === 0 ? (
-                            <p style={noResultsStyle}>
+                            <p style={styles.noResultsStyle}>
                               No local results found for this area. Try the national resources below.
                             </p>
                           ) : (
@@ -679,7 +670,7 @@ const ResourceFinder: React.FC = () => {
                                     href={entry.url}
                                     target="_blank"
                                     rel="noreferrer"
-                                    style={resourceLinkStyle}
+                                    style={styles.resourceLinkStyle}
                                   >
                                     • {entry.title} ↗
                                   </a>
@@ -696,20 +687,20 @@ const ResourceFinder: React.FC = () => {
                           const isOpen = expandedCard === link.url;
                           const detailId = `card-detail-${link.url.replace(/[^a-z0-9]/gi, '-')}`;
                           return (
-                            <li key={link.url} style={resourceItemStyle}>
+                            <li key={link.url} style={styles.resourceItemStyle}>
                               {/* Collapsed row */}
-                              <div style={resourceCardCollapsedStyle}>
+                              <div style={styles.resourceCardCollapsedStyle}>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <a
                                     href={link.url}
                                     target="_blank"
                                     rel="noreferrer"
-                                    style={resourceTitleStyle}
+                                    style={styles.resourceTitleStyle}
                                   >
                                     {link.title} ↗
                                   </a>
                                   {link.description && (
-                                    <p style={resourceDescriptionStyle}>
+                                    <p style={styles.resourceDescriptionStyle}>
                                       {link.description}
                                     </p>
                                   )}
@@ -718,7 +709,7 @@ const ResourceFinder: React.FC = () => {
                                   onClick={() => handleExpandCard(link.url)}
                                   aria-expanded={isOpen}
                                   aria-controls={detailId}
-                                  style={isOpen ? expandButtonActiveStyle : expandButtonStyle}
+                                  style={isOpen ? styles.expandButtonActiveStyle : styles.expandButtonStyle}
                                 >
                                   {isOpen ? 'Close ▲' : 'Expand ▼'}
                                 </button>
@@ -736,30 +727,30 @@ const ResourceFinder: React.FC = () => {
                                     transition={{ duration: 0.25, ease: 'easeInOut' }}
                                     style={{ overflow: 'hidden' }}
                                   >
-                                    <div style={detailBlockStyle}>
+                                    <div style={styles.detailBlockStyle}>
                                       <div>
-                                        <p style={detailLabelStyle}>Details</p>
-                                        <p style={detailTextStyle}>
+                                        <p style={styles.detailLabelStyle}>Details</p>
+                                        <p style={styles.detailTextStyle}>
                                           {link.description ?? 'Visit the link above for more information about this resource and available services.'}
                                         </p>
                                       </div>
 
                                       <div>
-                                        <p style={detailLabelStyle}>Eligibility</p>
-                                        <p style={detailTextStyle}>
+                                        <p style={styles.detailLabelStyle}>Eligibility</p>
+                                        <p style={styles.detailTextStyle}>
                                           Eligibility varies by program and location. Contact the resource directly to confirm requirements.
                                         </p>
                                       </div>
 
                                       <div>
-                                        <p style={detailLabelStyle}>How to Apply</p>
-                                        <p style={detailTextStyle}>
+                                        <p style={styles.detailLabelStyle}>How to Apply</p>
+                                        <p style={styles.detailTextStyle}>
                                           Visit{' '}
-                                          <a href={link.url} target="_blank" rel="noreferrer" style={detailLinkStyle}>
+                                          <a href={link.url} target="_blank" rel="noreferrer" style={styles.detailLinkStyle}>
                                             {link.url}
                                           </a>
                                           {' '}to get started, or{' '}
-                                          <a href={link.url} target="_blank" rel="noreferrer" style={detailActionLinkStyle}>
+                                          <a href={link.url} target="_blank" rel="noreferrer" style={styles.detailActionLinkStyle}>
                                             open application ↗
                                           </a>
                                         </p>
@@ -779,9 +770,9 @@ const ResourceFinder: React.FC = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      style={emptyStateStyle}
+                      style={styles.emptyStateStyle}
                     >
-                      <p style={emptyStateTextStyle}>
+                      <p style={styles.emptyStateTextStyle}>
                         ← Select a topic
                       </p>
                     </motion.div>

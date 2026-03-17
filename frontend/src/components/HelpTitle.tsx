@@ -4,7 +4,7 @@ import type { FC } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import { useState } from 'react';
-
+import { useTheme } from './useTheme';
 
 interface TitleProps {
   title?: string;
@@ -28,30 +28,33 @@ const titleWrapperStyle: React.CSSProperties = {
   gap: '10px',
 };
 
+const titleLinkStyle: React.CSSProperties = {
+  display: 'inline-block',
+};
+
 const titleStyle: React.CSSProperties = {
   fontWeight: 900,
   textTransform: 'uppercase',
   textAlign: 'left',
-  color: '#000',
   fontSize: '4rem',
   whiteSpace: 'nowrap',
 };
 
-const titleLinkStyle: React.CSSProperties = {
-  display: 'inline-block',
-  cursor: 'pointer',
-};
-
 const Title: FC<TitleProps> = ({ title = 'HELP! NEARBY.', subtitle, showMapPin = true }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  
+  const textColor = isDark ? '#e8e8e8' : '#111111';
+  const pinStroke = isDark ? '#e8e8e8' : '#111111';
+  const pinFill = isDark ? '#d4af37' : '#fbbf24';  // Gold colors for pin fill
+  
   const [isClicked, setIsClicked] = useState(false);
-const handlePinClick = () => {
-  setIsClicked(true);
-  setTimeout(() => {
-    setIsClicked(false);
-  }, 300);
-};
-  
-  
+  const handlePinClick = () => {
+    setIsClicked(true);
+    setTimeout(() => {
+      setIsClicked(false);
+    }, 300);
+  };
 
   // Split title into word parts for highlighting
   const titleParts = title.split(' ');
@@ -66,24 +69,13 @@ const handlePinClick = () => {
       transition={{ duration: 0.7, ease: 'easeOut' }}
     >
       <div style={{ ...titleWrapperStyle }}>
-        <div style={titleStyle}>
-          <span
-            style={titleLinkStyle}
-          >
-            <motion.span
-              style={{ display: 'inline-block', cursor: 'pointer' }}
-              whileHover={{
-                backgroundColor: '#ff0000',
-                color: '#fff',
-                padding: '0.25rem 0.5rem',
-                borderRadius: '4px',
-                transition: { duration: 0.1 },
-              }}
-            >
-              {highlightedWord}
-            </motion.span>{' '}
-            <span>{remainingTitle}</span>
-          </span>
+        <div style={{ ...titleContainerStyle, display: 'flex', alignItems: 'center', height: '100px' }}>
+          <div style={{ ...titleStyle, color: textColor }}>
+            <span>
+              <span>{highlightedWord}</span>{' '}
+              <span>{remainingTitle}</span>
+            </span>
+          </div>
         </div>
         {showMapPin && (
           <motion.div
@@ -93,19 +85,19 @@ const handlePinClick = () => {
             onClick={handlePinClick}
             whileHover={{
               scale: 1.1,
-              y: -5, // slight lift on hover
+              y: -5,
               transition: { duration: 0.1, ease: 'easeOut' },
             }}
             whileTap={{
               scale: 0.95,
-              y: 2, // soft landing effect when clicked
+              y: 2,
               transition: { duration: 0.2, ease: 'easeOut' },
             }}
           >
-            <MapPin 
-              size={80} 
-              stroke="#000" // always black stroke
-              fill={isClicked ? "#FFD700" : "none"} // gold fill when clicked, none by default
+            <MapPin
+              size={80}
+              stroke={pinStroke}
+              fill={isClicked ? pinFill : 'none'}
               strokeWidth={2}
               style={{ cursor: 'pointer' }}
             />

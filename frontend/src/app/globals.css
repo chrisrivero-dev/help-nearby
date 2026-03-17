@@ -1,120 +1,93 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* CSS Custom Properties for Theme System */
-:root {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.9%;
-  --primary: 54 93% 47%;
-  --primary-foreground: 0 0% 9%;
-  --secondary: 0 0% 96.1%;
-  --secondary-foreground: 0 0% 9%;
-  --muted: 0 0% 96.1%;
-  --muted-foreground: 0 0% 45.1%;
-  --accent: 54 93% 47%;
-  --accent-foreground: 0 0% 9%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 89.8%;
-  --input: 0 0% 89.8%;
-  --ring: 54 93% 47%;
-  --radius: 0.5rem;
+/* ─────────────────────────────────────────────────
+   Tailwind v4 — CSS-first theme configuration
+   Token taxonomy: --color-{role}
+   Dark is default. Light applied via [data-theme="light"].
+   ───────────────────────────────────────────────── */
+
+/* ── Dark theme (default) ── */
+@theme {
+  --color-bg:              #0f0f0f;
+  --color-bg-alt:          #1a1a1a;
+  --color-surface:         #1e1e1e;
+  --color-surface-alt:     #2a2a2a;
+  --color-text:            #e8e8e8;
+  --color-text-muted:      #888888;
+  --color-border:          #2e2e2e;
+  --color-border-strong:   #444444;
+  --color-primary:         #60a5fa;
+  --color-primary-hover:   #93c5fd;
+  --color-shadow:          rgba(0, 0, 0, 0.4);
 }
 
-.dark {
-  --background: 0 0% 6.7%;
-  --foreground: 0 0% 98%;
-  --card: 0 0% 6.7%;
-  --card-foreground: 0 0% 98%;
-  --popover: 0 0% 6.7%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 54 93% 47%;
-  --primary-foreground: 0 0% 9%;
-  --secondary: 0 0% 13.3%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 13.3%;
-  --muted-foreground: 0 0% 63.9%;
-  --accent: 54 93% 47%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 13.3%;
-  --input: 0 0% 13.3%;
-  --ring: 54 93% 47%;
+/* ── Light overrides ── */
+:root[data-theme="light"] {
+  --color-bg:              #fafafa;
+  --color-bg-alt:          #f0f0f0;
+  --color-surface:         #ffffff;
+  --color-surface-alt:     #f5f5f5;
+  --color-text:            #111111;
+  --color-text-muted:      #666666;
+  --color-border:          #e0e0e0;
+  --color-border-strong:   #999999;
+  --color-primary:         #2563eb;
+  --color-primary-hover:   #1d4ed8;
+  --color-shadow:          rgba(0, 0, 0, 0.08);
 }
 
-/* Basic Reset */
+/* ── Reset ── */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-html {
-  font-size: 16px;
-}
-
+html,
 body {
   margin: 0;
-  min-height: 100dvh; /* Dynamic viewport height - accounts for mobile browser UI */
-  font-family: system-ui, -apple-system, sans-serif;
-  font-size: 1rem;
-  line-height: 1.5;
-  font-weight: 400;
-  background-color: #f5f5f5;
-  color: #000;
-  text-rendering: optimizeLegibility;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  padding: 0;
+  height: 100%;
 }
 
-/* Links */
-a {
-  color: inherit;
-  text-decoration: none;
+/* ── Base body ── */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-a:visited {
-  color: inherit;
+/* ── Smooth theme transitions (bg, text, border only — no layout thrash) ── */
+html[data-theme],
+body,
+body * {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
-/* Images */
-img,
- picture,
-video,
-canvas,
-svg {
-  display: block;
-  max-width: 100%;
-  height: auto;
+/* ── Disable transitions on initial load to prevent FOUC flash ── */
+html.no-transitions,
+html.no-transitions * {
+  transition: none !important;
 }
 
-/* Forms */
-input,
-textarea,
-select {
-  font: inherit;
-  color: inherit;
-}
-
-/* Focus */
-:focus-visible {
-  outline: 2px solid currentColor;
+/* ── Focus ring ── */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
+/* ── Leaflet map container sizing ── */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+
+.leaflet-map {
+  height: 100%;
+  width: 100%;
 }

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import OurStory from './OurStory';
 import CustomCursor from './CustomCursor';
+import { useTheme } from './useTheme';
 
 interface StarWarsIntroProps {
   onAnimationComplete?: () => void;
@@ -16,6 +17,9 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
   panelHeight = 'auto',
   panelWidth = 'min(1600px, max(200px, calc(100vw - 150px)))',
 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [showOurStory, setShowOurStory] = useState(false);
   const [isMouseOverPanel, setIsMouseOverPanel] = useState(false);
 
@@ -30,11 +34,11 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
   const containerStyle: React.CSSProperties = {
     width: panelWidth,
     aspectRatio: '21/9',
-    border: '2px solid black',
-    boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
+    border: 'none',
+    boxShadow: 'none',
     cursor: 'none',
     overflow: 'hidden',
-    background: '#07070b',
+    background: 'transparent',
     position: 'fixed',
     top: '150px',
     left: '100px',
@@ -77,7 +81,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
             initial={{ top: '100%' }}
             animate={{ top: '-150%' }}
             transition={{
-              duration: 6,
+              duration: 12,
               ease: 'linear',
               delay: 0,
             }}
@@ -93,7 +97,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
           >
             <div
               style={{
-                color: '#f9c700',
+                color: isDark ? '#f9c700' : '#1a1a1a',
                 letterSpacing: '0.08em',
                 lineHeight: 2,
                 fontWeight: 600,
@@ -103,7 +107,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
               }}
             >
               {paragraphs.map((text, index) => (
-                <p key={index} style={{ textAlign: 'justify', marginBottom: index < paragraphs.length - 1 ? '20px' : '0' }}>
+                <p key={index} style={{ textAlign: 'justify', marginBottom: index < paragraphs.length - 1 ? '20px' : '0', color: isDark ? '#f9c700' : '#1a1a1a' }}>
                   {text}
                 </p>
               ))}

@@ -2,15 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from './useTheme';
 
 const OurStory = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Trigger fade-in animation with 16 second delay after component mounts
     const timer = setTimeout(() => {
       setIsVisible(true);
-    }, 20000); // 20 second delay
+    }, 0);
 
     return () => clearTimeout(timer);
   }, []);
@@ -24,15 +27,16 @@ const OurStory = () => {
       style={{ left: '200px', position: 'relative' }}
     >
       <div className="flex-none">
-        <div className="relative bg-black p-2">
+        <div className={`relative ${isDark ? 'bg-black' : 'bg-white'} p-2`}>
+          <div className="absolute w-[300px] h-[300px] bg-[#2a2a2a] -translate-x-2 translate-y-2"></div>
           <img
             src="/images/ourstory.jpg"
             alt="Our story"
-            className="h-[300px] w-[300px] object-cover flex-none"
+            className="relative z-10 h-[300px] w-[300px] object-cover flex-none border-4 border-[#3e3e3e]"
           />
         </div>
       </div>
-      <div className="flex-1 text-white text-lg leading-6 font-light tracking-[0.05em] text-left">
+      <div className={`flex-1 ${isDark ? 'text-white' : 'text-black'} text-lg leading-6 font-light tracking-[0.05em] text-left`}>
         <p>
           conquering Ha Long Bary after help by an old cat lady, a internet
           travel forum, and 2 young people along the hike up the mountain
