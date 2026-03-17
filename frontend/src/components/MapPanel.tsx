@@ -83,7 +83,6 @@ const MapInstanceSetter: FC<{ onMapReady: (map: import('leaflet').Map) => void }
   return null;
 };
 
-// Styles using CSS variables
 const useMapStyles = () => {
   return {
     mapContainerStyle: {
@@ -104,22 +103,12 @@ const useMapStyles = () => {
       margin: '0 auto',
       color: '#e8e8e8',
     } as React.CSSProperties,
-    inputStyle: {
-      padding: '8px 12px',
-      borderRadius: '4px',
-      border: '1px solid var(--color-border)',
-      fontSize: '14px',
-      width: '250px',
-      outline: 'none',
-      backgroundColor: 'transparent',
-      color: 'var(--color-text)',
-    } as React.CSSProperties,
     buttonStyle: {
       padding: '8px 16px',
       borderRadius: '4px',
       backgroundColor: 'var(--color-bg)',
       color: 'var(--color-text)',
-      border: '1px solid var(--color-border)',
+      border: 'none',
       cursor: 'pointer',
       fontSize: '14px',
       fontWeight: '500',
@@ -131,7 +120,7 @@ const useMapStyles = () => {
           top: '160px',
           width: '400px',
           backgroundColor: 'transparent',
-          padding: '10px 15px',
+          padding: '10px',
           borderRadius: '8px',
           boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
           zIndex: 100,
@@ -144,12 +133,16 @@ const useMapStyles = () => {
     errorBannerStyle: {
       backgroundColor: 'var(--color-bg)',
       color: 'var(--color-text)',
-      padding: '10px 15px',
+      padding: '12px 16px',
       borderRadius: '6px',
-      fontSize: '14px',
+      fontSize: '16px',
       textAlign: 'center',
-      maxWidth: '300px',
+      maxWidth: '400px',
       border: '1px solid var(--color-border)',
+      position: 'fixed',
+      left: 'calc(50vw - 200px)',
+      top: '300px',
+      zIndex: 101,
     } as React.CSSProperties,
   };
 };
@@ -166,14 +159,26 @@ const MapContent: FC<{
 }> = ({ zip, setZip, isSearching, setIsSearching, mapLoaded, setMapLoaded, mapInstanceRef }) => {
   const { setZoomTarget, mapInstance } = useMapContext();
   const { theme } = useTheme();
-  const { mapContainerStyle, inputStyle, buttonStyle, zipSearchAbovePanelStyle, errorBannerStyle } = useMapStyles();
+  const { mapContainerStyle, buttonStyle, zipSearchAbovePanelStyle, errorBannerStyle } = useMapStyles();
   const adjustedMapContainerStyle = {
     ...mapContainerStyle,
-    boxShadow: theme === 'dark' ? '0 10px 30px rgba(0,0,0,0.7)' : mapContainerStyle.boxShadow,
-    backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.8)' : mapContainerStyle.backgroundColor,
+    boxShadow: theme === 'dark' ? '0 10px 30px rgba(0,0,0,1)' : mapContainerStyle.boxShadow,
+    backgroundColor: theme === 'dark' ? 'rgba(0,0,0,1)' : mapContainerStyle.backgroundColor,
   };
+  const inputStyle = {
+    padding: '12px 16px',
+    borderRadius: '4px',
+    border: 'none',
+    fontSize: '18px',
+    width: '250px',
+    outline: 'none',
+    backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+    color: 'var(--color-text)',
+    textAlign: 'center',
+  } as React.CSSProperties;
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [autoDismissTimer, setAutoDismissTimer] = useState<NodeJS.Timeout | null>(null);
   const [pendingZoomTarget, setPendingZoomTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchResultMessage, setSearchResultMessage] = useState<string | null>(null);
@@ -200,6 +205,23 @@ const MapContent: FC<{
         setPendingZoomTarget(null);
       }
   }, [pendingZoomTarget, mapInstance]);
+
+  // Auto-dismiss error banner after 3 seconds
+  useEffect(() => {
+    if (searchError && !autoDismissTimer) {
+      const timer = setTimeout(() => {
+        setSearchError(null);
+        setAutoDismissTimer(null);
+      }, 3000);
+      setAutoDismissTimer(timer);
+    }
+    return () => {
+      if (autoDismissTimer) {
+        clearTimeout(autoDismissTimer);
+        setAutoDismissTimer(null);
+      }
+    };
+  }, [searchError, autoDismissTimer, setSearchError]);
 
   // Trigger browser geolocation to get current location
   const handleLocate = () => {
@@ -287,6 +309,25 @@ const MapContent: FC<{
           )}
         </MapContainer>
       </motion.div>
+      {/* Error banner above ZIP input */}
+      {searchError && (
+        <motion.div
+          style={{ ...errorBannerStyle, cursor: 'pointer' }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10, transition: { duration: 0.5, ease: 'easeOut' } }}
+          transition={{ duration: 0.3 }}
+          onClick={() => {
+            setSearchError(null);
+            if (autoDismissTimer) {
+              clearTimeout(autoDismissTimer);
+              setAutoDismissTimer(null);
+            }
+          }}
+        >
+          {searchError}
+        </motion.div>
+      )}
       {/* Zip search input floating above the map panel */}
       <motion.div
         style={zipSearchAbovePanelStyle}
@@ -294,18 +335,6 @@ const MapContent: FC<{
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6, ease: 'easeOut' }}
       >
-        {/* Error banner above ZIP input */}
-        {searchError && (
-          <motion.div
-            style={errorBannerStyle}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            {searchError}
-          </motion.div>
-        )}
         <input
           type="text"
           value={zip}
