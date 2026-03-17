@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import Title from '@/components/ResourcesTitle';
 import Navbar from '@/components/Navbar';
 import ResourceFinder from '@/components/ResourceFinder';
-import FlipClock from '@/components/FlipClock';
+import Clock from '@/components/Clock';
 
 const pageStyle: React.CSSProperties = {
   display: 'flex',
@@ -84,7 +84,7 @@ const ResourcesPage: FC = () => {
           zIndex: 100,
         }}
       >
-        <FlipClock />
+        <Clock />
       </motion.div>
 
       {/* ResourceFinder - main content, centered with max-width */}

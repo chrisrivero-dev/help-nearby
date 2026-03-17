@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import Title from '@/components/AboutTitle';
 import Navbar from '@/components/Navbar';
 import StarWarsIntro from '@/components/StarWarsIntro';
-import FlipClock from '@/components/FlipClock';
+import Clock from '@/components/Clock';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 
 // Styles using CSS variables
@@ -74,7 +74,7 @@ const AboutPage: FC = () => {
           zIndex: 100,
         }}
       >
-        <FlipClock />
+        <Clock />
       </motion.div>
     </motion.main>
   );
