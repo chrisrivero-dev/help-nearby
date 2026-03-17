@@ -119,11 +119,14 @@ const useResourceFinderStyles = () => {
 
   return {
     containerStyle: {
+      position: 'fixed',
+      top: '150px',
+      left: '100px',
+      right: '100px',
       maxWidth: '1100px',
       width: '100%',
       margin: '0 auto',
       padding: '0 2rem',
-      paddingTop: '100px',
       color: textColor,
     } as React.CSSProperties,
     locationInputStyle: {
@@ -577,27 +580,30 @@ const ResourceFinder: React.FC = () => {
           return (
             <div key={cat} style={{ position: 'relative', flex: 1, height: '80px' }}>
               <div style={styles.categoryShadowStyle} />
-              <button
+              <motion.button
                 onClick={() => handleCategoryClick(cat)}
                 aria-pressed={isActive}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 300, damping: 24 }}
                 style={isActive ? styles.categoryButtonActiveStyle : styles.categoryButtonStyle}
               >
                 {cat.toUpperCase()}
-              </button>
+              </motion.button>
             </div>
           );
         })}
       </div>
 
       {/* Sub-options + preview panel */}
-      <AnimatePresence initial={false}>
+      <AnimatePresence initial={false} mode="wait">
         {category && (
           <motion.div
             key={category}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.35, ease: 'easeInOut' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: [0.43, 0.13, 0.23, 0.96] }}
             style={{ overflow: 'hidden', marginTop: '1.25rem' }}
           >
             <div style={styles.panelStyle}>
@@ -609,14 +615,17 @@ const ResourceFinder: React.FC = () => {
                 {SUB_OPTIONS[category].map((sub) => {
                   const isSubActive = subcategory === sub;
                   return (
-                    <button
+                    <motion.button
                       key={sub}
                       onClick={() => handleSubcategoryClick(sub)}
                       aria-pressed={isSubActive}
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 20 }}
                       style={isSubActive ? styles.subOptionButtonActiveStyle : styles.subOptionButtonStyle}
                     >
                       {sub}
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
@@ -630,10 +639,10 @@ const ResourceFinder: React.FC = () => {
                   {subcategory ? (
                     <motion.div
                       key={subcategory}
-                      initial={{ opacity: 0, y: 6 }}
+                      initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.2 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.4, ease: [0.43, 0.13, 0.23, 0.96] }}
                     >
                       {/* Heading */}
                       <p style={styles.resourceHeadingStyle}>
@@ -721,10 +730,10 @@ const ResourceFinder: React.FC = () => {
                                   <motion.div
                                     id={detailId}
                                     key="detail"
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.25, ease: 'easeInOut' }}
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.25, ease: "easeOut" }}
                                     style={{ overflow: 'hidden' }}
                                   >
                                     <div style={styles.detailBlockStyle}>
