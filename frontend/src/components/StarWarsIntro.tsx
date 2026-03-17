@@ -36,9 +36,10 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
     overflow: 'hidden',
     background: '#07070b',
     position: 'fixed',
-    top: '200px',
-    left: '75px',
-    right: '75px',
+    top: '150px',
+    left: '100px',
+    right: '100px',
+    margin: '0 auto',
   };
 
   return (
@@ -76,7 +77,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
             initial={{ top: '100%' }}
             animate={{ top: '-150%' }}
             transition={{
-              duration: 20,
+              duration: 6,
               ease: 'linear',
               delay: 0,
             }}
@@ -114,9 +115,10 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
             <motion.div
               style={{
                 position: 'absolute',
-                bottom: 20,
+                top: '50%',
                 left: 0,
                 width: '100%',
+                transform: 'translateY(-50%)',
                 zIndex: 1001,
               }}
               initial={{ opacity: 0 }}
