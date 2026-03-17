@@ -15,13 +15,13 @@ const underlineVariants = {
 const Underline: FC<{ color: string }> = ({ color }) => (
   <motion.div
     variants={underlineVariants}
-    transition={{ duration: 0.3, ease: 'easeOut' }}
+    transition={{ duration: 0.6, ease: 'easeOut' }}
     style={{
       position: 'absolute',
-      bottom: 0,
+      bottom: '-10px',
       left: 0,
       width: '100%',
-      height: '2px',
+      height: '3px',
       backgroundColor: color,
       transformOrigin: 'left',
     }}
@@ -47,7 +47,7 @@ const Navbar: FC = () => {
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
-<Link href="/" style={{ textDecoration: 'none', padding: '0.5rem 1rem', fontWeight: 500, borderRadius: '4px', transition: 'all 0.25s ease', display: 'inline-block', position: 'relative', color: linkColor }}>
+<Link href="/" style={{ textDecoration: 'none', padding: '0.75rem 1.25rem', fontSize: '1.6rem', fontWeight: 600, borderRadius: '4px', transition: 'all 0.25s ease', display: 'inline-block', position: 'relative', color: linkColor }}>
   <motion.div
     style={{ position: 'relative', display: 'inline-block' }}
     initial="hidden"
@@ -57,7 +57,7 @@ const Navbar: FC = () => {
     <Underline color={linkColor} />
   </motion.div>
 </Link>
-<Link href="/resources" style={{ textDecoration: 'none', padding: '0.5rem 1rem', fontWeight: 500, borderRadius: '4px', transition: 'all 0.25s ease', display: 'inline-block', position: 'relative', color: linkColor }}>
+<Link href="/resources" style={{ textDecoration: 'none', padding: '0.75rem 1.25rem', fontSize: '1.6rem', fontWeight: 600, borderRadius: '4px', transition: 'all 0.25s ease', display: 'inline-block', position: 'relative', color: linkColor }}>
   <motion.div
     style={{ position: 'relative', display: 'inline-block' }}
     initial="hidden"
@@ -67,7 +67,7 @@ const Navbar: FC = () => {
     <Underline color={linkColor} />
   </motion.div>
 </Link>
-<Link href="/about" style={{ textDecoration: 'none', padding: '0.5rem 1rem', fontWeight: 500, borderRadius: '4px', transition: 'all 0.25s ease', display: 'inline-block', position: 'relative', color: linkColor }}>
+<Link href="/about" style={{ textDecoration: 'none', padding: '0.75rem 1.25rem', fontSize: '1.6rem', fontWeight: 600, borderRadius: '4px', transition: 'all 0.25s ease', display: 'inline-block', position: 'relative', color: linkColor }}>
   <motion.div
     style={{ position: 'relative', display: 'inline-block' }}
     initial="hidden"
