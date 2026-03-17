@@ -11,7 +11,7 @@ interface FlipDigitProps {
 }
 
 const digitSize = {
-  width: 'min(70px, 7vw)',
+  width: '72px',
   height: 'min(110px, 11vw)',
   fontSize: 'min(72px, 11vw)',
 };
@@ -99,7 +99,7 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
             alignItems: 'flex-end',
             justifyContent: 'center',
             fontSize: digitSize.fontSize,
-            fontWeight: 900,
+            fontWeight: 'bold',
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             backfaceVisibility: 'hidden',
           }}
@@ -122,7 +122,7 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
             alignItems: 'flex-start',
             justifyContent: 'center',
             fontSize: digitSize.fontSize,
-            fontWeight: 700,
+            fontWeight: 'bold',
             boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
             backfaceVisibility: 'hidden',
             transformStyle: 'preserve-3d',

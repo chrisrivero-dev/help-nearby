@@ -64,14 +64,28 @@ const ResourcesPage: FC = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
     >
-      {/* Header with Title, FlipClock, and Navbar */}
+      {/* Header with Title and Navbar */}
       <motion.header style={headerStyle}>
         <div style={{ flex: 1, maxWidth: '800px' }}>
           <Title showMapPin={true} />
         </div>
-        <FlipClock />
         <Navbar />
       </motion.header>
+      
+      {/* Floating Clock at Bottom Right */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        style={{
+          position: 'fixed',
+          bottom: '50px',
+          right: '50px',
+          zIndex: 100,
+        }}
+      >
+        <FlipClock />
+      </motion.div>
 
       {/* ResourceFinder - main content, centered with max-width */}
       <div style={resourceFinderWrapperStyle}>
