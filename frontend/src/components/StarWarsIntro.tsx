@@ -120,8 +120,8 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
               style={{
                 position: 'absolute',
                 top: '50%',
-                left: 0,
-                width: '100%',
+                left: '100px',
+                right: '100px',
                 transform: 'translateY(-50%)',
                 zIndex: 1001,
               }}

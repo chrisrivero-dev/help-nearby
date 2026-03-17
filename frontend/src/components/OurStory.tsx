@@ -23,8 +23,8 @@ const OurStory = () => {
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: isVisible ? 1 : 0 }}
       transition={{ duration: 1.5, ease: 'easeOut' }}
-      className="relative flex w-[90%] max-w-[1200px] flex-1 items-center gap-10 rounded-lg p-5"
-      style={{ left: '200px', position: 'relative' }}
+      className="relative flex items-center gap-10 rounded-lg p-5"
+      style={{ position: 'relative' }}
     >
       <div className="flex-none">
         <div className={`relative ${isDark ? 'bg-black' : 'bg-white'} p-2`}>
@@ -36,7 +36,7 @@ const OurStory = () => {
           />
         </div>
       </div>
-      <div className={`flex-1 ${isDark ? 'text-white' : 'text-black'} text-lg leading-6 font-light tracking-[0.05em] text-left`}>
+      <div className={`flex-1 ${isDark ? 'text-white' : 'text-black'} text-2xl leading-7 font-light tracking-[0.05em] text-left`}>
         <p>
           conquering Ha Long Bary after help by an old cat lady, a internet
           travel forum, and 2 young people along the hike up the mountain

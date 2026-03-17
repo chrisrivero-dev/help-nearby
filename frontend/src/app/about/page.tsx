@@ -16,13 +16,13 @@ const pageStyle: React.CSSProperties = {
   maxWidth: '1600px',
   marginLeft: 'auto',
   marginRight: 'auto',
-  backgroundColor: 'var(--color-bg)',
-  color: 'var(--color-text)',
   paddingTop: '60px',
   paddingBottom: '4rem',
   fontSize: '16px',
   position: 'relative',
   overflowX: 'hidden',
+  backgroundColor: 'var(--color-bg)',
+  color: 'var(--color-text)',
 };
 
 const headerStyle: React.CSSProperties = {
@@ -32,14 +32,14 @@ const headerStyle: React.CSSProperties = {
   right: 20,
   height: '100px',
   zIndex: 100,
-  backgroundColor: 'transparent',
-  color: 'var(--color-text)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   paddingLeft: 'calc((100vw - 1600px) / 2 + 50px)',
   paddingRight: 'calc((100vw - 1600px) / 2 + 50px)',
   boxSizing: 'border-box',
+  backgroundColor: 'transparent',
+  color: 'var(--color-text)',
 };
 
 const AboutPage: FC = () => {
@@ -60,7 +60,6 @@ const AboutPage: FC = () => {
         </div>
         <Navbar />
       </motion.header>
-
     </motion.main>
   );
 };
