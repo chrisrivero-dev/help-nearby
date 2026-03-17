@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import OurStory from './OurStory';
 import CustomCursor from './CustomCursor';
+import Starfield from './Starfield';
 import { useTheme } from './useTheme';
 
 interface StarWarsIntroProps {
@@ -67,6 +68,9 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
             position: 'relative',
           }}
         >
+          {/* Starfield background - 8-bit galaxy far, far away */}
+          <Starfield starCount={150} />
+
           <motion.div
             style={{
               position: 'absolute',
@@ -97,7 +101,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
           >
             <div
               style={{
-                color: isDark ? '#f9c700' : '#1a1a1a',
+                color: isDark ? '#f9c700' : '#f9c700',
                 letterSpacing: '0.08em',
                 lineHeight: 2,
                 fontWeight: 600,
@@ -107,7 +111,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
               }}
             >
               {paragraphs.map((text, index) => (
-                <p key={index} style={{ textAlign: 'justify', marginBottom: index < paragraphs.length - 1 ? '20px' : '0', color: isDark ? '#f9c700' : '#1a1a1a' }}>
+                <p key={index} style={{ textAlign: 'justify', marginBottom: index < paragraphs.length - 1 ? '20px' : '0', color: isDark ? '#f9c700' : '#f9c700' }}>
                   {text}
                 </p>
               ))}
