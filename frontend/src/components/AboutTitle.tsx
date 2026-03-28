@@ -28,10 +28,6 @@ const titleWrapperStyle: React.CSSProperties = {
   gap: '10px',
 };
 
-const titleLinkStyle: React.CSSProperties = {
-  display: 'inline-block',
-};
-
 const titleStyle: React.CSSProperties = {
   fontFamily: "'Poppins', sans-serif",
   fontWeight: 800,
@@ -43,16 +39,15 @@ const titleStyle: React.CSSProperties = {
 
 const AboutTitle: FC<TitleProps> = ({
   title = 'ABOUT! NEARBY.',
-  subtitle,
   showMapPin = true,
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  
+
   const textColor = isDark ? '#e8e8e8' : '#111111';
   const pinStroke = isDark ? '#e8e8e8' : '#111111';
-  const pinFill = isDark ? '#d4af37' : '#fbbf24';  // Gold colors for pin fill
-  
+  const pinFill = isDark ? '#d4af37' : '#fbbf24'; // Gold colors for pin fill
+
   const [isClicked, setIsClicked] = useState(false);
   const [isAboutHovered, setIsAboutHovered] = useState(false);
   const handlePinClick = () => {
@@ -76,12 +71,15 @@ const AboutTitle: FC<TitleProps> = ({
     fontSize: '4rem',
     whiteSpace: 'nowrap',
     cursor: 'pointer',
-    transition: 'background-color 0.3s ease, color 0.3s ease, transform 0.3s ease',
-    backgroundColor: isAboutHovered 
-      ? (isDark ? '#0d6efd' : '#007bff')  // Blue background on hover
+    transition:
+      'background-color 0.3s ease, color 0.3s ease, transform 0.3s ease',
+    backgroundColor: isAboutHovered
+      ? isDark
+        ? '#0d6efd'
+        : '#007bff' // Blue background on hover
       : 'transparent',
-    color: isAboutHovered 
-      ? '#ffffff'  // White text on hover
+    color: isAboutHovered
+      ? '#ffffff' // White text on hover
       : textColor,
     padding: '0 5px',
     borderRadius: '4px',
@@ -106,12 +104,21 @@ const AboutTitle: FC<TitleProps> = ({
       transition={{ duration: 0.7, ease: 'easeOut' }}
     >
       <div style={{ ...titleWrapperStyle }}>
-        <div style={{ ...titleContainerStyle, display: 'flex', alignItems: 'center', height: '100px' }}>
+        <div
+          style={{
+            ...titleContainerStyle,
+            display: 'flex',
+            alignItems: 'center',
+            height: '100px',
+          }}
+        >
           <div style={{ ...titleStyle, color: textColor }}>
-            <span onMouseEnter={() => setIsAboutHovered(true)} onMouseLeave={() => setIsAboutHovered(false)}>
+            <span
+              onMouseEnter={() => setIsAboutHovered(true)}
+              onMouseLeave={() => setIsAboutHovered(false)}
+            >
               <span style={titleAboutStyle}>{highlightedWord}</span>
-            </span>
-            {' '}
+            </span>{' '}
             <span style={titleNearbyStyle}>{remainingTitle}</span>
           </div>
         </div>
