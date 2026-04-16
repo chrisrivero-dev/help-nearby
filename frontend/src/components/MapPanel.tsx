@@ -123,15 +123,18 @@ const useMapStyles = () => {
     mapContainerStyle: {
       backgroundColor: '#0f0f0f',
       width: '100%',
-      maxWidth: '1000px',
       height: '100%',
       border: 'none',
       borderRadius: '0',
       boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
       padding: '0',
       position: 'relative',
-      margin: '0 auto',
       color: '#e8e8e8',
+      boxSizing: 'border-box',
+      willChange: 'transform',
+      transform: 'translateZ(0)',
+      backfaceVisibility: 'hidden',
+      overflow: 'hidden',
     } as React.CSSProperties,
     buttonStyle: {
       padding: '8px 16px',
@@ -259,6 +262,13 @@ const MapContent: FC<{
       setMapLoaded(true);
     }
   }, [mapInstanceRef, setMapLoaded]);
+
+  // Invalidate map size when map container resizes (for Framer Motion animations)
+  useEffect(() => {
+    if (mapInstance) {
+      mapInstance.invalidateSize(false);
+    }
+  }, [mapInstance]);
 
   // Handle pending zoom target when map becomes available
   useEffect(() => {
@@ -388,9 +398,16 @@ const MapContent: FC<{
         <MapContainer
           center={[40.7506, -73.9972]}
           zoom={13}
-          style={{ height: '100%', width: '100%' }}
+          style={{
+            height: '100%',
+            width: '100%',
+            willChange: 'transform',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+          }}
           className="leaflet-map"
           attributionControl={false}
+          scrollWheelZoom={false}
         >
           <MapInstanceSetter
             onMapReady={(map) => {
@@ -407,6 +424,7 @@ const MapContent: FC<{
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             subdomains="abcd"
             maxZoom={20}
+            noWrap={true}
           />
           {userLocation && (
             <Marker position={[userLocation.lat, userLocation.lng]}>
