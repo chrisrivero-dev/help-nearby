@@ -12,13 +12,10 @@ import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 const pageStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  minHeight: '100vh',
+  height: '100vh',
   width: '100%',
   maxWidth: '1600px',
-  marginLeft: 'auto',
-  marginRight: 'auto',
-  paddingTop: '60px',
-  paddingBottom: '4rem',
+  margin: '20px auto',
   fontSize: '16px',
   position: 'relative',
   overflowY: 'auto',
@@ -28,20 +25,21 @@ const pageStyle: React.CSSProperties = {
 };
 
 const headerStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 20,
-  right: 20,
-  height: '100px',
-  zIndex: 100,
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingLeft: 'calc((100vw - 1600px) / 2 + 50px)',
-  paddingRight: 'calc((100vw - 1600px) / 2 + 50px)',
-  boxSizing: 'border-box',
-  backgroundColor: 'transparent',
-  color: 'var(--color-text)',
+  justifyContent: 'center',
+  gap: '2rem',
+  width: '80vw',
+  maxWidth: '1000px',
+  margin: '0 auto 2rem auto',
+  position: 'relative',
+};
+
+const headerSpacingStyle: React.CSSProperties = {
+  height: '200px',
+  width: '80vw',
+  maxWidth: '1000px',
+  margin: '0 auto',
 };
 
 const Home: FC = () => {
@@ -52,22 +50,35 @@ const Home: FC = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
     >
-      {/* Floating Map Panel */}
-      <MapPanel />
-
-      {/* Header with Title and Navbar */}
-      <motion.header style={headerStyle}>
-        <div style={{ flex: 1, maxWidth: '800px' }}>
+      {/* Header - drops from top */}
+      <motion.header
+        style={headerStyle}
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+      >
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+          }}
+        >
           <Title title="HELP! NEARBY." showMapPin={true} />
         </div>
         <Navbar />
       </motion.header>
-      
+
+      {/* Map Panel - slides up from bottom */}
+      <div style={headerSpacingStyle}></div>
+      <MapPanel />
+
       {/* Floating Clock at Bottom Right */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
+        transition={{ duration: 0.5, ease: 'easeOut', delay: 0.2 }}
         style={{
           position: 'fixed',
           bottom: '50px',

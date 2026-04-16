@@ -31,7 +31,7 @@ const Underline: FC<{ color: string }> = ({ color }) => (
 const Navbar: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  
+
   // Colors based on theme
   const linkColor = isDark ? '#e8e8e8' : '#111111';
 
@@ -43,40 +43,79 @@ const Navbar: FC = () => {
         gap: '1rem',
         alignItems: 'center',
       }}
-      initial={{ y: '-100%' }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: 'easeOut', delay: 0.3 }}
     >
-<Link href="/" style={{ textDecoration: 'none', padding: '0.75rem 1.25rem', fontSize: '1.6rem', fontWeight: 600, borderRadius: '4px', transition: 'all 0.25s ease', display: 'inline-block', position: 'relative', color: linkColor }}>
-  <motion.div
-    style={{ position: 'relative', display: 'inline-block' }}
-    initial="hidden"
-    whileHover="visible"
-  >
-    <span style={{ position: 'relative', zIndex: 1 }}>HOME</span>
-    <Underline color={linkColor} />
-  </motion.div>
-</Link>
-<Link href="/resources" style={{ textDecoration: 'none', padding: '0.75rem 1.25rem', fontSize: '1.6rem', fontWeight: 600, borderRadius: '4px', transition: 'all 0.25s ease', display: 'inline-block', position: 'relative', color: linkColor }}>
-  <motion.div
-    style={{ position: 'relative', display: 'inline-block' }}
-    initial="hidden"
-    whileHover="visible"
-  >
-    <span style={{ position: 'relative', zIndex: 1 }}>RESOURCES</span>
-    <Underline color={linkColor} />
-  </motion.div>
-</Link>
-<Link href="/about" style={{ textDecoration: 'none', padding: '0.75rem 1.25rem', fontSize: '1.6rem', fontWeight: 600, borderRadius: '4px', transition: 'all 0.25s ease', display: 'inline-block', position: 'relative', color: linkColor }}>
-  <motion.div
-    style={{ position: 'relative', display: 'inline-block' }}
-    initial="hidden"
-    whileHover="visible"
-  >
-    <span style={{ position: 'relative', zIndex: 1 }}>ABOUT</span>
-    <Underline color={linkColor} />
-  </motion.div>
-</Link>
+      <Link
+        href="/"
+        style={{
+          textDecoration: 'none',
+          padding: '0.75rem 1.25rem',
+          fontSize: '1.6rem',
+          fontWeight: 600,
+          borderRadius: '4px',
+          transition: 'all 0.25s ease',
+          display: 'inline-block',
+          position: 'relative',
+          color: linkColor,
+        }}
+      >
+        <motion.div
+          style={{ position: 'relative', display: 'inline-block' }}
+          initial="hidden"
+          whileHover="visible"
+        >
+          <span style={{ position: 'relative', zIndex: 1 }}>HOME</span>
+          <Underline color={linkColor} />
+        </motion.div>
+      </Link>
+      <Link
+        href="/resources"
+        style={{
+          textDecoration: 'none',
+          padding: '0.75rem 1.25rem',
+          fontSize: '1.6rem',
+          fontWeight: 600,
+          borderRadius: '4px',
+          transition: 'all 0.25s ease',
+          display: 'inline-block',
+          position: 'relative',
+          color: linkColor,
+        }}
+      >
+        <motion.div
+          style={{ position: 'relative', display: 'inline-block' }}
+          initial="hidden"
+          whileHover="visible"
+        >
+          <span style={{ position: 'relative', zIndex: 1 }}>RESOURCES</span>
+          <Underline color={linkColor} />
+        </motion.div>
+      </Link>
+      <Link
+        href="/about"
+        style={{
+          textDecoration: 'none',
+          padding: '0.75rem 1.25rem',
+          fontSize: '1.6rem',
+          fontWeight: 600,
+          borderRadius: '4px',
+          transition: 'all 0.25s ease',
+          display: 'inline-block',
+          position: 'relative',
+          color: linkColor,
+        }}
+      >
+        <motion.div
+          style={{ position: 'relative', display: 'inline-block' }}
+          initial="hidden"
+          whileHover="visible"
+        >
+          <span style={{ position: 'relative', zIndex: 1 }}>ABOUT</span>
+          <Underline color={linkColor} />
+        </motion.div>
+      </Link>
       <ThemeToggleButton />
     </motion.div>
   );

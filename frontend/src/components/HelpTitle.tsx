@@ -41,14 +41,18 @@ const titleStyle: React.CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
-const Title: FC<TitleProps> = ({ title = 'HELP! NEARBY.', subtitle, showMapPin = true }) => {
+const Title: FC<TitleProps> = ({
+  title = 'HELP! NEARBY.',
+  subtitle,
+  showMapPin = true,
+}) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  
+
   const textColor = isDark ? '#e8e8e8' : '#111111';
   const pinStroke = isDark ? '#e8e8e8' : '#111111';
-  const pinFill = isDark ? '#d4af37' : '#fbbf24';  // Gold colors for pin fill
-  
+  const pinFill = isDark ? '#d4af37' : '#fbbf24'; // Gold colors for pin fill
+
   const [isClicked, setIsClicked] = useState(false);
   const [isHelpHovered, setIsHelpHovered] = useState(false);
   const handlePinClick = () => {
@@ -73,11 +77,13 @@ const Title: FC<TitleProps> = ({ title = 'HELP! NEARBY.', subtitle, showMapPin =
     whiteSpace: 'nowrap',
     cursor: 'pointer',
     transition: 'background-color 0.3s ease, color 0.3s ease',
-    backgroundColor: isHelpHovered 
-      ? (isDark ? '#dc3545' : '#ff0000')  // Red background on hover
+    backgroundColor: isHelpHovered
+      ? isDark
+        ? '#dc3545'
+        : '#ff0000' // Red background on hover
       : 'transparent',
-    color: isHelpHovered 
-      ? '#ffffff'  // White text on hover
+    color: isHelpHovered
+      ? '#ffffff' // White text on hover
       : textColor,
     padding: '0 5px',
     borderRadius: '4px',
@@ -94,19 +100,23 @@ const Title: FC<TitleProps> = ({ title = 'HELP! NEARBY.', subtitle, showMapPin =
   };
 
   return (
-    <motion.div
-      style={titleContainerStyle}
-      initial={{ opacity: 0, y: -100, zIndex: 2 }}
-      animate={{ opacity: 1, y: 0, zIndex: 3 }}
-      transition={{ duration: 0.7, ease: 'easeOut' }}
-    >
+    <div style={titleContainerStyle}>
       <div style={{ ...titleWrapperStyle }}>
-        <div style={{ ...titleContainerStyle, display: 'flex', alignItems: 'center', height: '100px' }}>
+        <div
+          style={{
+            ...titleContainerStyle,
+            display: 'flex',
+            alignItems: 'center',
+            height: '100px',
+          }}
+        >
           <div style={{ ...titleStyle, color: textColor }}>
-            <span onMouseEnter={() => setIsHelpHovered(true)} onMouseLeave={() => setIsHelpHovered(false)}>
+            <span
+              onMouseEnter={() => setIsHelpHovered(true)}
+              onMouseLeave={() => setIsHelpHovered(false)}
+            >
               <span style={titleHelpStyle}>{highlightedWord}</span>
-            </span>
-            {' '}
+            </span>{' '}
             <span style={titleNearbyStyle}>{remainingTitle}</span>
           </div>
         </div>
@@ -137,7 +147,7 @@ const Title: FC<TitleProps> = ({ title = 'HELP! NEARBY.', subtitle, showMapPin =
           </motion.div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
