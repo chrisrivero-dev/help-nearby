@@ -16,7 +16,7 @@ const titleContainerStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: '10px',
-  height: '100px',
+  minHeight: '100px',
   position: 'relative',
   overflow: 'visible',
 };
@@ -37,8 +37,9 @@ const titleStyle: React.CSSProperties = {
   fontWeight: 800,
   textTransform: 'uppercase',
   textAlign: 'left',
-  fontSize: '4rem',
+  fontSize: 'clamp(2.25rem, 6vw, 3rem)',
   whiteSpace: 'nowrap',
+  lineHeight: 1.2,
 };
 
 const ResourcesTitle: FC<TitleProps> = ({
@@ -48,11 +49,11 @@ const ResourcesTitle: FC<TitleProps> = ({
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  
+
   const textColor = isDark ? '#e8e8e8' : '#111111';
   const pinStroke = isDark ? '#e8e8e8' : '#111111';
-  const pinFill = isDark ? '#d4af37' : '#fbbf24';  // Gold colors for pin fill
-  
+  const pinFill = isDark ? '#d4af37' : '#fbbf24'; // Gold colors for pin fill
+
   const [isClicked, setIsClicked] = useState(false);
   const [isResourcesHovered, setIsResourcesHovered] = useState(false);
   const handlePinClick = () => {
@@ -73,15 +74,18 @@ const ResourcesTitle: FC<TitleProps> = ({
     fontWeight: 800,
     textTransform: 'uppercase',
     textAlign: 'left',
-    fontSize: '4rem',
+    fontSize: 'clamp(2.25rem, 6vw, 3rem)',
     whiteSpace: 'nowrap',
     cursor: 'pointer',
-    transition: 'background-color 0.3s ease, color 0.3s ease, transform 0.3s ease',
-    backgroundColor: isResourcesHovered 
-      ? (isDark ? '#28a745' : '#228B22')  // Green background on hover
+    transition:
+      'background-color 0.3s ease, color 0.3s ease, transform 0.3s ease',
+    backgroundColor: isResourcesHovered
+      ? isDark
+        ? '#28a745'
+        : '#228B22' // Green background on hover
       : 'transparent',
-    color: isResourcesHovered 
-      ? '#ffffff'  // White text on hover
+    color: isResourcesHovered
+      ? '#ffffff' // White text on hover
       : textColor,
     padding: '0 5px',
     borderRadius: '4px',
@@ -93,7 +97,7 @@ const ResourcesTitle: FC<TitleProps> = ({
     fontWeight: 800,
     textTransform: 'uppercase',
     textAlign: 'left',
-    fontSize: '4rem',
+    fontSize: 'clamp(2.25rem, 6vw, 3rem)',
     whiteSpace: 'nowrap',
     color: textColor,
   };
@@ -106,12 +110,21 @@ const ResourcesTitle: FC<TitleProps> = ({
       transition={{ duration: 0.7, ease: 'easeOut' }}
     >
       <div style={{ ...titleWrapperStyle }}>
-        <div style={{ ...titleContainerStyle, display: 'flex', alignItems: 'center', height: '100px' }}>
+        <div
+          style={{
+            ...titleContainerStyle,
+            display: 'flex',
+            alignItems: 'center',
+            minHeight: '100px',
+          }}
+        >
           <div style={{ ...titleStyle, color: textColor }}>
-            <span onMouseEnter={() => setIsResourcesHovered(true)} onMouseLeave={() => setIsResourcesHovered(false)}>
+            <span
+              onMouseEnter={() => setIsResourcesHovered(true)}
+              onMouseLeave={() => setIsResourcesHovered(false)}
+            >
               <span style={titleResourcesStyle}>{highlightedWord}</span>
-            </span>
-            {' '}
+            </span>{' '}
             <span style={titleNearbyStyle}>{remainingTitle}</span>
           </div>
         </div>
@@ -133,11 +146,11 @@ const ResourcesTitle: FC<TitleProps> = ({
             }}
           >
             <MapPin
-              size={80}
+              size={60}
               stroke={pinStroke}
               fill={isClicked ? pinFill : 'none'}
               strokeWidth={2}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: 'pointer', flexShrink: 0 }}
             />
           </motion.div>
         )}

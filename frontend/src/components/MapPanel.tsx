@@ -87,7 +87,11 @@ const MapProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   return (
     <MapContext.Provider
-      value={{ setZoomTarget, mapInstance, setMapInstance: setMapInstanceRef }}
+      value={{
+        setZoomTarget,
+        mapInstance,
+        setMapInstance: (map) => setMapInstance(map),
+      }}
     >
       {children}
     </MapContext.Provider>

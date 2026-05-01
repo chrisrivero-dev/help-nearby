@@ -16,7 +16,7 @@ const titleContainerStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: '10px',
-  height: '100px',
+  minHeight: '100px',
   position: 'relative',
   overflow: 'visible',
 };
@@ -33,8 +33,9 @@ const titleStyle: React.CSSProperties = {
   fontWeight: 800,
   textTransform: 'uppercase',
   textAlign: 'left',
-  fontSize: '4rem',
+  fontSize: 'clamp(2.25rem, 6vw, 3rem)',
   whiteSpace: 'nowrap',
+  lineHeight: 1.2,
 };
 
 const AboutTitle: FC<TitleProps> = ({
@@ -68,7 +69,7 @@ const AboutTitle: FC<TitleProps> = ({
     fontWeight: 800,
     textTransform: 'uppercase',
     textAlign: 'left',
-    fontSize: '4rem',
+    fontSize: 'clamp(2.25rem, 6vw, 3rem)',
     whiteSpace: 'nowrap',
     cursor: 'pointer',
     transition:
@@ -91,7 +92,7 @@ const AboutTitle: FC<TitleProps> = ({
     fontWeight: 800,
     textTransform: 'uppercase',
     textAlign: 'left',
-    fontSize: '4rem',
+    fontSize: 'clamp(2.25rem, 6vw, 3rem)',
     whiteSpace: 'nowrap',
     color: textColor,
   };
@@ -109,7 +110,7 @@ const AboutTitle: FC<TitleProps> = ({
             ...titleContainerStyle,
             display: 'flex',
             alignItems: 'center',
-            height: '100px',
+            minHeight: '100px',
           }}
         >
           <div style={{ ...titleStyle, color: textColor }}>
@@ -140,11 +141,11 @@ const AboutTitle: FC<TitleProps> = ({
             }}
           >
             <MapPin
-              size={80}
+              size={60}
               stroke={pinStroke}
               fill={isClicked ? pinFill : 'none'}
               strokeWidth={2}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: 'pointer', flexShrink: 0 }}
             />
           </motion.div>
         )}

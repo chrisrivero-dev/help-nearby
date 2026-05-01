@@ -1,0 +1,344 @@
+Rules
+
+Define specific instructions and coding standards for Cline.
+Rules are markdown files that provide persistent instructions across all conversations. Instead of repeating the same preferences every time you start a new task, rules let you define them once and have Cline follow them automatically. Use rules when you want Cline to:
+
+    Follow your team’s coding standards (naming conventions, file organization, error handling patterns)
+    Understand project-specific context (tech stack, architecture decisions, dependencies)
+    Apply consistent documentation or testing requirements
+    Remember constraints like “don’t modify files in /legacy” or “always use TypeScript”
+
+New to Rules? Watch Cline Rules Explained to see them in action.
+​
+Supported Rule Types
+Cline recognizes rules from multiple sources, so you can use existing rule files from other tools:
+Rule Type Location Description
+Cline Rules .clinerules/ Primary rule format
+Cursor Rules .cursorrules Automatically detected
+Windsurf Rules .windsurfrules Automatically detected
+AGENTS.md AGENTS.md Standard format for cross-tool compatibility
+All detected rule types appear in the Rules panel, where you can toggle them individually.
+​
+Where Rules Live
+Rules can be stored in two locations: your project workspace or globally on your system. Workspace rules go in .clinerules/ at your project root. Use these for team standards, project-specific constraints, and anything you want to share with collaborators via version control. Global rules go in your system’s Cline Rules directory. Use these for personal preferences that apply across all projects.
+
+your-project/
+├── .clinerules/ # Workspace rules
+│ ├── coding.md # Coding standards
+│ ├── testing.md # Test requirements
+│ └── architecture.md # Structural decisions
+├── src/
+└── ...
+
+Cline processes all .md and .txt files inside .clinerules/, combining them into a unified set of rules. Numeric prefixes (like 01-coding.md) help organize files but are optional. When both workspace and global rules exist, Cline combines them. Workspace rules take precedence when they conflict with global rules. See Storage Locations for more guidance.
+​
+Global Rules Directory
+Operating System Default Location
+Windows Documents\Cline\Rules
+macOS ~/Documents/Cline/Rules
+Linux/WSL ~/Documents/Cline/Rules
+Linux/WSL users: If you don’t find global rules in ~/Documents/Cline/Rules, check ~/Cline/Rules.
+​
+Creating Rules
+1
+
+Open the Rules menu
+Click the scale icon at the bottom of the Cline panel, to the left of the model selector.
+2
+
+Create a new rule file
+Click “New rule file…” and enter a filename (e.g., coding-standards). The file will be created with a .md extension.
+3
+
+Write your rule
+Add your instructions in markdown format. Keep each rule file focused on a single concern.
+You can also use the /newrule slash command to have Cline create a rule interactively.
+​
+Toggling Rules
+Every rule has a toggle to enable or disable it. This gives you fine-grained control over which rules apply to your current task without deleting the rule file. For example, you might have a strict testing rule that you want to disable when prototyping, or a client-specific rule you only need when working on that client’s features.
+​
+Writing Effective Rules
+​
+Structure
+Rules work best when they’re scannable and specific. Use markdown structure to organize instructions:
+
+# Rule Title
+
+Brief context about why this rule exists (optional but helpful).
+
+## Category 1
+
+- Specific instruction
+- Another instruction with example: `like this`
+- Reference to file: see /src/utils/example.ts
+
+## Category 2
+
+- More instructions
+- Include the "why" when it's not obvious
+
+Cline reads rules as context, so formatting matters. Headers help Cline understand the scope of each instruction. Bullet points make individual requirements clear. Code examples show exactly what you want.
+​
+Best Practices
+Be specific, not vague. “Use descriptive variable names” is too broad. “Use camelCase for variables, PascalCase for classes, UPPER_SNAKE for constants” gives Cline something concrete to follow. Include the why. When a rule might seem arbitrary, explain the reason. “Don’t modify files in /legacy (this code is scheduled for removal in Q2)” helps Cline make better decisions in edge cases. Point to examples. If your codebase already demonstrates the pattern you want, reference it. “Follow the error handling pattern in /src/utils/errors.ts” is more effective than describing the pattern from scratch. Keep rules current. Outdated rules confuse Cline and waste context. If a constraint no longer applies, remove it. If your tech stack changes, update the rules. One concern per file. Split rules by topic: coding.md for style, testing.md for test requirements, architecture.md for structural decisions. This makes it easy to toggle specific rules on or off.
+Rules consume context tokens. Avoid lengthy explanations or pasting entire style guides. Keep rules concise and link to external documentation when detailed reference is needed.
+​
+Example
+
+# Project Guidelines
+
+## Code Style
+
+- Use TypeScript for all new files
+- Prefer composition over inheritance
+- Use repository pattern for data access
+- Follow error handling pattern in /src/utils/errors.ts
+
+## Documentation
+
+- Update relevant docs when modifying features
+- Keep README.md in sync with new capabilities
+
+## Testing
+
+- Unit tests required for business logic
+- Integration tests for API endpoints
+- E2E tests for critical user flows
+
+​
+Conditional Rules
+Conditional rules let you scope rules to specific parts of your codebase. Rules activate only when you’re working with matching files, keeping your context focused and relevant.
+
+    Without conditionals: every rule loads for every request.
+    With conditionals, rules activate only when your current files match their defined scope.
+
+For example, documentation style rules should only appear when you’re editing docs, not when you’re writing application code or tests. As your rule library grows, loading every rule for every request wastes context tokens and can dilute Cline’s focus. Conditional rules solve this by giving Cline only the instructions that matter for the files you’re actually touching. This means faster, more accurate responses. Your frontend rules won’t compete for attention when you’re deep in backend code, and your testing standards appear exactly when you’re writing tests. It’s the difference between handing someone an entire policy manual versus the one page they need right now.
+​
+How It Works
+Conditional rules use YAML frontmatter at the top of your rule files. When Cline processes a request, it gathers context from your current work (open files, visible tabs, mentioned paths, edited files), evaluates each rule’s conditions, and activates matching rules.
+When a conditional rule activates, you’ll see a notification: “Conditional rules applied: workspace:frontend-rules.md”
+​
+Writing Conditional Rules
+Add YAML frontmatter to the top of any rule file in your .clinerules/ directory:
+
+---
+
+paths:
+
+- "src/components/\*\*"
+- "src/hooks/\*\*"
+
+---
+
+# React Component Guidelines
+
+When creating or modifying React components:
+
+- Use functional components with React hooks
+- Extract reusable logic into custom React hooks
+- Keep components focused on a single responsibility
+
+The --- markers delimit the frontmatter. Everything after the closing --- is your rule content.
+​
+The paths Conditional
+Currently, paths is the supported conditional. It takes an array of glob patterns:
+
+---
+
+paths:
+
+- "src/\*\*" # All files under src/
+- "\*.config.js" # Config files in root
+- "packages/\*/src/" # Monorepo package sources
+
+---
+
+Glob pattern syntax:
+
+    * matches any characters except /
+    ** matches any characters including / (recursive)
+    ? matches a single character
+    [abc] matches any character in the brackets
+    {a,b} matches either pattern
+
+Pattern Matches
+src/**/_.ts All TypeScript files under src/
+_.md Markdown files in root only
+**/_.test.ts Test files anywhere in the project
+packages/{web,api}/\*\* Files in web or api packages
+src/components/_.tsx TSX files directly in components (not nested)
+​
+Behavior Details
+Multiple patterns: A rule activates if any pattern matches any file in your context.
+
+---
+
+paths:
+
+- "frontend/\*\*"
+- "mobile/\*\*"
+
+---
+
+# Activates when working in frontend OR mobile
+
+No frontmatter: Rules without frontmatter are always active. Empty paths array: paths: [] means the rule never activates. Use this to temporarily disable a rule. Invalid YAML: If frontmatter can’t be parsed, Cline fails open. The rule activates with raw content visible to help debugging.
+​
+What Counts as “Current Context”
+Cline evaluates rules based on:
+
+    Your message: File paths mentioned in your prompt (e.g., “update src/App.tsx”)
+    Open tabs: Files currently open in your editor
+    Visible files: Files visible in your active editor panes
+    Edited files: Files Cline has created, modified, or deleted during the task
+    Pending operations: Files Cline is about to edit
+
+Conditional rules can activate on your first message, when relevant files are open, or mid-task when Cline starts working with matching files.
+Be explicit about file paths in your prompts. “Update src/services/user.ts” reliably triggers path-based rules; “update the user service” may not.
+​
+Practical Examples
+Copy these patterns and adapt them to your project structure.
+​
+Frontend vs Backend Rules
+Keep frontend and backend rules separate to avoid noise. Frontend rules only load when working with UI code, backend rules only load when working with API or service code.
+
+# .clinerules/frontend.md
+
+---
+
+paths:
+
+- "src/components/\*\*"
+- "src/pages/\*\*"
+- "src/hooks/\*\*"
+
+---
+
+# Frontend Guidelines
+
+- Use Tailwind CSS for styling
+- Prefer server components where possible
+- Keep client components small and focused
+
+# .clinerules/backend.md
+
+---
+
+paths:
+
+- "src/api/\*\*"
+- "src/services/\*\*"
+- "src/db/\*\*"
+
+---
+
+# Backend Guidelines
+
+- Use dependency injection for services
+- All database queries go through repositories
+- Return typed errors, not thrown exceptions
+
+​
+Test File Rules
+Enforce testing standards automatically. This rule activates only when you’re writing or modifying tests, so testing guidance appears exactly when you need it.
+
+# .clinerules/testing.md
+
+---
+
+paths:
+
+- "\*_/_.test.ts"
+- "\*_/_.spec.ts"
+- "**/**tests**/**"
+
+---
+
+# Testing Standards
+
+- Use descriptive test names: "should [expected behavior] when [condition]"
+- One assertion per test when possible
+- Mock external dependencies, not internal modules
+- Use factories for test data, not fixtures
+
+​
+Documentation Rules
+Apply documentation standards only when editing docs. Prevents style rules from cluttering your context when you’re writing code.
+
+# .clinerules/docs.md
+
+---
+
+paths:
+
+- "docs/\*\*"
+- "\*_/_.md"
+- "\*_/_.mdx"
+
+---
+
+# Documentation Guidelines
+
+- Use sentence case for headings
+- Include code examples for all features
+- Keep paragraphs short (3-4 sentences max)
+- Link to related documentation
+
+​
+Combining with Rule Toggles
+Conditional rules work alongside the rule toggle UI. Toggle off a conditional rule to disable it entirely (it won’t activate even if paths match). Toggle on to let it activate when conditions are met. This provides two levels of control: manual toggles and automatic condition-based activation.
+​
+Tips for Effective Conditional Rules
+Start Broad, Then Narrow. Begin with broader patterns and refine as you learn what works:
+
+# Start here
+
+paths:
+
+- "src/\*\*"
+
+# Then narrow down
+
+paths:
+
+- "src/features/auth/\*\*"
+
+Use Descriptive Filenames. Name your rule files to indicate their scope:
+
+.clinerules/
+├── api-endpoints.md # Rules for API code
+├── database-models.md # Rules for DB layer
+├── react-components.md # Rules for React
+└── universal.md # No frontmatter = always active
+
+Keep Universal Rules Separate. Put always-on rules (coding standards, project conventions) in files without frontmatter. Reserve conditional rules for context-specific guidance. Test Your Patterns. Not sure if a pattern matches? Create a simple test rule:
+
+---
+
+paths:
+
+- "your/pattern/here/\*\*"
+
+---
+
+TEST: This rule should activate for your/pattern/here files.
+
+Then work with a file in that path and check if you see the activation notification.
+​
+Troubleshooting Conditional Rules
+Rule not activating:
+
+    Check that file paths in your context match the glob pattern
+    Verify the rule is toggled on in the rules panel
+    Ensure YAML frontmatter has proper --- delimiters
+
+Rule activating unexpectedly:
+
+    Review glob patterns. ** is recursive and may match more than intended
+    Check for open files that match the pattern
+    File paths mentioned in your message also count as context
+
+Frontmatter showing in output:
+
+    YAML couldn’t be parsed
+    Check for syntax errors (unquoted special characters, improper indentation)
