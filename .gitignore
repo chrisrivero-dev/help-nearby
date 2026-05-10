@@ -28,4 +28,4 @@ coverage/
 build/
 
 #continue.dev
-.continue/
+.continue/.claude/

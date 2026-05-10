@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { normalizeLocation } from '@/lib/location/normalizeLocation';
 import { useTheme } from '@/components/useTheme';
+import { useI18n } from '@/lib/i18n';
+import WhatToBring from '@/components/WhatToBring';
+import SmsButton from '@/components/SmsButton';
 
 /* Types */
 type HelpCategory = 'housing' | 'food' | 'safety' | 'finance';
@@ -99,6 +102,24 @@ const RESOURCE_DATA: Record<HelpCategory, Record<string, ResourceLink[]>> = {
       { title: 'Legal Aid — Debt', url: 'https://www.lawhelp.org', description: 'Free legal assistance for debt and financial issues.' },
       { title: 'NCLC — Consumer Debt', url: 'https://www.nclc.org', description: 'National Consumer Law Center guides on debt relief.' },
     ],
+  },
+};
+
+const WHAT_TO_BRING: Partial<Record<HelpCategory, Partial<Record<string, string[]>>>> = {
+  housing: {
+    'Emergency Shelter': ['Government-issued ID', 'Medications', 'Change of clothes', 'Phone charger', 'Important documents'],
+    'Temporary Housing': ['Government-issued ID', 'Proof of need', 'Medications', 'Personal hygiene items'],
+  },
+  food: {
+    'Food Banks': ['Government-issued ID', 'Proof of address', 'Reusable bags'],
+    'SNAP Enrollment': ['Government-issued ID', 'Proof of income', 'Proof of residency'],
+  },
+  safety: {
+    'Domestic Violence Help': ['ID (if safe to bring)', 'Medications', 'Important documents', 'Phone charger'],
+  },
+  finance: {
+    'Cash Assistance': ['Government-issued ID', 'Proof of income', 'Bank account info'],
+    'Utility Help': ['Government-issued ID', 'Recent utility bill', 'Proof of income'],
   },
 };
 
@@ -466,6 +487,7 @@ const ResourceFinder: React.FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const styles = useResourceFinderStyles();
+  const t = useI18n();
   
   const [category, setCategory] = useState<HelpCategory | null>(null);
   const [subcategory, setSubcategory] = useState<string | null>(null);
@@ -537,7 +559,7 @@ const ResourceFinder: React.FC = () => {
     <div style={styles.containerStyle}>
       {/* Location Input */}
       <div style={styles.locationInputStyle}>
-        <span style={styles.locationLabelStyle}>LOCATION</span>
+        <span style={styles.locationLabelStyle}>{t.location}</span>
         <input
           type="text"
           value={locationZip}
@@ -546,7 +568,7 @@ const ResourceFinder: React.FC = () => {
             setLocationLat(null);
             setLocationLng(null);
           }}
-          placeholder="Enter ZIP code"
+          placeholder={t.enterZip}
           maxLength={10}
           style={styles.inputStyle}
         />
@@ -554,22 +576,22 @@ const ResourceFinder: React.FC = () => {
           onClick={handleLocate}
           style={styles.buttonStyle}
         >
-          Use My Location
+          {t.useMyLocation}
         </button>
         {(locationZip.trim() !== '' || locationLat !== null) && (
           <span style={styles.locationBadgeStyle}>
             {locationZip.trim() !== ''
               ? resolvedLocation
-                ? `Showing results near ${resolvedLocation.city}, ${resolvedLocation.stateCode} (${locationZip.trim()})`
-                : `Showing results near ZIP ${locationZip.trim()}`
-              : 'Showing results near your current location'}
+                ? t.showingNearCity(resolvedLocation.city, resolvedLocation.stateCode, locationZip.trim())
+                : t.showingNearZip(locationZip.trim())
+              : t.showingNearLocation}
           </span>
         )}
       </div>
 
       {/* Page description */}
       <p style={styles.descriptionStyle}>
-        Enter your ZIP code, pick a category, and find local and national resources near you.
+        {t.helperText}
       </p>
 
       {/* Category cards */}
@@ -587,7 +609,7 @@ const ResourceFinder: React.FC = () => {
                 transition={{ type: "spring", stiffness: 300, damping: 24 }}
                 style={isActive ? styles.categoryButtonActiveStyle : styles.categoryButtonStyle}
               >
-                {cat.toUpperCase()}
+                {t.translateCategory(cat)}
               </motion.button>
             </div>
           );
@@ -609,7 +631,7 @@ const ResourceFinder: React.FC = () => {
               {/* Left: sub-option buttons */}
               <div style={styles.subOptionsStyle}>
                 <p style={styles.subOptionsHeaderStyle}>
-                  {category.toUpperCase()} — SELECT TOPIC
+                  {t.translateCategory(category)} — {t.selectTopic}
                 </p>
                 {SUB_OPTIONS[category].map((sub) => {
                   const isSubActive = subcategory === sub;
@@ -623,7 +645,7 @@ const ResourceFinder: React.FC = () => {
                       transition={{ type: "spring", stiffness: 400, damping: 20 }}
                       style={isSubActive ? styles.subOptionButtonActiveStyle : styles.subOptionButtonStyle}
                     >
-                      {sub}
+                      {t.translateSubcategory(sub)}
                     </motion.button>
                   );
                 })}
@@ -645,11 +667,11 @@ const ResourceFinder: React.FC = () => {
                     >
                       {/* Heading */}
                       <p style={styles.resourceHeadingStyle}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)} — {subcategory}
+                        {t.translateCategory(category)} — {t.translateSubcategory(subcategory)}
                       </p>
                       <p style={styles.resourceSubheadingStyle}>
-                        Showing resources for{' '}
-                        <span style={{ borderBottom: `3px solid ${isDark ? '#60a5fa' : '#2563eb'}` }}>{subcategory}</span>.
+                        {t.showingResourcesFor}{' '}
+                        <span style={{ borderBottom: `3px solid ${isDark ? '#60a5fa' : '#2563eb'}` }}>{t.translateSubcategory(subcategory)}</span>.
                       </p>
 
                       {/* Local resources */}
@@ -660,15 +682,15 @@ const ResourceFinder: React.FC = () => {
                           borderBottom: `2px solid ${isDark ? '#60a5fa' : '#2563eb'}`,
                         }}>
                           <p style={styles.localResourcesHeaderStyle}>
-                            LOCAL RESOURCES — {resolvedLocation.city}, {resolvedLocation.stateCode}
+                            {t.localResourcesLabel(resolvedLocation.city, resolvedLocation.stateCode)}
                           </p>
                           {loadingResources ? (
                             <p style={styles.loadingStyle}>
-                              Finding resources near you…
+                              {t.findingResources}
                             </p>
                           ) : localResources.length === 0 ? (
                             <p style={styles.noResultsStyle}>
-                              No local results found for this area. Try the national resources below.
+                              {t.noLocalResults}
                             </p>
                           ) : (
                             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -719,7 +741,7 @@ const ResourceFinder: React.FC = () => {
                                   aria-controls={detailId}
                                   style={isOpen ? styles.expandButtonActiveStyle : styles.expandButtonStyle}
                                 >
-                                  {isOpen ? 'Close ▲' : 'Expand ▼'}
+                                  {isOpen ? t.collapse : t.expand}
                                 </button>
                               </div>
 
@@ -737,32 +759,43 @@ const ResourceFinder: React.FC = () => {
                                   >
                                     <div style={styles.detailBlockStyle}>
                                       <div>
-                                        <p style={styles.detailLabelStyle}>Details</p>
+                                        <p style={styles.detailLabelStyle}>{t.details}</p>
                                         <p style={styles.detailTextStyle}>
-                                          {link.description ?? 'Visit the link above for more information about this resource and available services.'}
+                                          {link.description ?? t.detailsFallback}
                                         </p>
                                       </div>
 
                                       <div>
-                                        <p style={styles.detailLabelStyle}>Eligibility</p>
+                                        <p style={styles.detailLabelStyle}>{t.eligibility}</p>
                                         <p style={styles.detailTextStyle}>
-                                          Eligibility varies by program and location. Contact the resource directly to confirm requirements.
+                                          {t.eligibilityText}
                                         </p>
                                       </div>
 
                                       <div>
-                                        <p style={styles.detailLabelStyle}>How to Apply</p>
+                                        <p style={styles.detailLabelStyle}>{t.howToApply}</p>
                                         <p style={styles.detailTextStyle}>
-                                          Visit{' '}
+                                          {t.visit}{' '}
                                           <a href={link.url} target="_blank" rel="noreferrer" style={styles.detailLinkStyle}>
                                             {link.url}
                                           </a>
-                                          {' '}to get started, or{' '}
+                                          {' '}{t.toGetStartedOr}{' '}
                                           <a href={link.url} target="_blank" rel="noreferrer" style={styles.detailActionLinkStyle}>
-                                            open application ↗
+                                            {t.openApplication}
                                           </a>
                                         </p>
                                       </div>
+
+                                      {(WHAT_TO_BRING[category as HelpCategory]?.[subcategory ?? ''] ?? []).length > 0 && (
+                                        <WhatToBring
+                                          items={WHAT_TO_BRING[category as HelpCategory]![subcategory!]!}
+                                        />
+                                      )}
+
+                                      <SmsButton
+                                        resourceName={link.title}
+                                        resourceAddress={link.url}
+                                      />
                                     </div>
                                   </motion.div>
                                 )}
@@ -781,7 +814,7 @@ const ResourceFinder: React.FC = () => {
                       style={styles.emptyStateStyle}
                     >
                       <p style={styles.emptyStateTextStyle}>
-                        ← Select a topic
+                        {t.selectATopic}
                       </p>
                     </motion.div>
                   )}

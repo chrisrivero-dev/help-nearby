@@ -6,6 +6,7 @@ import Title from '@/components/ResourcesTitle';
 import Navbar from '@/components/Navbar';
 import ResourceFinder from '@/components/ResourceFinder';
 import Clock from '@/components/Clock';
+import LanguageToggle from '@/components/LanguageToggle';
 
 const pageStyle: React.CSSProperties = {
   display: 'flex',
@@ -69,7 +70,10 @@ const ResourcesPage: FC = () => {
         <div style={{ flex: 1, maxWidth: '800px' }}>
           <Title showMapPin={true} />
         </div>
-        <Navbar />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <LanguageToggle />
+          <Navbar />
+        </div>
       </motion.header>
       
       {/* Floating Clock at Bottom Right */}

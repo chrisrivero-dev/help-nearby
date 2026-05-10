@@ -45,11 +45,11 @@ function buildSearchLinks(
   return [
     {
       title: `${subcategory} near ${city}, ${state}`,
-      url:   `https://www.google.com/maps/search/${enc}`,
+      url:   `https://www.google.com/maps/search/${mapsEnc}`,
     },
     {
       title: 'Find Local Help (211)',
-      url:   `https://www.211.org/search?query=${enc}`,
+      url:   'https://www.211la.org/',
     },
     {
       title: 'Government Assistance Programs',
