@@ -1,7 +1,10 @@
 name: Deploy to EC2 via Docker
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - deployment/aws-helpnearby-co
 
 env:
   AWS_REGION: us-east-1
