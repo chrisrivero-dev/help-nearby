@@ -54,16 +54,28 @@ This enables GitHub Actions to authenticate with AWS without access keys.
    - `AWSCertificateManagerFullAccess`
    - `AmazonS3FullAccess`
 6. Next → Name: `helpnearbyGitHubDeployer`
-7. In **Trust relationships**, edit and add condition:
+7. In **Trust relationships**, edit and paste the full policy:
    ```json
    {
-     "Condition": {
-       "StringEquals": {
-         "token.actions.githubusercontent.com:sub": "repo:chrisrivero-dev/help-nearby:ref:refs/heads/deployment/aws-helpnearby-co"
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Principal": {
+           "Federated": "arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
+         },
+         "Action": "sts:AssumeRoleWithWebIdentity",
+         "Condition": {
+           "StringEquals": {
+             "token.actions.githubusercontent.com:sub": "repo:chrisrivero-dev/help-nearby:environment:production",
+             "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+           }
+         }
        }
-     }
+     ]
    }
    ```
+   > **Important**: The `sub` value uses `environment:production` (not `ref:refs/heads/...`) because the workflow sets `environment: production`. When a GitHub Actions job has an `environment:` field, GitHub replaces the branch ref in the `sub` claim with the environment name. Using the branch ref in this case will always fail with "Not authorized to perform sts:AssumeRoleWithWebIdentity".
 
 ### Step 3: Create Security Groups
 
@@ -271,10 +283,14 @@ uvicorn app.main:app --reload --port 9000
 - Ensure Docker is running: `sudo systemctl status docker`
 - Check IAM role permissions for ECR
 
-### GitHub Actions Fails with "Cannot assume role"
+### GitHub Actions Fails with "Cannot assume role" / "Not authorized to perform sts:AssumeRoleWithWebIdentity"
 
-- Verify OIDC trust relationship condition matches your repo/branch
 - Ensure `AWS_ACCOUNT_ID` secret is set correctly
+- Verify the OIDC provider `token.actions.githubusercontent.com` exists under IAM → Identity Providers
+- Check the trust policy `sub` condition carefully:
+  - If the workflow job has `environment: production`, the `sub` must be `repo:ORG/REPO:environment:production`
+  - If there is **no** `environment:` field, the `sub` must be `repo:ORG/REPO:ref:refs/heads/BRANCH`
+  - These are mutually exclusive — using the branch ref when an environment is set will always fail
 
 ### ACM Certificate Stuck in "Pending validation"
 
