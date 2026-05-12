@@ -26,6 +26,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/helpnearbyGitHubDeployer
           role-session-name: GitHub-Deploy-${{ github.run_id }}
           aws-region: ${{ env.AWS_REGION }}
+          audience: sts.amazonaws.com
 
       - name: Login to ECR (Frontend)
         uses: aws-actions/amazon-ecr-login@v2
