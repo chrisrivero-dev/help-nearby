@@ -6,6 +6,10 @@ on:
       - main
       - deployment/aws-helpnearby-co
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   AWS_REGION: us-east-1
 
