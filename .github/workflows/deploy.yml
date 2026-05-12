@@ -1,14 +1,10 @@
 name: Deploy to EC2 via Docker
 
 on:
-  push:
-    branches:
-      - deployment/aws-helpnearby-co
   workflow_dispatch:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: helpnearby
 
 jobs:
   build-and-deploy:
@@ -21,30 +17,46 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/helpnearbyGitHubDeployer
+          role-session-name: GitHub-Deploy-${{ github.run_id }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to ECR
+      - name: Login to ECR (Frontend)
         uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-url: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
 
-      - name: Build and push Docker image
+      - name: Build and push Frontend Docker image
         run: |
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          cd frontend
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/frontend:${{ github.sha }} .
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/frontend:${{ github.sha }}
+
+      - name: Login to ECR (Backend)
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-url: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+
+      - name: Build and push Backend Docker image
+        run: |
+          cd backend
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/backend:${{ github.sha }} .
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/backend:${{ github.sha }}
 
       - name: Setup SSH keys
         uses: webfactory/ssh-agent@v0.7.0
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
       - name: Deploy to EC2
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ${{ secrets.EC2_USER }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ env.AWS_REGION }}
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
-          ssh $EC2_USER@$EC2_HOST "docker login -u AWS -p \$(aws ecr get-login-password --region ${{ env.AWS_REGION }}) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com && docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }} && docker stop next-app 2>/dev/null || true && docker rm next-app 2>/dev/null || true && docker run -d --name next-app -p 3000:3000 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
+          ssh $EC2_USER@$EC2_HOST "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com && docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/helpnearby/frontend:${{ github.sha }} && docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/helpnearby/backend:${{ github.sha }} && docker stop helpnearby-frontend 2>/dev/null || true && docker rm helpnearby-frontend 2>/dev/null || true && docker stop helpnearby-backend 2>/dev/null || true && docker rm helpnearby-backend 2>/dev/null || true && docker run -d --name helpnearby-frontend -p 5000:5000 $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/helpnearby/frontend:${{ github.sha }} && docker run -d --name helpnearby-backend -p 9000:9000 $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/helpnearby/backend:${{ github.sha }}"

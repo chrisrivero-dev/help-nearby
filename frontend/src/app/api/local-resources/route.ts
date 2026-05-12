@@ -13,24 +13,24 @@ const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 /** Maps category + subcategory to a human-readable search term. */
 const QUERY_TERMS: Record<string, Record<string, string>> = {
   housing: {
-    'Emergency Shelter':  'emergency shelter',
-    'Rent Assistance':    'rent assistance',
-    'Temporary Housing':  'transitional housing',
+    'Emergency Shelter': 'emergency shelter',
+    'Rent Assistance': 'rent assistance',
+    'Temporary Housing': 'transitional housing',
   },
   food: {
-    'Food Banks':      'food bank',
-    'Free Meals':      'free meals soup kitchen',
+    'Food Banks': 'food bank',
+    'Free Meals': 'free meals soup kitchen',
     'SNAP Enrollment': 'SNAP office',
   },
   safety: {
     'Domestic Violence Help': 'domestic violence shelter',
-    'Emergency Services':     'emergency services',
-    'Crisis Lines':           'crisis hotline',
+    'Emergency Services': 'emergency services',
+    'Crisis Lines': 'crisis hotline',
   },
   finance: {
-    'Cash Assistance':  'cash assistance program',
-    'Utility Help':     'utility assistance',
-    'Debt Counseling':  'debt counseling nonprofit',
+    'Cash Assistance': 'cash assistance program',
+    'Utility Help': 'utility assistance',
+    'Debt Counseling': 'debt counseling nonprofit',
   },
 };
 
@@ -41,19 +41,19 @@ function buildSearchLinks(
   state: string,
   term: string,
 ): LocalEntry[] {
-  const enc = encodeURIComponent(`${city} ${term}`.trim());
+  const cityEnc = encodeURIComponent(city);
   return [
     {
       title: `${subcategory} near ${city}, ${state}`,
-      url:   `https://www.google.com/maps/search/${mapsEnc}`,
+      url: `https://www.google.com/maps/search/${cityEnc}`,
     },
     {
       title: 'Find Local Help (211)',
-      url:   'https://www.211la.org/',
+      url: 'https://www.211la.org/',
     },
     {
       title: 'Government Assistance Programs',
-      url:   `https://www.benefits.gov/search?query=${enc}`,
+      url: `https://www.benefits.gov/search?query=${cityEnc}`,
     },
   ];
 }
@@ -74,7 +74,11 @@ function fillToThree(
 }
 
 /* ── Food: Yelp Fusion API ──────────────────────────────────────────────── */
-interface YelpBusiness { name: string; url: string; rating?: number }
+interface YelpBusiness {
+  name: string;
+  url: string;
+  rating?: number;
+}
 
 async function fetchFoodResources(
   city: string,
@@ -85,10 +89,10 @@ async function fetchFoodResources(
   if (!apiKey) return [];
 
   const params = new URLSearchParams({
-    term:     term,
+    term: term,
     location: `${city}, ${state}`,
-    limit:    '3',
-    sort_by:  'rating',
+    limit: '3',
+    sort_by: 'rating',
   });
   const res = await fetch(
     `https://api.yelp.com/v3/businesses/search?${params}`,
@@ -96,14 +100,18 @@ async function fetchFoodResources(
   );
   if (!res.ok) return [];
 
-  const data = await res.json() as { businesses?: YelpBusiness[] };
+  const data = (await res.json()) as { businesses?: YelpBusiness[] };
   return (data.businesses ?? [])
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .map((b) => ({ title: b.name, url: b.url }));
 }
 
 /* ── Safety: Google Places Text Search API ──────────────────────────────── */
-interface PlacesResult { name: string; place_id: string; rating?: number }
+interface PlacesResult {
+  name: string;
+  place_id: string;
+  rating?: number;
+}
 
 async function fetchSafetyResources(
   city: string,
@@ -118,34 +126,34 @@ async function fetchSafetyResources(
   // geographic anchor; no separate lat/lng param is needed.
   const params = new URLSearchParams({
     query: `${term} in ${city}, ${state}`,
-    key:   apiKey,
+    key: apiKey,
   });
   const res = await fetch(
     `https://maps.googleapis.com/maps/api/place/textsearch/json?${params}`,
   );
   if (!res.ok) return [];
 
-  const data = await res.json() as { results?: PlacesResult[] };
+  const data = (await res.json()) as { results?: PlacesResult[] };
   return (data.results ?? [])
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .slice(0, 3)
     .map((p) => ({
       title: p.name,
-      url:   `https://www.google.com/maps/place/?q=place_id:${p.place_id}`,
+      url: `https://www.google.com/maps/place/?q=place_id:${p.place_id}`,
     }));
 }
 
 /* ── Route handler ──────────────────────────────────────────────────────── */
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = req.nextUrl;
-  const category    = searchParams.get('category')    ?? '';
+  const category = searchParams.get('category') ?? '';
   const subcategory = searchParams.get('subcategory') ?? '';
-  const city        = searchParams.get('city')        ?? '';
-  const state       = searchParams.get('state')       ?? '';
+  const city = searchParams.get('city') ?? '';
+  const state = searchParams.get('state') ?? '';
 
   /* Cache check */
   const cacheKey = `${category}|${subcategory}|${city}|${state}`;
-  const cached   = _cache.get(cacheKey);
+  const cached = _cache.get(cacheKey);
   if (cached && Date.now() < cached.expiresAt) {
     return NextResponse.json(cached.results);
   }
