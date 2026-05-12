@@ -3,7 +3,6 @@ name: Deploy to EC2 via Docker
 on:
   push:
     branches:
-      - main
       - deployment/aws-helpnearby-co
 
 permissions:
