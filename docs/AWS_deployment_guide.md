@@ -240,9 +240,44 @@ Go to Repository → **Settings** → **Secrets and Variables** → **Actions**
 Add:
 
 - `AWS_ACCOUNT_ID` - 12-digit AWS account ID
-- `EC2_SSH_PRIVATE_KEY` - SSH private key for EC2
+- `EC2_SSH_PRIVATE_KEY` - SSH private key for EC2 (NOT the public key)
 - `EC2_HOST` - EC2 public IP or ALB DNS name
 - `EC2_USER` - SSH username (e.g., `ubuntu`)
+
+> **Important**: The SSH private key added to GitHub secrets must correspond to the public key that's already in EC2's `~/.ssh/authorized_keys` file. If they don't match, the deployment will fail with "Permission denied (publickey)". To extract the public key from a `.pem` file: `ssh-keygen -y -f your-key.pem`
+
+---
+
+## Phase 5a: EC2 SSH Key Setup (One-time)
+
+### Step 15a: Add Public Key to EC2
+
+If you haven't already, add your SSH public key to the EC2 instance:
+
+1. Generate a new key pair (or extract public key from existing `.pem`):
+
+   ```bash
+   # Generate new key
+   ssh-keygen -t rsa -b 4096 -f ~/.ssh/helpnearby-ec2
+
+   # Extract public key for adding to EC2
+   cat ~/.ssh/helpnearby-ec2.pub
+   ```
+
+2. Add the public key to EC2's `authorized_keys`:
+
+   ```bash
+   # SSH into EC2 and run:
+   mkdir -p ~/.ssh
+   chmod 700 ~/.ssh
+   echo "your-public-key-here" >> ~/.ssh/authorized_keys
+   chmod 600 ~/.ssh/authorized_keys
+   ```
+
+3. Add the **private key** to GitHub secrets:
+   ```bash
+   cat ~/.ssh/helpnearby-ec2
+   ```
 
 ---
 
