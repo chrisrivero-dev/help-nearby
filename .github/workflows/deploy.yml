@@ -28,26 +28,17 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           audience: sts.amazonaws.com
 
-      - name: Login to ECR (Frontend)
+      - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
-        with:
-          registry-url: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
 
       - name: Build and push Frontend Docker image
         run: |
-          cd frontend
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/frontend:${{ github.sha }} .
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/frontend:${{ github.sha }} ./frontend
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/frontend:${{ github.sha }}
-
-      - name: Login to ECR (Backend)
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-          registry-url: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
 
       - name: Build and push Backend Docker image
         run: |
-          cd backend
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/backend:${{ github.sha }} .
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/backend:${{ github.sha }} ./backend
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/backend:${{ github.sha }}
 
       - name: Setup SSH keys
@@ -66,16 +57,20 @@ jobs:
           chmod 700 ~/.ssh
           ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
+
           ECR_PASSWORD=$(aws ecr get-login-password --region $AWS_REGION)
           ECR_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-          ssh $EC2_USER@$EC2_HOST "
-            echo '$ECR_PASSWORD' | docker login --username AWS --password-stdin $ECR_REGISTRY &&
-            docker pull $ECR_REGISTRY/helpnearby/frontend:${{ github.sha }} &&
-            docker pull $ECR_REGISTRY/helpnearby/backend:${{ github.sha }} &&
-            docker stop helpnearby-frontend 2>/dev/null || true &&
-            docker rm helpnearby-frontend 2>/dev/null || true &&
-            docker stop helpnearby-backend 2>/dev/null || true &&
-            docker rm helpnearby-backend 2>/dev/null || true &&
-            docker run -d --name helpnearby-frontend -p 5000:5000 $ECR_REGISTRY/helpnearby/frontend:${{ github.sha }} &&
-            docker run -d --name helpnearby-backend -p 9000:9000 $ECR_REGISTRY/helpnearby/backend:${{ github.sha }}
-          "
+          SHA=${{ github.sha }}
+
+          ssh $EC2_USER@$EC2_HOST bash << EOF
+            set -e
+            echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
+            docker pull $ECR_REGISTRY/helpnearby/frontend:$SHA
+            docker pull $ECR_REGISTRY/helpnearby/backend:$SHA
+            docker stop helpnearby-frontend 2>/dev/null || true
+            docker rm helpnearby-frontend 2>/dev/null || true
+            docker stop helpnearby-backend 2>/dev/null || true
+            docker rm helpnearby-backend 2>/dev/null || true
+            docker run -d --name helpnearby-frontend -p 5000:5000 $ECR_REGISTRY/helpnearby/frontend:$SHA
+            docker run -d --name helpnearby-backend -p 9000:9000 $ECR_REGISTRY/helpnearby/backend:$SHA
+          EOF
