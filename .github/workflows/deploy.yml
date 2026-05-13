@@ -66,4 +66,16 @@ jobs:
           chmod 700 ~/.ssh
           ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
-          ssh $EC2_USER@$EC2_HOST "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com && docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/helpnearby/frontend:${{ github.sha }} && docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/helpnearby/backend:${{ github.sha }} && docker stop helpnearby-frontend 2>/dev/null || true && docker rm helpnearby-frontend 2>/dev/null || true && docker stop helpnearby-backend 2>/dev/null || true && docker rm helpnearby-backend 2>/dev/null || true && docker run -d --name helpnearby-frontend -p 5000:5000 $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/helpnearby/frontend:${{ github.sha }} && docker run -d --name helpnearby-backend -p 9000:9000 $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/helpnearby/backend:${{ github.sha }}"
+          ECR_PASSWORD=$(aws ecr get-login-password --region $AWS_REGION)
+          ECR_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+          ssh $EC2_USER@$EC2_HOST "
+            echo '$ECR_PASSWORD' | docker login --username AWS --password-stdin $ECR_REGISTRY &&
+            docker pull $ECR_REGISTRY/helpnearby/frontend:${{ github.sha }} &&
+            docker pull $ECR_REGISTRY/helpnearby/backend:${{ github.sha }} &&
+            docker stop helpnearby-frontend 2>/dev/null || true &&
+            docker rm helpnearby-frontend 2>/dev/null || true &&
+            docker stop helpnearby-backend 2>/dev/null || true &&
+            docker rm helpnearby-backend 2>/dev/null || true &&
+            docker run -d --name helpnearby-frontend -p 5000:5000 $ECR_REGISTRY/helpnearby/frontend:${{ github.sha }} &&
+            docker run -d --name helpnearby-backend -p 9000:9000 $ECR_REGISTRY/helpnearby/backend:${{ github.sha }}
+          "
