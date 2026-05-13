@@ -7,7 +7,7 @@ import { useTheme } from './useTheme';
 const OurStory = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  
+
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -23,23 +23,29 @@ const OurStory = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: isVisible ? 1 : 0 }}
       transition={{ duration: 0.5 }}
-      className="relative flex items-center gap-10 rounded-lg p-5"
-      style={{ position: 'relative' }}
+      className="relative flex flex-col md:flex-row items-center gap-6 md:gap-10 rounded-lg p-4 md:p-5"
+      style={{ position: 'relative', maxWidth: '100%' }}
     >
-      <div className="flex-none">
-        <div className="relative p-2" style={{ background: 'transparent' }}>
-          <div className="absolute w-[300px] h-[300px] bg-[#2a2a2a] -translate-x-2 translate-y-2"></div>
+      <div className="flex-none w-full md:w-auto flex justify-center">
+        <div
+          className="relative p-2"
+          style={{ background: 'transparent', maxWidth: '100%' }}
+        >
           <img
             src="/images/ourstory.jpg"
             alt="Our story"
-            className="relative z-10 h-[300px] w-[300px] object-cover flex-none border-4 border-[#3e3e3e]"
+            className="relative z-10 h-[200px] w-[200px] md:h-[300px] md:w-[300px] object-cover flex-none border-4 border-[#3e3e3e]"
+            style={{ maxWidth: '100%', height: 'auto' }}
           />
         </div>
       </div>
-      <div className={`flex-1 text-white text-2xl leading-7 font-light tracking-[0.05em] text-left`}>
+      <div
+        className={`flex-1 text-white text-xl md:text-2xl leading-6 md:leading-7 font-light tracking-[0.05em] text-center md:text-left`}
+      >
         <p>
-          conquering Ha Long Bary after help by an old cat lady, a internet
-          travel forum, and 2 young people along the hike up the mountain
+          We were helped on our journey through Vietnam, by a gracious old
+          woman, an obscure internet forum, and two fellow explorers hiking up a
+          mountain in Ha Long Bay.
         </p>
       </div>
     </motion.div>

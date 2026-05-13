@@ -2,7 +2,7 @@
 
 import type { FC } from 'react';
 import { motion } from 'framer-motion';
-import Title from '@/components/AboutTitle';
+import NavBar from '@/components/NavBar';
 import DrawerMenu from '@/components/DrawerMenu';
 import StarWarsIntro from '@/components/StarWarsIntro';
 import FeatureToggles from '@/components/FeatureToggles';
@@ -26,23 +26,6 @@ const pageStyle: React.CSSProperties = {
   color: 'var(--color-text)',
 };
 
-const headerStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 20,
-  right: 20,
-  height: '100px',
-  zIndex: 100,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingLeft: 'calc((100vw - 1600px) / 2 + 50px)',
-  paddingRight: 'calc((100vw - 1600px) / 2 + 50px)',
-  boxSizing: 'border-box',
-  backgroundColor: 'transparent',
-  color: 'var(--color-text)',
-};
-
 const AboutPage: FC = () => {
   return (
     <motion.main
@@ -55,14 +38,10 @@ const AboutPage: FC = () => {
       <StarWarsIntro />
 
       {/* Header with Title */}
-      <motion.header style={headerStyle}>
-        <Title title="ABOUT! NEARBY." showMapPin={true} />
-        {/* NavMenu positioned in top-right corner */}
-        <DrawerMenu top={20} right={20} />
-      </motion.header>
+      <NavBar variant="about" title="ABOUT! NEARBY." showMapPin={true} />
 
       {/* Feature Toggles at Bottom Right */}
-      <FeatureToggles bottom={50} right={50} />
+      <FeatureToggles bottom={20} right={20} />
     </motion.main>
   );
 };

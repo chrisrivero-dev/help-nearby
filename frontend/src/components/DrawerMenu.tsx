@@ -1,23 +1,59 @@
 'use client';
 
 import type { FC } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useTheme } from '@/components/useTheme';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface DrawerMenuProps {
   top?: number;
   right?: number;
 }
 
-const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 20 }) => {
+const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 12 }) => {
   const { theme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
   const isDark = theme === 'dark';
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        menuOpen &&
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
+        setMenuOpen(false);
+      }
+    };
+
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [menuOpen]);
+
+  // Close menu on Escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && menuOpen) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [menuOpen]);
 
   // Colors based on theme
   const linkColor = isDark ? '#e8e8e8' : '#111111';
@@ -58,12 +94,15 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 20 }) => {
   };
 
   // Menu overlay style - floating, right aligned, no container
+  // Calculate top position to align with bottom of menu button
+  // button height = 3 bars * 4px + 2 gaps * 5px = 22px
+  const menuButtonHeight = 22;
   const menuOverlayStyle: React.CSSProperties = {
     position: 'fixed',
-    top: `${top + 30}px`,
+    top: `${top + menuButtonHeight}px`,
     right: `${right}px`,
-    zIndex: 100,
-    display: 'flex',
+    zIndex: menuOpen ? 1002 : 1000,
+    display: menuOpen ? 'flex' : 'none',
     flexDirection: 'column',
     alignItems: 'flex-end',
   };
@@ -85,6 +124,10 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 20 }) => {
     setMenuOpen(false);
     router.push('/');
   };
+  const handleHelpClick = () => {
+    setMenuOpen(false);
+    router.push('/help');
+  };
   const handleResourcesClick = () => {
     setMenuOpen(false);
     router.push('/resources');
@@ -99,12 +142,24 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 20 }) => {
     position: 'fixed',
     top: `${top}px`,
     right: `${right}px`,
-    zIndex: 101,
+    zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
     gap: '5px',
     cursor: 'pointer',
-    padding: '8px',
+    padding: '0',
+    pointerEvents: menuOpen ? 'none' : 'auto',
+  };
+
+  // Overlay backdrop style - transparent overlay to capture clicks outside menu
+  const overlayBackdropStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: menuOpen ? 1000 : -1,
+    display: menuOpen ? 'block' : 'none',
   };
 
   return (
@@ -116,8 +171,17 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 20 }) => {
         <div style={drawerBarBottomStyle} />
       </div>
 
+      {/* Backdrop to close menu when clicking outside */}
+      <motion.div
+        style={overlayBackdropStyle}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: menuOpen ? 0.3 : 0 }}
+        transition={{ duration: 0.2 }}
+      />
+
       {/* Collapsible Menu Overlay */}
       <motion.div
+        ref={menuRef}
         style={menuOverlayStyle}
         initial={{ opacity: 0, y: -10 }}
         animate={{
@@ -134,6 +198,14 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 20 }) => {
           className={pathname === '/' ? 'active' : ''}
         >
           Home
+        </Link>
+        <Link
+          href="/help"
+          onClick={handleHelpClick}
+          style={menuItemStyle}
+          className={pathname === '/help' ? 'active' : ''}
+        >
+          Help
         </Link>
         <Link
           href="/resources"

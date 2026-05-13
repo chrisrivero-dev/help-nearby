@@ -102,14 +102,14 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
   };
 
   const zoomButtonStyle: React.CSSProperties = {
-    width: '36px',
-    height: '36px',
+    width: '24px',
+    height: '24px',
     borderRadius: '4px',
     backgroundColor: 'var(--color-bg)',
     color: 'var(--color-text)',
     border: 'none',
     cursor: 'pointer',
-    fontSize: '20px',
+    fontSize: '16px',
     fontWeight: '600',
     outline: 'none',
     display: 'flex',
@@ -122,8 +122,10 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
     padding: '12px 16px',
     borderRadius: '4px',
     border: 'none',
-    fontSize: '18px',
-    width: '250px',
+    fontSize: '16px',
+    minWidth: '120px',
+    maxWidth: '250px',
+    flex: 1,
     outline: 'none',
     backgroundColor:
       theme === 'dark' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.6)',
@@ -206,31 +208,29 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
         transition={{ duration: 0.4, ease: 'easeOut' }}
       >
         {/* Left: Back button */}
-        <div
+        <button
+          onClick={() => router.push('/')}
           style={{
-            width: '90px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
+            ...buttonStyle,
+            padding: '8px',
+            width: '40px',
+            justifyContent: 'center',
           }}
         >
-          <button onClick={() => router.push('/')} style={buttonStyle}>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M19 12H5" />
-              <path d="M12 19l-7-7 7-7" />
-            </svg>
-            Back
-          </button>
-        </div>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+          </svg>
+        </button>
 
         {/* Center: Search bar */}
         <div
@@ -238,15 +238,16 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '10px',
+            padding: '8px 12px',
             borderRadius: '8px',
             boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
             backgroundColor:
               theme === 'dark'
                 ? 'rgba(0, 0, 0, 0.3)'
                 : 'rgba(255, 255, 255, 0.3)',
-            alignSelf: 'flex-start',
-            marginTop: '10px',
+            flex: 1,
+            maxWidth: '400px',
+            minWidth: '280px',
           }}
         >
           <input
@@ -264,7 +265,7 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
             style={buttonStyle}
             title="Use my location"
           >
-            <Crosshair size={20} fill="none" />
+            <Crosshair size={18} fill="none" />
           </button>
           <button
             onClick={handleSearch}
@@ -272,19 +273,17 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
             style={buttonStyle}
             title="Search"
           >
-            <Search size={20} fill="none" />
+            <Search size={18} fill="none" />
           </button>
         </div>
 
         {/* Right: Zoom controls */}
         <div
           style={{
-            width: '90px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px',
-            alignItems: 'center',
-            alignSelf: 'flex-start',
+            gap: '6px',
+            alignItems: 'flex-end',
             marginTop: '10px',
           }}
         >
@@ -353,7 +352,7 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
       </motion.div>
 
       {/* Feature Toggles — bottom right, above the map, below top bar */}
-      <FeatureToggles bottom={50} right={50} />
+      <FeatureToggles bottom={20} right={20} />
 
       {/* Search error banner */}
       {searchError && (

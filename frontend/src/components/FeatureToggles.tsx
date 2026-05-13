@@ -40,7 +40,7 @@ const FeatureToggles: FC<FeatureTogglesProps> = ({
     zIndex: 9999,
     display: 'flex',
     flexDirection: 'column' as const,
-    alignItems: 'flex-end',
+    alignItems: 'center',
     gap: '0.5rem',
     padding: '0',
   };

@@ -16,12 +16,13 @@ interface StarWarsIntroProps {
 const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
   onAnimationComplete,
   panelHeight = 'auto',
-  panelWidth = 'min(1600px, max(200px, calc(100vw - 150px)))',
+  panelWidth = 'min(1800px, max(200px, calc(100vw - 20px)))',
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
   const [showOurStory, setShowOurStory] = useState(false);
+  const [fadeTextOut, setFadeTextOut] = useState(false);
   const [isMouseOverPanel, setIsMouseOverPanel] = useState(false);
 
   const paragraphs = [
@@ -32,6 +33,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
     'We are not trying to be heroes. We just want to build the thing we would want for our own family and friends.',
   ];
 
+  // Responsive container styles
   const containerStyle: React.CSSProperties = {
     width: panelWidth,
     aspectRatio: '21/9',
@@ -41,11 +43,51 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
     overflow: 'hidden',
     background: 'transparent',
     position: 'fixed',
-    top: '150px',
-    left: '100px',
-    right: '100px',
+    top: 'calc(15vh + 20px)',
+    left: '2%',
+    right: '2%',
     margin: '0 auto',
-    maxHeight: 'calc(100vh - 250px)',
+    maxHeight: 'calc(100vh - 30vh)',
+    zIndex: 999,
+  };
+
+  // Text styles matching OurStory width
+  const textMotionStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '100%',
+    width: '100%',
+    maxWidth: '800px',
+    padding: '0 15px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 2,
+    overflow: 'hidden',
+  };
+
+  // OurStory responsive positioning - matching text width and spacing
+  const ourStoryStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '100%',
+    width: '100%',
+    maxWidth: '800px',
+    padding: '0 15px',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    zIndex: 3,
+  };
+
+  // Text content styles
+  const textStyle: React.CSSProperties = {
+    color: isDark ? '#f9c700' : '#f9c700',
+    letterSpacing: '0.08em',
+    lineHeight: 1.8,
+    fontWeight: 600,
+    fontSize: 'clamp(14px, 2.5vw, 22px)',
+    height: '100%',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    WebkitOverflowScrolling: 'touch',
+    padding: '20px 0',
   };
 
   return (
@@ -72,69 +114,55 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
           {/* Starfield background - 8-bit galaxy far, far away */}
           <Starfield starCount={150} />
 
+          {/* Text animation - scrolls up and fades out */}
           <motion.div
-            style={{
-              position: 'absolute',
-              top: '100%',
-              width: '100%',
-              maxWidth: '800px',
-              padding: '0 10px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 2,
-              overflow: 'hidden',
-            }}
+            style={textMotionStyle}
             initial={{ top: '100%' }}
-            animate={{ top: '-150%' }}
+            animate={{
+              top: fadeTextOut ? '-150%' : ['100%', '-150%'],
+              opacity: fadeTextOut ? 0 : 1,
+            }}
             transition={{
               duration: 12,
               ease: 'linear',
               delay: 0,
             }}
             onAnimationComplete={() => {
-              // Show the OurStory component 1 second after scroll animation completes
+              // Start fading out text after scroll completes
               setTimeout(() => {
-                setShowOurStory(true);
-                if (onAnimationComplete) {
-                  onAnimationComplete();
-                }
+                setFadeTextOut(true);
               }, 1000);
             }}
           >
-            <div
-              style={{
-                color: isDark ? '#f9c700' : '#f9c700',
-                letterSpacing: '0.08em',
-                lineHeight: 2,
-                fontWeight: 600,
-                fontSize: '22px',
-                height: '100%',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                WebkitOverflowScrolling: 'touch',
-              }}
-            >
+            <div style={textStyle}>
               {paragraphs.map((text, index) => (
-                <p key={index} style={{ textAlign: 'justify', marginBottom: index < paragraphs.length - 1 ? '20px' : '0', color: isDark ? '#f9c700' : '#f9c700' }}>
+                <p
+                  key={index}
+                  style={{
+                    textAlign: 'justify',
+                    marginBottom: index < paragraphs.length - 1 ? '20px' : '0',
+                    color: isDark ? '#f9c700' : '#f9c700',
+                    fontSize: 'clamp(14px, 2.5vw, 22px)',
+                  }}
+                >
                   {text}
                 </p>
               ))}
             </div>
           </motion.div>
-          {/* Our Story component that appears after animation with 1 second delay */}
-          {showOurStory && (
+
+          {/* Our Story component that appears after text fades out */}
+          {fadeTextOut && (
             <motion.div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '100px',
-                right: '100px',
-                transform: 'translateY(-50%)',
-                zIndex: 1001,
+              style={ourStoryStyle}
+              initial={{ opacity: 0, top: '100%' }}
+              animate={{ opacity: 1, top: '50%' }}
+              transition={{ duration: 1, ease: 'easeIn' }}
+              onAnimationComplete={() => {
+                if (onAnimationComplete) {
+                  onAnimationComplete();
+                }
               }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
             >
               <OurStory />
             </motion.div>

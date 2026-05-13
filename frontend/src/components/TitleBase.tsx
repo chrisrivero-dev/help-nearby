@@ -11,13 +11,13 @@ interface TitleProps {
   title?: string;
   subtitle?: string;
   showMapPin?: boolean;
+  variant?: 'help' | 'resources' | 'about';
 }
 
 const titleContainerStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: '10px',
-  minHeight: '100px',
   position: 'relative',
   overflow: 'visible',
 };
@@ -34,26 +34,54 @@ const titleStyle: React.CSSProperties = {
   fontWeight: 800,
   textTransform: 'uppercase',
   textAlign: 'left',
-  fontSize: 'clamp(2.25rem, 6vw, 3rem)',
+  fontSize: 'clamp(1.5rem, 4.5vw, 3rem)',
   whiteSpace: 'nowrap',
   lineHeight: 1.2,
+};
+
+interface VariantColors {
+  normalColor: string;
+  hoverBg: string;
+  hoverColor: string;
+}
+
+const variantColors: Record<string, VariantColors> = {
+  help: {
+    normalColor: '#dc3545',
+    hoverBg: '#dc3545',
+    hoverColor: '#ffffff',
+  },
+  resources: {
+    normalColor: '#007bff',
+    hoverBg: '#007bff',
+    hoverColor: '#ffffff',
+  },
+  about: {
+    normalColor: '#28a745',
+    hoverBg: '#28a745',
+    hoverColor: '#ffffff',
+  },
 };
 
 const TitleBase: FC<TitleProps> = ({
   title = 'TITLE! NEARBY.',
   subtitle,
   showMapPin = true,
+  variant = 'about',
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const router = useRouter();
 
-  const textColor = isDark ? '#e8e8e8' : '#111111';
   const pinStroke = isDark ? '#e8e8e8' : '#111111';
   const pinFill = isDark ? '#d4af37' : '#fbbf24'; // Gold colors for pin fill
 
   const [isClicked, setIsClicked] = useState(false);
   const [isTitleHovered, setIsTitleHovered] = useState(false);
+
+  // Get colors based on variant
+  const colors = variantColors[variant] || variantColors['about'];
+  const textColor = isDark ? '#e8e8e8' : '#111111';
 
   // Default location: Central Park, NYC
   const DEFAULT_LAT = 40.7829;
@@ -95,19 +123,13 @@ const TitleBase: FC<TitleProps> = ({
     fontWeight: 800,
     textTransform: 'uppercase',
     textAlign: 'left',
-    fontSize: 'clamp(2.25rem, 6vw, 3rem)',
+    fontSize: 'clamp(1.5rem, 4.5vw, 3rem)',
     whiteSpace: 'nowrap',
     cursor: 'pointer',
     transition:
       'background-color 0.3s ease, color 0.3s ease, transform 0.3s ease',
-    backgroundColor: isTitleHovered
-      ? isDark
-        ? '#28a745'
-        : '#228B22' // Green background on hover (standardized)
-      : 'transparent',
-    color: isTitleHovered
-      ? '#ffffff' // White text on hover
-      : textColor,
+    backgroundColor: isTitleHovered ? colors.hoverBg : 'transparent',
+    color: isTitleHovered ? colors.hoverColor : textColor,
     padding: '0 5px',
     borderRadius: '4px',
     transform: isTitleHovered ? 'scale(1.05)' : 'scale(1)',
@@ -118,7 +140,7 @@ const TitleBase: FC<TitleProps> = ({
     fontWeight: 800,
     textTransform: 'uppercase',
     textAlign: 'left',
-    fontSize: 'clamp(2.25rem, 6vw, 3rem)',
+    fontSize: 'clamp(1.5rem, 4.5vw, 3rem)',
     whiteSpace: 'nowrap',
     color: textColor,
   };
@@ -131,15 +153,8 @@ const TitleBase: FC<TitleProps> = ({
       transition={{ duration: 0.7, ease: 'easeOut' }}
     >
       <div style={{ ...titleWrapperStyle }}>
-        <div
-          style={{
-            ...titleContainerStyle,
-            display: 'flex',
-            alignItems: 'center',
-            minHeight: '100px',
-          }}
-        >
-          <div style={{ ...titleStyle, color: textColor }}>
+        <div style={titleContainerStyle}>
+          <div style={{ ...titleStyle, color: colors.normalColor }}>
             <span
               onMouseEnter={() => setIsTitleHovered(true)}
               onMouseLeave={() => setIsTitleHovered(false)}

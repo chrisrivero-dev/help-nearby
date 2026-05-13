@@ -12,9 +12,9 @@ interface FlipDigitProps {
 }
 
 const digitSize = {
-  width: '96px',
-  height: 'min(60px, 6vw)',
-  fontSize: 'min(48px, 5vw)',
+  width: 'min(64px, 15vw)',
+  height: 'min(50px, 10vh)',
+  fontSize: 'min(32px, 6vw)',
 };
 
 const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
@@ -123,12 +123,10 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
   );
 };
 
-const Clock: FC = () => {
+// Digits display component - rendered separately, opens at bottom center
+function ClockDigits({ isOpen, isDark }: { isOpen: boolean; isDark: boolean }) {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [nextTime, setNextTime] = useState<string>('');
-const [isOpen, setIsOpen] = useState<boolean>(true);
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
   const reduceMotion = useReducedMotion();
 
   const latestTimeRef = useRef('');
@@ -136,17 +134,17 @@ const [isOpen, setIsOpen] = useState<boolean>(true);
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      
+
       const formatter = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/New_York',
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
       });
-      
+
       const timeString = formatter.format(now);
       latestTimeRef.current = timeString;
-      
+
       if (currentTime !== timeString) {
         setNextTime(timeString);
         setCurrentTime(timeString);
@@ -181,61 +179,81 @@ const [isOpen, setIsOpen] = useState<boolean>(true);
   return (
     <motion.div
       style={{
+        position: 'fixed',
+        bottom: '20px',
+        left: 0,
+        right: 0,
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: '0.5rem',
-        padding: '0 0.5rem',
-        zIndex: 9999,
-        position: 'relative',
+        padding: '1rem',
+        backgroundColor: isDark ? '#333' : '#f0f0f0',
+        borderRadius: '8px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        width: 'fit-content',
+        whiteSpace: 'nowrap',
       }}
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
+      animate={{
+        scale: isOpen ? 1 : 0,
+        opacity: isOpen ? 1 : 0,
+        y: isOpen ? 0 : 20,
+      }}
+      transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
     >
-      {/* Clock display container - tiles in/out to the left of icon */}
+      <FlipDigit currentValue={currentHourDigit1} nextValue={nextHourDigit1} />
+      <FlipDigit currentValue={currentHourDigit2} nextValue={nextHourDigit2} />
       <motion.div
         style={{
+          width: 'min(16px, 2vw)',
+          height: 'min(50px, 10vh)',
           display: 'flex',
           alignItems: 'center',
-          overflow: 'hidden',
-          width: 'auto',
+          justifyContent: 'center',
+          color: isDark ? '#e8e8e8' : '#111111',
+          backgroundColor: colonPanelColor,
+          fontSize: 'min(48px, 5vw)',
+          fontWeight: 700,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         }}
-        animate={{
-          opacity: isOpen ? 1 : 0,
-        }}
-        transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
       >
-        <FlipDigit currentValue={currentHourDigit1} nextValue={nextHourDigit1} />
-        <FlipDigit currentValue={currentHourDigit2} nextValue={nextHourDigit2} />
-        <motion.div
-          style={{
-            width: 'min(20px, 2.5vw)',
-            height: 'min(60px, 6vw)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: isDark ? '#e8e8e8' : '#111111',
-            backgroundColor: colonPanelColor,
-            fontSize: 'min(48px, 5vw)',
-            fontWeight: 700,
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          }}
-        >
-          :
-        </motion.div>
-        <FlipDigit currentValue={currentMinuteDigit1} nextValue={nextMinuteDigit1} />
-        <FlipDigit currentValue={currentMinuteDigit2} nextValue={nextMinuteDigit2} />
+        :
       </motion.div>
-      {/* Clock icon - stays in fixed position (last in flex row) */}
-      <ClockIcon
-        onClick={() => setIsOpen(!isOpen)} 
-        style={{ 
-          cursor: 'pointer', 
-          color: isDark ? '#e8e8e8' : '#111111' 
-        }} 
+      <FlipDigit
+        currentValue={currentMinuteDigit1}
+        nextValue={nextMinuteDigit1}
+      />
+      <FlipDigit
+        currentValue={currentMinuteDigit2}
+        nextValue={nextMinuteDigit2}
       />
     </motion.div>
+  );
+}
+
+const Clock: FC = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  return (
+    <>
+      {/* Clock icon in the right column */}
+      <ClockIcon
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          cursor: 'pointer',
+          color: isDark ? '#e8e8e8' : '#111111',
+          width: '24px',
+          height: '24px',
+        }}
+      />
+      {/* Digits display at bottom center */}
+      <ClockDigits isOpen={isOpen} isDark={isDark} />
+    </>
   );
 };
 
