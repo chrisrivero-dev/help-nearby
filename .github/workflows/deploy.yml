@@ -58,14 +58,13 @@ jobs:
           ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
-          SHA=${{ github.sha }}
-
-          ssh $EC2_USER@$EC2_HOST bash -s -- "$SHA" "$AWS_ACCOUNT_ID" "$AWS_REGION" << 'EOF'
+          ssh $EC2_USER@$EC2_HOST 'bash -s' << 'EOF'
             set -e
-            SHA=$1
-            AWS_ACCOUNT_ID=$2
-            AWS_REGION=$3
+            set -x
+            AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            AWS_REGION=us-east-1
             ECR_REGISTRY=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+            SHA=${{ github.sha }}
             ECR_PASSWORD=$(aws ecr get-login-password --region $AWS_REGION)
             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
             docker pull $ECR_REGISTRY/helpnearby/frontend:$SHA
