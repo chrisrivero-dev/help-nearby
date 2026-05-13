@@ -125,20 +125,14 @@ const MapInstanceSetter: FC<{
 const useMapStyles = () => {
   return {
     mapContainerStyle: {
-      backgroundColor: '#0f0f0f',
       width: '100%',
       height: '100%',
       border: 'none',
-      borderRadius: '0',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-      padding: '0',
       position: 'relative',
       color: '#e8e8e8',
-      boxSizing: 'border-box',
       willChange: 'transform',
       transform: 'translateZ(0)',
       backfaceVisibility: 'hidden',
-      overflow: 'hidden',
     } as React.CSSProperties,
     buttonStyle: {
       padding: '8px 16px',
@@ -159,7 +153,6 @@ const useMapStyles = () => {
       width: '400px',
       backgroundColior: 'transparent',
       padding: '10px',
-      borderRadius: '8px',
       boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
       display: 'flex',
       flexDirection: 'row',
@@ -270,7 +263,14 @@ const MapContent: FC<{
   // Invalidate map size when map container resizes (for Framer Motion animations)
   useEffect(() => {
     if (mapInstance) {
-      mapInstance.invalidateSize(false);
+      const container = mapInstance.getContainer();
+      if (
+        container &&
+        container.offsetHeight > 0 &&
+        container.offsetWidth > 0
+      ) {
+        mapInstance.invalidateSize(false);
+      }
     }
   }, [mapInstance]);
 
@@ -357,48 +357,49 @@ const MapContent: FC<{
 
   return (
     <>
+      {/* Zip search input at top center of map panel */}
       <motion.div
-        style={adjustedMapContainerStyle}
-        initial={{ opacity: 0, y: 100 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.43, 0.13, 0.23, 0.96] }}
+        style={placeSearchOnPanelStyle}
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.6, ease: 'easeOut' }}
       >
-        {/* Zip search input at top center of map panel */}
-        <motion.div
-          style={placeSearchOnPanelStyle}
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6, ease: 'easeOut' }}
+        <input
+          type="text"
+          value={zip}
+          onChange={(e) => setZip(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Search for a Location"
+          disabled={isSearching}
+          style={inputStyle}
+        />
+        <style jsx>{`
+          input::placeholder {
+            color: var(--color-text);
+          }
+        `}</style>
+        <button
+          onClick={handleLocate}
+          disabled={isSearching}
+          style={buttonStyle}
         >
-          <input
-            type="text"
-            value={zip}
-            onChange={(e) => setZip(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Search for a Location"
-            disabled={isSearching}
-            style={inputStyle}
-          />
-          <style jsx>{`
-            input::placeholder {
-              color: var(--color-text);
-            }
-          `}</style>
-          <button
-            onClick={handleLocate}
-            disabled={isSearching}
-            style={buttonStyle}
-          >
-            <Crosshair size={20} fill="none" />
-          </button>
-          <button
-            onClick={handleSearch}
-            disabled={isSearching}
-            style={{ ...buttonStyle, marginLeft: '8px' }}
-          >
-            <Search size={20} fill="none" />
-          </button>
-        </motion.div>
+          <Crosshair size={20} fill="none" />
+        </button>
+        <button
+          onClick={handleSearch}
+          disabled={isSearching}
+          style={{ ...buttonStyle, marginLeft: '8px' }}
+        >
+          <Search size={20} fill="none" />
+        </button>
+      </motion.div>
+      {/* Map Container - simple ease-in */}
+      <motion.div
+        style={{ position: 'relative', width: '100%', height: '100%' }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] }}
+      >
         <MapContainer
           center={[40.7506, -73.9972]}
           zoom={13}

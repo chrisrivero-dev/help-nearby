@@ -67,15 +67,13 @@ const ResourcesPage: FC = () => {
     >
       {/* Header with Title and Navbar */}
       <motion.header style={headerStyle}>
-        <div style={{ flex: 1, maxWidth: '800px' }}>
-          <Title showMapPin={true} />
-        </div>
+        <Title showMapPin={true} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <LanguageToggle />
           <Navbar />
         </div>
       </motion.header>
-      
+
       {/* Floating Clock at Bottom Right */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

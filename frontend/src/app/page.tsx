@@ -30,16 +30,20 @@ const rootStyle: CSSProperties = {
 
 // Header row
 const headerRowStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '2rem',
-  width: '80vw',
-  maxWidth: '1000px',
-  margin: '0 auto',
+  position: 'fixed',
+  top: 0,
+  left: 20,
+  right: 20,
   height: '100px',
   zIndex: zSticky,
-  position: 'relative',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingLeft: 'calc((100vw - 1600px) / 2 + 50px)',
+  paddingRight: 'calc((100vw - 1600px) / 2 + 50px)',
+  boxSizing: 'border-box',
+  backgroundColor: 'transparent',
+  color: 'var(--color-text)',
 };
 
 // Clock
@@ -64,19 +68,16 @@ const Home: FC = () => {
       {/* Map Panel — centered floating card, takes 60% height */}
       <div
         style={{
-          width: '80vw',
+          width: '85vw',
+          maxWidth: '900px',
           height: '60vh',
           borderRadius: '12px',
-          overflow: 'hidden',
           boxShadow:
             theme === 'dark'
               ? '0 20px 60px rgba(0, 0, 0, 0.8)'
               : '0 20px 60px rgba(0, 0, 0, 0.3)',
-          margin: '20vh auto 0 auto',
+          margin: '20vh auto',
           position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
         }}
         className="map-panel-container"
       >

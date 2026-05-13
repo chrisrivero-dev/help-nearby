@@ -57,12 +57,10 @@ const AboutPage: FC = () => {
 
       {/* Header with Title and Navbar */}
       <motion.header style={headerStyle}>
-        <div style={{ flex: 1, maxWidth: '800px' }}>
-          <Title title="ABOUT! NEARBY." showMapPin={true} />
-        </div>
+        <Title title="ABOUT! NEARBY." showMapPin={true} />
         <Navbar />
       </motion.header>
-      
+
       {/* Floating Clock at Bottom Right */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
