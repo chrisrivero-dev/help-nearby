@@ -62,6 +62,7 @@ jobs:
 
           ssh $EC2_USER@$EC2_HOST bash << EOF
             set -e
+            AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
             AWS_REGION=${AWS_REGION}
             ECR_REGISTRY=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
             ECR_PASSWORD=\$(aws ecr get-login-password --region \$AWS_REGION)
