@@ -81,9 +81,11 @@ This enables GitHub Actions to authenticate with AWS without access keys.
 
 **EC2 Security Group (`helpnearby-ec2-sg`):**
 
-- SSH: 22 (your IP/32)
+- SSH: 22 (`0.0.0.0/0` - GitHub Actions runners connect from dynamic IPs)
 - Port 5000: from `helpnearby-alb-sg`
 - Port 9000: from `helpnearby-alb-sg`
+
+> **Note**: The SSH rule must allow `0.0.0.0/0` because GitHub Actions runners connect from dynamic IPs that change over time. The SSH private key authentication (configured in GitHub secrets) still provides security - even with the port open to the internet, only holders of the correct private key can connect.
 
 **ALB Security Group (`helpnearby-alb-sg`):**
 
@@ -312,6 +314,11 @@ uvicorn app.main:app --reload --port 9000
 ---
 
 ## Common Issues
+
+### SSH Connection Fails ("Permission denied" or "Connection timed out")
+
+- Verify the security group allows SSH (port 22) from `0.0.0.0/0` - GitHub Actions runners connect from dynamic IPs
+- Ensure the SSH private key in GitHub secrets matches the public key in EC2's `~/.ssh/authorized_keys`
 
 ### Docker Pull Fails on EC2
 
