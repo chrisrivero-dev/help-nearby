@@ -43,11 +43,7 @@ export function ThemeToggleButton() {
           transition={{ duration: 0.2, ease: 'easeInOut' }}
           style={{ position: 'absolute', fontSize: '18px', lineHeight: '1' }}
         >
-          {isDark ? (
-            <SunIcon />
-          ) : (
-            <MoonIcon />
-          )}
+          {isDark ? <SunIcon /> : <MoonIcon />}
         </motion.span>
       </AnimatePresence>
     </motion.button>
@@ -58,8 +54,8 @@ export function ThemeToggleButton() {
 function SunIcon() {
   return (
     <svg
-      width="36"
-      height="36"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke="#D4AF37"
@@ -76,8 +72,8 @@ function SunIcon() {
 function MoonIcon() {
   return (
     <svg
-      width="36"
-      height="36"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke="#514e57"

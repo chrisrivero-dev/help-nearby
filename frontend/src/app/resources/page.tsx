@@ -3,10 +3,10 @@
 import type { FC } from 'react';
 import { motion } from 'framer-motion';
 import Title from '@/components/ResourcesTitle';
-import Navbar from '@/components/Navbar';
+import DrawerMenu from '@/components/DrawerMenu';
 import ResourceFinder from '@/components/ResourceFinder';
-import Clock from '@/components/Clock';
 import LanguageToggle from '@/components/LanguageToggle';
+import FeatureToggles from '@/components/FeatureToggles';
 
 const pageStyle: React.CSSProperties = {
   display: 'flex',
@@ -65,29 +65,15 @@ const ResourcesPage: FC = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
     >
-      {/* Header with Title and Navbar */}
+      {/* Header with Title */}
       <motion.header style={headerStyle}>
         <Title showMapPin={true} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <LanguageToggle />
-          <Navbar />
-        </div>
+        {/* NavMenu positioned in top-right corner */}
+        <DrawerMenu top={20} right={20} />
       </motion.header>
 
-      {/* Floating Clock at Bottom Right */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        style={{
-          position: 'fixed',
-          bottom: '50px',
-          right: '50px',
-          zIndex: 100,
-        }}
-      >
-        <Clock />
-      </motion.div>
+      {/* Feature Toggles at Bottom Right */}
+      <FeatureToggles bottom={50} right={50} />
 
       {/* ResourceFinder - main content, centered with max-width */}
       <div style={resourceFinderWrapperStyle}>

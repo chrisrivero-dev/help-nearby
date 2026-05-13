@@ -7,8 +7,8 @@ import 'leaflet/dist/leaflet.css';
 import { Crosshair, Search } from 'lucide-react';
 import { useTheme } from './useTheme';
 import { useRouter } from 'next/navigation';
-import Clock from './Clock';
 import { lookupLocation, ZipCodeLocation } from '@/lib/location/locationLookup';
+import FeatureToggles from './FeatureToggles';
 
 import { useMap } from 'react-leaflet';
 
@@ -352,18 +352,8 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
         </MapContainer>
       </motion.div>
 
-      {/* Clock — bottom right, above the map, below top bar */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '50px',
-          right: '50px',
-          zIndex: 1000,
-          marginTop: '64px',
-        }}
-      >
-        <Clock />
-      </div>
+      {/* Feature Toggles — bottom right, above the map, below top bar */}
+      <FeatureToggles bottom={50} right={50} />
 
       {/* Search error banner */}
       {searchError && (

@@ -3,10 +3,9 @@
 import type { FC } from 'react';
 import { motion } from 'framer-motion';
 import Title from '@/components/AboutTitle';
-import Navbar from '@/components/Navbar';
+import DrawerMenu from '@/components/DrawerMenu';
 import StarWarsIntro from '@/components/StarWarsIntro';
-import Clock from '@/components/Clock';
-import { ThemeToggleButton } from '@/components/ThemeToggleButton';
+import FeatureToggles from '@/components/FeatureToggles';
 
 // Styles using CSS variables
 const pageStyle: React.CSSProperties = {
@@ -55,26 +54,15 @@ const AboutPage: FC = () => {
       {/* Floating StarWarsIntro Panel */}
       <StarWarsIntro />
 
-      {/* Header with Title and Navbar */}
+      {/* Header with Title */}
       <motion.header style={headerStyle}>
         <Title title="ABOUT! NEARBY." showMapPin={true} />
-        <Navbar />
+        {/* NavMenu positioned in top-right corner */}
+        <DrawerMenu top={20} right={20} />
       </motion.header>
 
-      {/* Floating Clock at Bottom Right */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        style={{
-          position: 'fixed',
-          bottom: '50px',
-          right: '50px',
-          zIndex: 100,
-        }}
-      >
-        <Clock />
-      </motion.div>
+      {/* Feature Toggles at Bottom Right */}
+      <FeatureToggles bottom={50} right={50} />
     </motion.main>
   );
 };

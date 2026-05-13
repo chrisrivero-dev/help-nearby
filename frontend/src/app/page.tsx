@@ -1,11 +1,13 @@
 'use client';
 
 import type { FC, CSSProperties } from 'react';
+import { motion } from 'framer-motion';
 import { useTheme } from '@/components/useTheme';
 import Title from '@/components/HelpTitle';
-import Navbar from '@/components/Navbar';
-import Clock from '@/components/Clock';
-import MapPanel from '@/components/MapPanel';
+import DrawerMenu from '@/components/DrawerMenu';
+
+import FeatureToggles from '@/components/FeatureToggles';
+import { useState } from 'react';
 
 // Z-index layer scale for consistent stacking
 const zBase = 0;
@@ -54,40 +56,27 @@ const clockStyle: CSSProperties = {
   zIndex: zToast,
 };
 
+// Home page - NavMenu manages its own state internally
 const Home: FC = () => {
   const { theme } = useTheme();
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+
+  const handleSearchToggle = () => setSearchModalOpen(!searchModalOpen);
+  const handleHomeClick = () => (window.location.href = '/');
+  const handleResourcesClick = () => (window.location.href = '/resources');
+  const handleAboutClick = () => (window.location.href = '/about');
 
   return (
     <div style={rootStyle}>
-      {/* Header row */}
+      {/* Desktop Header row */}
       <div style={headerRowStyle}>
         <Title title="HELP! NEARBY." showMapPin={true} />
-        <Navbar />
+        {/* NavMenu positioned in top-right corner */}
+        <DrawerMenu top={20} right={20} />
       </div>
 
-      {/* Map Panel — centered floating card, takes 60% height */}
-      <div
-        style={{
-          width: '85vw',
-          maxWidth: '900px',
-          height: '60vh',
-          borderRadius: '12px',
-          boxShadow:
-            theme === 'dark'
-              ? '0 20px 60px rgba(0, 0, 0, 0.8)'
-              : '0 20px 60px rgba(0, 0, 0, 0.3)',
-          margin: '20vh auto',
-          position: 'relative',
-        }}
-        className="map-panel-container"
-      >
-        <MapPanel />
-      </div>
-
-      {/* Clock */}
-      <div style={clockStyle}>
-        <Clock />
-      </div>
+      {/* Feature Toggles */}
+      <FeatureToggles bottom={50} right={50} />
     </div>
   );
 };
