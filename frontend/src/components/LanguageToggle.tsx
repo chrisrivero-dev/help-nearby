@@ -21,7 +21,7 @@ export default function LanguageToggle() {
       <button
         onClick={toggleLanguage}
         className={[
-          'px-3 py-1 text-sm font-black uppercase tracking-widest transition-colors border-4 border-black shadow-[4px_4px_0px_#000]',
+          'px-3 py-1 text-sm font-black uppercase tracking-widest transition-colors border-4 border-black shadow-[4px_4px_0px_#000] min-w-[64px]',
           locale === 'EN' || !isOpen
             ? 'bg-[#f9c700] text-black'
             : 'bg-white text-black hover:bg-neutral-100',

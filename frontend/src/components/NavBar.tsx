@@ -17,7 +17,7 @@ const NavBar: FC<NavBarProps> = ({
   subtitle,
   showMapPin = true,
 }) => {
-  // Header row style - responsive flex container
+  // Header row style - single row with left title and right menu
   const headerRowStyle: React.CSSProperties = {
     position: 'fixed',
     top: '20px',
@@ -25,9 +25,9 @@ const NavBar: FC<NavBarProps> = ({
     right: '0',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     paddingLeft: 'max(16px, calc((100vw - 1600px) / 2 + 50px))',
-    paddingRight: 'max(64px, calc((100vw - 1600px) / 2 + 50px))',
+    paddingRight: 'max(16px, calc((100vw - 1600px) / 2 + 50px))',
     boxSizing: 'border-box',
     backgroundColor: 'transparent',
     color: 'var(--color-text)',
@@ -37,18 +37,17 @@ const NavBar: FC<NavBarProps> = ({
 
   // Title container style - left side
   const titleContainerStyle: React.CSSProperties = {
+    flex: '0 0 auto',
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    verticalAlign: 'middle',
   };
 
   // Drawer menu container style - right side
   const drawerMenuStyle: React.CSSProperties = {
-    flexShrink: 0,
+    flex: '0 0 auto',
     display: 'flex',
     alignItems: 'center',
-    verticalAlign: 'middle',
   };
 
   return (
@@ -65,7 +64,7 @@ const NavBar: FC<NavBarProps> = ({
 
       {/* Right: Drawer Menu */}
       <div style={drawerMenuStyle}>
-        <DrawerMenu top={20} right={20} />
+        <DrawerMenu top={35} right={30} />
       </div>
     </div>
   );

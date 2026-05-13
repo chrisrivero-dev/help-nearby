@@ -12,7 +12,7 @@ interface DrawerMenuProps {
   right?: number;
 }
 
-const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 12 }) => {
+const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
   const { theme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
@@ -57,6 +57,8 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 12 }) => {
 
   // Colors based on theme
   const linkColor = isDark ? '#e8e8e8' : '#111111';
+  const cellBackgroundColor = isDark ? '#141414' : '#ffffff';
+  const borderColor = isDark ? '#555555' : '#cccccc';
 
   // Drawer bar style - extended width for proper X shape
   // Using Pythagorean theorem: diagonal = sqrt(width² + height²)
@@ -96,10 +98,12 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 12 }) => {
   // Menu overlay style - floating, right aligned, no container
   // Calculate top position to align with bottom of menu button
   // button height = 3 bars * 4px + 2 gaps * 5px = 22px
+  // additional padding for top gap between menu toggle and first link
   const menuButtonHeight = 22;
+  const topPadding = 8; // padding between menu toggle and first link
   const menuOverlayStyle: React.CSSProperties = {
     position: 'fixed',
-    top: `${top + menuButtonHeight}px`,
+    top: `${top + menuButtonHeight + topPadding}px`,
     right: `${right}px`,
     zIndex: menuOpen ? 1002 : 1000,
     display: menuOpen ? 'flex' : 'none',
@@ -107,7 +111,7 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 12 }) => {
     alignItems: 'flex-end',
   };
 
-  // Menu item style - floating, no container background
+  // Menu item style - floating, with container background and borders
   const menuItemStyle: React.CSSProperties = {
     display: 'block',
     padding: '10px 12px',
@@ -116,7 +120,18 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 12 }) => {
     fontWeight: 800,
     fontSize: '1.1rem',
     fontFamily: "'Poppins', sans-serif",
-    transition: 'color 0.2s ease',
+    backgroundColor: cellBackgroundColor,
+    border: `1px solid ${borderColor}`,
+    marginBottom: '6px',
+    transition: 'all 0.2s ease',
+  };
+
+  // Menu item hover style
+  const menuItemHoverStyle: React.CSSProperties = {
+    backgroundColor: isDark
+      ? 'rgba(30, 30, 30, 0.95)'
+      : 'rgba(240, 240, 240, 0.95)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
   };
 
   // Menu handlers
@@ -162,6 +177,13 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 12 }) => {
     display: menuOpen ? 'block' : 'none',
   };
 
+  // Styles for active link (current page)
+  const activeLinkStyle: React.CSSProperties = {
+    ...menuItemStyle,
+    backgroundColor: isDark ? '#1f1f1f' : '#f0f0f0',
+    border: `1px solid ${isDark ? '#666666' : '#bbbbbb'}`,
+  };
+
   return (
     <>
       {/* Drawer Menu Button */}
@@ -194,7 +216,7 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 12 }) => {
         <Link
           href="/"
           onClick={handleHomeClick}
-          style={menuItemStyle}
+          style={pathname === '/' ? activeLinkStyle : menuItemStyle}
           className={pathname === '/' ? 'active' : ''}
         >
           Home
@@ -202,7 +224,7 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 12 }) => {
         <Link
           href="/help"
           onClick={handleHelpClick}
-          style={menuItemStyle}
+          style={pathname === '/help' ? activeLinkStyle : menuItemStyle}
           className={pathname === '/help' ? 'active' : ''}
         >
           Help
@@ -210,7 +232,7 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 12 }) => {
         <Link
           href="/resources"
           onClick={handleResourcesClick}
-          style={menuItemStyle}
+          style={pathname === '/resources' ? activeLinkStyle : menuItemStyle}
           className={pathname === '/resources' ? 'active' : ''}
         >
           Resources
@@ -218,7 +240,7 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 20, right = 12 }) => {
         <Link
           href="/about"
           onClick={handleAboutClick}
-          style={menuItemStyle}
+          style={pathname === '/about' ? activeLinkStyle : menuItemStyle}
           className={pathname === '/about' ? 'active' : ''}
         >
           About

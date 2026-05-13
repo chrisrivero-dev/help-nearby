@@ -13,10 +13,10 @@ import SmsButton from '@/components/SmsButton';
 type HelpCategory = 'housing' | 'food' | 'safety' | 'finance';
 
 const SUB_OPTIONS: Record<HelpCategory, string[]> = {
-  housing:  ['Emergency Shelter', 'Rent Assistance', 'Temporary Housing'],
-  food:     ['Food Banks', 'Free Meals', 'SNAP Enrollment'],
-  safety:   ['Domestic Violence Help', 'Emergency Services', 'Crisis Lines'],
-  finance:  ['Cash Assistance', 'Utility Help', 'Debt Counseling'],
+  housing: ['Emergency Shelter', 'Rent Assistance', 'Temporary Housing'],
+  food: ['Food Banks', 'Free Meals', 'SNAP Enrollment'],
+  safety: ['Domestic Violence Help', 'Emergency Services', 'Crisis Lines'],
+  finance: ['Cash Assistance', 'Utility Help', 'Debt Counseling'],
 };
 
 type ResourceLink = { title: string; url: string; description?: string };
@@ -24,102 +24,333 @@ type ResourceLink = { title: string; url: string; description?: string };
 const RESOURCE_DATA: Record<HelpCategory, Record<string, ResourceLink[]>> = {
   housing: {
     'Emergency Shelter': [
-      { title: 'National Alliance to End Homelessness', url: 'https://endhomelessness.org', description: 'Research, policy, and shelter locator tools.' },
-      { title: 'HUD — Find Shelter', url: 'https://www.hud.gov/findhelp', description: 'Federal housing assistance finder by zip code.' },
-      { title: 'Shelter Listings', url: 'https://www.shelterlistings.org', description: 'National directory of emergency shelters.' },
-      { title: '211 Housing Hotline', url: 'https://www.211.org', description: 'Dial 2-1-1 or search online for local shelter availability.' },
+      {
+        title: 'National Alliance to End Homelessness',
+        url: 'https://endhomelessness.org',
+        description: 'Research, policy, and shelter locator tools.',
+      },
+      {
+        title: 'HUD — Find Shelter',
+        url: 'https://www.hud.gov/findhelp',
+        description: 'Federal housing assistance finder by zip code.',
+      },
+      {
+        title: 'Shelter Listings',
+        url: 'https://www.shelterlistings.org',
+        description: 'National directory of emergency shelters.',
+      },
+      {
+        title: '211 Housing Hotline',
+        url: 'https://www.211.org',
+        description:
+          'Dial 2-1-1 or search online for local shelter availability.',
+      },
     ],
     'Rent Assistance': [
-      { title: 'Emergency Rental Assistance (ERA)', url: 'https://home.treasury.gov/policy-issues/homeownership/emergency-rental-assistance-program', description: 'Federal ERA program — find your state portal.' },
-      { title: 'National Low Income Housing Coalition', url: 'https://nlihc.org', description: 'Advocacy + rental assistance database.' },
-      { title: 'HUD Rental Assistance', url: 'https://www.hud.gov/topics/rental_assistance', description: 'Section 8 and other HUD-backed rental programs.' },
-      { title: '211 — Rent Help', url: 'https://www.211.org', description: 'Local rent assistance programs through the 211 network.' },
+      {
+        title: 'Emergency Rental Assistance (ERA)',
+        url: 'https://home.treasury.gov/policy-issues/homeownership/emergency-rental-assistance-program',
+        description: 'Federal ERA program — find your state portal.',
+      },
+      {
+        title: 'National Low Income Housing Coalition',
+        url: 'https://nlihc.org',
+        description: 'Advocacy + rental assistance database.',
+      },
+      {
+        title: 'HUD Rental Assistance',
+        url: 'https://www.hud.gov/topics/rental_assistance',
+        description: 'Section 8 and other HUD-backed rental programs.',
+      },
+      {
+        title: '211 — Rent Help',
+        url: 'https://www.211.org',
+        description: 'Local rent assistance programs through the 211 network.',
+      },
     ],
     'Temporary Housing': [
-      { title: 'Salvation Army — Housing Services', url: 'https://www.salvationarmyusa.org/usn/housing/', description: 'Short-term and transitional housing programs.' },
-      { title: 'Catholic Charities USA', url: 'https://www.catholiccharitiesusa.org', description: 'Emergency housing through local Catholic Charities offices.' },
-      { title: 'Transitional Housing — HUD', url: 'https://www.hud.gov/program_offices/comm_planning/transitional_housing', description: 'HUD-funded transitional housing locator.' },
-      { title: 'YMCA Emergency Housing', url: 'https://www.ymca.org', description: 'Many Y locations provide transitional housing programs.' },
+      {
+        title: 'Salvation Army — Housing Services',
+        url: 'https://www.salvationarmyusa.org/usn/housing/',
+        description: 'Short-term and transitional housing programs.',
+      },
+      {
+        title: 'Catholic Charities USA',
+        url: 'https://www.catholiccharitiesusa.org',
+        description:
+          'Emergency housing through local Catholic Charities offices.',
+      },
+      {
+        title: 'Transitional Housing — HUD',
+        url: 'https://www.hud.gov/program_offices/comm_planning/transitional_housing',
+        description: 'HUD-funded transitional housing locator.',
+      },
+      {
+        title: 'YMCA Emergency Housing',
+        url: 'https://www.ymca.org',
+        description: 'Many Y locations provide transitional housing programs.',
+      },
     ],
   },
   food: {
     'Food Banks': [
-      { title: 'Feeding America — Find a Food Bank', url: 'https://www.feedingamerica.org/find-your-local-foodbank', description: 'Largest US food bank network — zip-code locator.' },
-      { title: 'FoodPantries.org', url: 'https://www.foodpantries.org', description: 'Directory of local food pantries and banks.' },
-      { title: 'WhyHunger Hotline', url: 'https://www.whyhunger.org/find-food/', description: 'Call 1-800-5-HUNGRY or use the online finder.' },
-      { title: 'Bread for the World', url: 'https://www.bread.org', description: 'Advocacy and local food bank connections.' },
+      {
+        title: 'Feeding America — Find a Food Bank',
+        url: 'https://www.feedingamerica.org/find-your-local-foodbank',
+        description: 'Largest US food bank network — zip-code locator.',
+      },
+      {
+        title: 'FoodPantries.org',
+        url: 'https://www.foodpantries.org',
+        description: 'Directory of local food pantries and banks.',
+      },
+      {
+        title: 'WhyHunger Hotline',
+        url: 'https://www.whyhunger.org/find-food/',
+        description: 'Call 1-800-5-HUNGRY or use the online finder.',
+      },
+      {
+        title: 'Bread for the World',
+        url: 'https://www.bread.org',
+        description: 'Advocacy and local food bank connections.',
+      },
     ],
     'Free Meals': [
-      { title: 'Meals on Wheels America', url: 'https://www.mealsonwheelsamerica.org', description: 'Home-delivered meals for seniors and those in need.' },
-      { title: 'No Kid Hungry', url: 'https://www.nokidhungry.org', description: 'Free meal programs for children across the US.' },
-      { title: 'City Harvest', url: 'https://www.cityharvest.org', description: 'Connects surplus food with community members in NYC.' },
-      { title: '211 — Free Meals', url: 'https://www.211.org', description: 'Find local hot meal programs via the 211 network.' },
+      {
+        title: 'Meals on Wheels America',
+        url: 'https://www.mealsonwheelsamerica.org',
+        description: 'Home-delivered meals for seniors and those in need.',
+      },
+      {
+        title: 'No Kid Hungry',
+        url: 'https://www.nokidhungry.org',
+        description: 'Free meal programs for children across the US.',
+      },
+      {
+        title: 'City Harvest',
+        url: 'https://www.cityharvest.org',
+        description: 'Connects surplus food with community members in NYC.',
+      },
+      {
+        title: '211 — Free Meals',
+        url: 'https://www.211.org',
+        description: 'Find local hot meal programs via the 211 network.',
+      },
     ],
     'SNAP Enrollment': [
-      { title: 'SNAP — Apply Online', url: 'https://www.fns.usda.gov/snap/state-directory', description: 'Official USDA portal — find your state SNAP office.' },
-      { title: 'Benefits.gov — SNAP', url: 'https://www.benefits.gov/benefit/361', description: 'Eligibility pre-screener and application links.' },
-      { title: 'GetCalFresh (California)', url: 'https://www.getcalfresh.org', description: 'Fast online SNAP application for California residents.' },
-      { title: 'SNAP Retailer Locator', url: 'https://www.fns.usda.gov/snap/retailer-locator', description: 'Find stores that accept EBT near you.' },
+      {
+        title: 'SNAP — Apply Online',
+        url: 'https://www.fns.usda.gov/snap/state-directory',
+        description: 'Official USDA portal — find your state SNAP office.',
+      },
+      {
+        title: 'Benefits.gov — SNAP',
+        url: 'https://www.benefits.gov/benefit/361',
+        description: 'Eligibility pre-screener and application links.',
+      },
+      {
+        title: 'GetCalFresh (California)',
+        url: 'https://www.getcalfresh.org',
+        description: 'Fast online SNAP application for California residents.',
+      },
+      {
+        title: 'SNAP Retailer Locator',
+        url: 'https://www.fns.usda.gov/snap/retailer-locator',
+        description: 'Find stores that accept EBT near you.',
+      },
     ],
   },
   safety: {
     'Domestic Violence Help': [
-      { title: 'National DV Hotline', url: 'https://www.thehotline.org', description: 'Call 1-800-799-7233 or text START to 88788.' },
-      { title: 'WomensLaw.org', url: 'https://www.womenslaw.org', description: 'Legal information and resources for abuse survivors.' },
-      { title: 'loveisrespect', url: 'https://www.loveisrespect.org', description: 'Real-time chat, text, and call support for relationship abuse.' },
-      { title: 'DV Shelter Locator', url: 'https://www.thehotline.org/get-help/', description: 'Find local DV shelters and advocacy programs.' },
+      {
+        title: 'National DV Hotline',
+        url: 'https://www.thehotline.org',
+        description: 'Call 1-800-799-7233 or text START to 88788.',
+      },
+      {
+        title: 'WomensLaw.org',
+        url: 'https://www.womenslaw.org',
+        description: 'Legal information and resources for abuse survivors.',
+      },
+      {
+        title: 'loveisrespect',
+        url: 'https://www.loveisrespect.org',
+        description:
+          'Real-time chat, text, and call support for relationship abuse.',
+      },
+      {
+        title: 'DV Shelter Locator',
+        url: 'https://www.thehotline.org/get-help/',
+        description: 'Find local DV shelters and advocacy programs.',
+      },
     ],
     'Emergency Services': [
-      { title: 'FEMA Disaster Assistance', url: 'https://www.disasterassistance.gov', description: 'Apply for federal assistance after declared emergencies.' },
-      { title: 'American Red Cross', url: 'https://www.redcross.org/get-help.html', description: 'Emergency shelter, food, and disaster relief.' },
-      { title: 'Salvation Army Disaster Relief', url: 'https://www.salvationarmyusa.org/usn/disaster-relief/', description: 'On-the-ground emergency services nationwide.' },
-      { title: '211 Emergency Services', url: 'https://www.211.org', description: 'Local emergency resource referrals 24/7.' },
+      {
+        title: 'FEMA Disaster Assistance',
+        url: 'https://www.disasterassistance.gov',
+        description: 'Apply for federal assistance after declared emergencies.',
+      },
+      {
+        title: 'American Red Cross',
+        url: 'https://www.redcross.org/get-help.html',
+        description: 'Emergency shelter, food, and disaster relief.',
+      },
+      {
+        title: 'Salvation Army Disaster Relief',
+        url: 'https://www.salvationarmyusa.org/usn/disaster-relief/',
+        description: 'On-the-ground emergency services nationwide.',
+      },
+      {
+        title: '211 Emergency Services',
+        url: 'https://www.211.org',
+        description: 'Local emergency resource referrals 24/7.',
+      },
     ],
     'Crisis Lines': [
-      { title: '988 Suicide & Crisis Lifeline', url: 'https://988lifeline.org', description: 'Call or text 988 — free, confidential support.' },
-      { title: 'Crisis Text Line', url: 'https://www.crisistextline.org', description: 'Text HOME to 741741 for free crisis counseling.' },
-      { title: 'SAMHSA National Helpline', url: 'https://www.samhsa.gov/find-help/national-helpline', description: 'Free mental health & substance use support: 1-800-662-4357.' },
-      { title: 'Trevor Project (LGBTQ+)', url: 'https://www.thetrevorproject.org', description: 'Crisis intervention for LGBTQ+ young people.' },
+      {
+        title: '988 Suicide & Crisis Lifeline',
+        url: 'https://988lifeline.org',
+        description: 'Call or text 988 — free, confidential support.',
+      },
+      {
+        title: 'Crisis Text Line',
+        url: 'https://www.crisistextline.org',
+        description: 'Text HOME to 741741 for free crisis counseling.',
+      },
+      {
+        title: 'SAMHSA National Helpline',
+        url: 'https://www.samhsa.gov/find-help/national-helpline',
+        description:
+          'Free mental health & substance use support: 1-800-662-4357.',
+      },
+      {
+        title: 'Trevor Project (LGBTQ+)',
+        url: 'https://www.thetrevorproject.org',
+        description: 'Crisis intervention for LGBTQ+ young people.',
+      },
     ],
   },
   finance: {
     'Cash Assistance': [
-      { title: 'Benefits.gov — Cash Assistance', url: 'https://www.benefits.gov', description: 'Search all federal and state cash aid programs.' },
-      { title: 'TANF — Temporary Assistance', url: 'https://www.acf.hhs.gov/ofa/programs/tanf', description: 'Federal cash assistance program for families in need.' },
-      { title: 'Salvation Army Emergency Aid', url: 'https://www.salvationarmyusa.org/usn/financial-assistance/', description: 'One-time emergency financial assistance.' },
-      { title: '211 — Cash Aid', url: 'https://www.211.org', description: 'Local emergency financial assistance programs.' },
-      { title: 'AidKit — Direct Aid Programs', url: 'https://www.aidkit.org/', description: 'Platform used by governments and nonprofits to distribute cash assistance.' },
+      {
+        title: 'Benefits.gov — Cash Assistance',
+        url: 'https://www.benefits.gov',
+        description: 'Search all federal and state cash aid programs.',
+      },
+      {
+        title: 'TANF — Temporary Assistance',
+        url: 'https://www.acf.hhs.gov/ofa/programs/tanf',
+        description: 'Federal cash assistance program for families in need.',
+      },
+      {
+        title: 'Salvation Army Emergency Aid',
+        url: 'https://www.salvationarmyusa.org/usn/financial-assistance/',
+        description: 'One-time emergency financial assistance.',
+      },
+      {
+        title: '211 — Cash Aid',
+        url: 'https://www.211.org',
+        description: 'Local emergency financial assistance programs.',
+      },
+      {
+        title: 'AidKit — Direct Aid Programs',
+        url: 'https://www.aidkit.org/',
+        description:
+          'Platform used by governments and nonprofits to distribute cash assistance.',
+      },
     ],
     'Utility Help': [
-      { title: 'LIHEAP — Heating & Cooling Aid', url: 'https://www.acf.hhs.gov/ocs/programs/liheap', description: 'Federal program to help pay energy bills.' },
-      { title: 'LIHEAP Grantees Directory', url: 'https://liheapch.acf.hhs.gov/Grantees/grantees.htm', description: 'Find your state or tribal LIHEAP office.' },
-      { title: 'WAP — Weatherization Program', url: 'https://www.energy.gov/eere/wap/weatherization-assistance-program', description: 'Free home energy upgrades to reduce utility bills.' },
-      { title: '211 — Utility Assistance', url: 'https://www.211.org', description: 'Local programs to prevent utility shutoffs.' },
+      {
+        title: 'LIHEAP — Heating & Cooling Aid',
+        url: 'https://www.acf.hhs.gov/ocs/programs/liheap',
+        description: 'Federal program to help pay energy bills.',
+      },
+      {
+        title: 'LIHEAP Grantees Directory',
+        url: 'https://liheapch.acf.hhs.gov/Grantees/grantees.htm',
+        description: 'Find your state or tribal LIHEAP office.',
+      },
+      {
+        title: 'WAP — Weatherization Program',
+        url: 'https://www.energy.gov/eere/wap/weatherization-assistance-program',
+        description: 'Free home energy upgrades to reduce utility bills.',
+      },
+      {
+        title: '211 — Utility Assistance',
+        url: 'https://www.211.org',
+        description: 'Local programs to prevent utility shutoffs.',
+      },
     ],
     'Debt Counseling': [
-      { title: 'NFCC — Credit Counseling', url: 'https://www.nfcc.org', description: 'Find a nonprofit credit counselor near you.' },
-      { title: 'CFPB — Debt Help', url: 'https://www.consumerfinance.gov/consumer-tools/debt-collection/', description: 'Know your rights + tools to manage and dispute debt.' },
-      { title: 'Legal Aid — Debt', url: 'https://www.lawhelp.org', description: 'Free legal assistance for debt and financial issues.' },
-      { title: 'NCLC — Consumer Debt', url: 'https://www.nclc.org', description: 'National Consumer Law Center guides on debt relief.' },
+      {
+        title: 'NFCC — Credit Counseling',
+        url: 'https://www.nfcc.org',
+        description: 'Find a nonprofit credit counselor near you.',
+      },
+      {
+        title: 'CFPB — Debt Help',
+        url: 'https://www.consumerfinance.gov/consumer-tools/debt-collection/',
+        description: 'Know your rights + tools to manage and dispute debt.',
+      },
+      {
+        title: 'Legal Aid — Debt',
+        url: 'https://www.lawhelp.org',
+        description: 'Free legal assistance for debt and financial issues.',
+      },
+      {
+        title: 'NCLC — Consumer Debt',
+        url: 'https://www.nclc.org',
+        description: 'National Consumer Law Center guides on debt relief.',
+      },
     ],
   },
 };
 
-const WHAT_TO_BRING: Partial<Record<HelpCategory, Partial<Record<string, string[]>>>> = {
+const WHAT_TO_BRING: Partial<
+  Record<HelpCategory, Partial<Record<string, string[]>>>
+> = {
   housing: {
-    'Emergency Shelter': ['Government-issued ID', 'Medications', 'Change of clothes', 'Phone charger', 'Important documents'],
-    'Temporary Housing': ['Government-issued ID', 'Proof of need', 'Medications', 'Personal hygiene items'],
+    'Emergency Shelter': [
+      'Government-issued ID',
+      'Medications',
+      'Change of clothes',
+      'Phone charger',
+      'Important documents',
+    ],
+    'Temporary Housing': [
+      'Government-issued ID',
+      'Proof of need',
+      'Medications',
+      'Personal hygiene items',
+    ],
   },
   food: {
     'Food Banks': ['Government-issued ID', 'Proof of address', 'Reusable bags'],
-    'SNAP Enrollment': ['Government-issued ID', 'Proof of income', 'Proof of residency'],
+    'SNAP Enrollment': [
+      'Government-issued ID',
+      'Proof of income',
+      'Proof of residency',
+    ],
   },
   safety: {
-    'Domestic Violence Help': ['ID (if safe to bring)', 'Medications', 'Important documents', 'Phone charger'],
+    'Domestic Violence Help': [
+      'ID (if safe to bring)',
+      'Medications',
+      'Important documents',
+      'Phone charger',
+    ],
   },
   finance: {
-    'Cash Assistance': ['Government-issued ID', 'Proof of income', 'Bank account info'],
-    'Utility Help': ['Government-issued ID', 'Recent utility bill', 'Proof of income'],
+    'Cash Assistance': [
+      'Government-issued ID',
+      'Proof of income',
+      'Bank account info',
+    ],
+    'Utility Help': [
+      'Government-issued ID',
+      'Recent utility bill',
+      'Proof of income',
+    ],
   },
 };
 
@@ -141,9 +372,10 @@ const useResourceFinderStyles = () => {
   return {
     containerStyle: {
       position: 'relative',
-      maxWidth: '1100px',
       width: '100%',
+      maxWidth: '1600px',
       margin: '0 auto',
+      marginTop: '100px',
       padding: '0 2rem',
       paddingBottom: '4rem',
       overflowY: 'auto',
@@ -488,7 +720,7 @@ const ResourceFinder: React.FC = () => {
   const isDark = theme === 'dark';
   const styles = useResourceFinderStyles();
   const t = useI18n();
-  
+
   const [category, setCategory] = useState<HelpCategory | null>(null);
   const [subcategory, setSubcategory] = useState<string | null>(null);
   const [locationZip, setLocationZip] = useState('');
@@ -496,15 +728,23 @@ const ResourceFinder: React.FC = () => {
   const [locationLng, setLocationLng] = useState<number | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
-  const [resolvedLocation, setResolvedLocation] = useState<{ city: string; stateCode: string } | null>(null);
+  const [resolvedLocation, setResolvedLocation] = useState<{
+    city: string;
+    stateCode: string;
+  } | null>(null);
   const [localResources, setLocalResources] = useState<LocalEntry[]>([]);
   const [loadingResources, setLoadingResources] = useState(false);
 
   useEffect(() => {
     const zip = locationZip.replace(/\D/g, '').slice(0, 5);
-    if (zip.length !== 5) { setResolvedLocation(null); return; }
+    if (zip.length !== 5) {
+      setResolvedLocation(null);
+      return;
+    }
     normalizeLocation(zip).then((loc) => {
-      setResolvedLocation(loc.isValid ? { city: loc.city, stateCode: loc.stateCode } : null);
+      setResolvedLocation(
+        loc.isValid ? { city: loc.city, stateCode: loc.stateCode } : null,
+      );
     });
   }, [locationZip]);
 
@@ -514,16 +754,29 @@ const ResourceFinder: React.FC = () => {
     city: string,
     state: string,
   ): Promise<LocalEntry[]> {
-    const params = new URLSearchParams({ category: cat, subcategory: sub, city, state });
+    const params = new URLSearchParams({
+      category: cat,
+      subcategory: sub,
+      city,
+      state,
+    });
     const res = await fetch(`/api/local-resources?${params}`);
     if (!res.ok) return [];
     return res.json() as Promise<LocalEntry[]>;
   }
 
   useEffect(() => {
-    if (!resolvedLocation || !category || !subcategory) { setLocalResources([]); return; }
+    if (!resolvedLocation || !category || !subcategory) {
+      setLocalResources([]);
+      return;
+    }
     setLoadingResources(true);
-    fetchLocalResources(category, subcategory, resolvedLocation.city, resolvedLocation.stateCode)
+    fetchLocalResources(
+      category,
+      subcategory,
+      resolvedLocation.city,
+      resolvedLocation.stateCode,
+    )
       .then(setLocalResources)
       .finally(() => setLoadingResources(false));
   }, [resolvedLocation, category, subcategory]);
@@ -546,7 +799,9 @@ const ResourceFinder: React.FC = () => {
         setLocationLng(pos.coords.longitude);
         setLocationZip('');
       },
-      () => { /* permission denied — silently ignore */ }
+      () => {
+        /* permission denied — silently ignore */
+      },
     );
   };
 
@@ -572,17 +827,18 @@ const ResourceFinder: React.FC = () => {
           maxLength={10}
           style={styles.inputStyle}
         />
-        <button
-          onClick={handleLocate}
-          style={styles.buttonStyle}
-        >
+        <button onClick={handleLocate} style={styles.buttonStyle}>
           {t.useMyLocation}
         </button>
         {(locationZip.trim() !== '' || locationLat !== null) && (
           <span style={styles.locationBadgeStyle}>
             {locationZip.trim() !== ''
               ? resolvedLocation
-                ? t.showingNearCity(resolvedLocation.city, resolvedLocation.stateCode, locationZip.trim())
+                ? t.showingNearCity(
+                    resolvedLocation.city,
+                    resolvedLocation.stateCode,
+                    locationZip.trim(),
+                  )
                 : t.showingNearZip(locationZip.trim())
               : t.showingNearLocation}
           </span>
@@ -590,24 +846,29 @@ const ResourceFinder: React.FC = () => {
       </div>
 
       {/* Page description */}
-      <p style={styles.descriptionStyle}>
-        {t.helperText}
-      </p>
+      <p style={styles.descriptionStyle}>{t.helperText}</p>
 
       {/* Category cards */}
       <div style={styles.categoryContainerStyle}>
         {(Object.keys(SUB_OPTIONS) as HelpCategory[]).map((cat) => {
           const isActive = category === cat;
           return (
-            <div key={cat} style={{ position: 'relative', flex: 1, height: '80px' }}>
+            <div
+              key={cat}
+              style={{ position: 'relative', flex: 1, height: '80px' }}
+            >
               <div style={styles.categoryShadowStyle} />
               <motion.button
                 onClick={() => handleCategoryClick(cat)}
                 aria-pressed={isActive}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 300, damping: 24 }}
-                style={isActive ? styles.categoryButtonActiveStyle : styles.categoryButtonStyle}
+                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                style={
+                  isActive
+                    ? styles.categoryButtonActiveStyle
+                    : styles.categoryButtonStyle
+                }
               >
                 {t.translateCategory(cat)}
               </motion.button>
@@ -642,8 +903,16 @@ const ResourceFinder: React.FC = () => {
                       aria-pressed={isSubActive}
                       whileHover={{ x: 4 }}
                       whileTap={{ scale: 0.98 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                      style={isSubActive ? styles.subOptionButtonActiveStyle : styles.subOptionButtonStyle}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 400,
+                        damping: 20,
+                      }}
+                      style={
+                        isSubActive
+                          ? styles.subOptionButtonActiveStyle
+                          : styles.subOptionButtonStyle
+                      }
                     >
                       {t.translateSubcategory(sub)}
                     </motion.button>
@@ -652,10 +921,7 @@ const ResourceFinder: React.FC = () => {
               </div>
 
               {/* Right: results preview */}
-              <div
-                ref={previewRef}
-                style={styles.previewPanelStyle}
-              >
+              <div ref={previewRef} style={styles.previewPanelStyle}>
                 <AnimatePresence initial={false} mode="wait">
                   {subcategory ? (
                     <motion.div
@@ -663,57 +929,90 @@ const ResourceFinder: React.FC = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.4, ease: [0.43, 0.13, 0.23, 0.96] }}
+                      transition={{
+                        duration: 0.4,
+                        ease: [0.43, 0.13, 0.23, 0.96],
+                      }}
                     >
                       {/* Heading */}
                       <p style={styles.resourceHeadingStyle}>
-                        {t.translateCategory(category)} — {t.translateSubcategory(subcategory)}
+                        {t.translateCategory(category)} —{' '}
+                        {t.translateSubcategory(subcategory)}
                       </p>
                       <p style={styles.resourceSubheadingStyle}>
                         {t.showingResourcesFor}{' '}
-                        <span style={{ borderBottom: `3px solid ${isDark ? '#60a5fa' : '#2563eb'}` }}>{t.translateSubcategory(subcategory)}</span>.
+                        <span
+                          style={{
+                            borderBottom: `3px solid ${isDark ? '#60a5fa' : '#2563eb'}`,
+                          }}
+                        >
+                          {t.translateSubcategory(subcategory)}
+                        </span>
+                        .
                       </p>
 
                       {/* Local resources */}
-                      {resolvedLocation && (loadingResources || localResources.length > 0 || (!loadingResources && localResources.length === 0)) && (
-                        <div style={{
-                          marginBottom: '1.25rem',
-                          paddingBottom: '1rem',
-                          borderBottom: `2px solid ${isDark ? '#60a5fa' : '#2563eb'}`,
-                        }}>
-                          <p style={styles.localResourcesHeaderStyle}>
-                            {t.localResourcesLabel(resolvedLocation.city, resolvedLocation.stateCode)}
-                          </p>
-                          {loadingResources ? (
-                            <p style={styles.loadingStyle}>
-                              {t.findingResources}
+                      {resolvedLocation &&
+                        (loadingResources ||
+                          localResources.length > 0 ||
+                          (!loadingResources &&
+                            localResources.length === 0)) && (
+                          <div
+                            style={{
+                              marginBottom: '1.25rem',
+                              paddingBottom: '1rem',
+                              borderBottom: `2px solid ${isDark ? '#60a5fa' : '#2563eb'}`,
+                            }}
+                          >
+                            <p style={styles.localResourcesHeaderStyle}>
+                              {t.localResourcesLabel(
+                                resolvedLocation.city,
+                                resolvedLocation.stateCode,
+                              )}
                             </p>
-                          ) : localResources.length === 0 ? (
-                            <p style={styles.noResultsStyle}>
-                              {t.noLocalResults}
-                            </p>
-                          ) : (
-                            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                              {localResources.map((entry) => (
-                                <li key={entry.url}>
-                                  <a
-                                    href={entry.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={styles.resourceLinkStyle}
-                                  >
-                                    • {entry.title} ↗
-                                  </a>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      )}
+                            {loadingResources ? (
+                              <p style={styles.loadingStyle}>
+                                {t.findingResources}
+                              </p>
+                            ) : localResources.length === 0 ? (
+                              <p style={styles.noResultsStyle}>
+                                {t.noLocalResults}
+                              </p>
+                            ) : (
+                              <ul
+                                style={{
+                                  listStyle: 'none',
+                                  padding: 0,
+                                  margin: 0,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '0.4rem',
+                                }}
+                              >
+                                {localResources.map((entry) => (
+                                  <li key={entry.url}>
+                                    <a
+                                      href={entry.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      style={styles.resourceLinkStyle}
+                                    >
+                                      • {entry.title} ↗
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        )}
 
                       {/* Expandable resource cards */}
                       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                        {(RESOURCE_DATA[category as HelpCategory]?.[subcategory] ?? []).map((link) => {
+                        {(
+                          RESOURCE_DATA[category as HelpCategory]?.[
+                            subcategory
+                          ] ?? []
+                        ).map((link) => {
                           const isOpen = expandedCard === link.url;
                           const detailId = `card-detail-${link.url.replace(/[^a-z0-9]/gi, '-')}`;
                           return (
@@ -739,7 +1038,11 @@ const ResourceFinder: React.FC = () => {
                                   onClick={() => handleExpandCard(link.url)}
                                   aria-expanded={isOpen}
                                   aria-controls={detailId}
-                                  style={isOpen ? styles.expandButtonActiveStyle : styles.expandButtonStyle}
+                                  style={
+                                    isOpen
+                                      ? styles.expandButtonActiveStyle
+                                      : styles.expandButtonStyle
+                                  }
                                 >
                                   {isOpen ? t.collapse : t.expand}
                                 </button>
@@ -754,41 +1057,69 @@ const ResourceFinder: React.FC = () => {
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: 'auto' }}
                                     exit={{ opacity: 0, height: 0 }}
-                                    transition={{ duration: 0.25, ease: "easeOut" }}
+                                    transition={{
+                                      duration: 0.25,
+                                      ease: 'easeOut',
+                                    }}
                                     style={{ overflow: 'hidden' }}
                                   >
                                     <div style={styles.detailBlockStyle}>
                                       <div>
-                                        <p style={styles.detailLabelStyle}>{t.details}</p>
+                                        <p style={styles.detailLabelStyle}>
+                                          {t.details}
+                                        </p>
                                         <p style={styles.detailTextStyle}>
-                                          {link.description ?? t.detailsFallback}
+                                          {link.description ??
+                                            t.detailsFallback}
                                         </p>
                                       </div>
 
                                       <div>
-                                        <p style={styles.detailLabelStyle}>{t.eligibility}</p>
+                                        <p style={styles.detailLabelStyle}>
+                                          {t.eligibility}
+                                        </p>
                                         <p style={styles.detailTextStyle}>
                                           {t.eligibilityText}
                                         </p>
                                       </div>
 
                                       <div>
-                                        <p style={styles.detailLabelStyle}>{t.howToApply}</p>
+                                        <p style={styles.detailLabelStyle}>
+                                          {t.howToApply}
+                                        </p>
                                         <p style={styles.detailTextStyle}>
                                           {t.visit}{' '}
-                                          <a href={link.url} target="_blank" rel="noreferrer" style={styles.detailLinkStyle}>
+                                          <a
+                                            href={link.url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            style={styles.detailLinkStyle}
+                                          >
                                             {link.url}
-                                          </a>
-                                          {' '}{t.toGetStartedOr}{' '}
-                                          <a href={link.url} target="_blank" rel="noreferrer" style={styles.detailActionLinkStyle}>
+                                          </a>{' '}
+                                          {t.toGetStartedOr}{' '}
+                                          <a
+                                            href={link.url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            style={styles.detailActionLinkStyle}
+                                          >
                                             {t.openApplication}
                                           </a>
                                         </p>
                                       </div>
 
-                                      {(WHAT_TO_BRING[category as HelpCategory]?.[subcategory ?? ''] ?? []).length > 0 && (
+                                      {(
+                                        WHAT_TO_BRING[
+                                          category as HelpCategory
+                                        ]?.[subcategory ?? ''] ?? []
+                                      ).length > 0 && (
                                         <WhatToBring
-                                          items={WHAT_TO_BRING[category as HelpCategory]![subcategory!]!}
+                                          items={
+                                            WHAT_TO_BRING[
+                                              category as HelpCategory
+                                            ]![subcategory!]!
+                                          }
                                         />
                                       )}
 
@@ -813,9 +1144,7 @@ const ResourceFinder: React.FC = () => {
                       exit={{ opacity: 0 }}
                       style={styles.emptyStateStyle}
                     >
-                      <p style={styles.emptyStateTextStyle}>
-                        {t.selectATopic}
-                      </p>
+                      <p style={styles.emptyStateTextStyle}>{t.selectATopic}</p>
                     </motion.div>
                   )}
                 </AnimatePresence>

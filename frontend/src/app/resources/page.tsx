@@ -12,10 +12,9 @@ const pageStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   minHeight: '100vh',
-  width: '100%',
+  width: 'calc(100vw - 4%)',
   maxWidth: '1600px',
-  marginLeft: 'auto',
-  marginRight: 'auto',
+  margin: '0 2%',
   paddingTop: '60px',
   paddingBottom: '4rem',
   fontSize: '16px',
@@ -23,21 +22,6 @@ const pageStyle: React.CSSProperties = {
   overflowX: 'hidden',
   backgroundColor: 'var(--color-bg)',
   color: 'var(--color-text)',
-};
-
-// ResourceFinder container styles matching MapPanel dimensions
-const resourceFinderWrapperStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'center',
-  width: '100%',
-  marginTop: '150px',
-};
-
-const resourceFinderContainerStyle: React.CSSProperties = {
-  width: 'calc(100vw - 200px)',
-  maxWidth: '1600px',
-  height: 'calc(100vw - 200px) * 9 / 21',
-  aspectRatio: '21/9',
 };
 
 const ResourcesPage: FC = () => {
@@ -58,12 +42,8 @@ const ResourcesPage: FC = () => {
       {/* Feature Toggles at Bottom Right */}
       <FeatureToggles bottom={20} right={20} />
 
-      {/* ResourceFinder - main content, centered with max-width */}
-      <div style={resourceFinderWrapperStyle}>
-        <div style={resourceFinderContainerStyle}>
-          <ResourceFinder />
-        </div>
-      </div>
+      {/* ResourceFinder - main content */}
+      <ResourceFinder />
     </motion.main>
   );
 };

@@ -13,13 +13,6 @@ const pageStyle: React.CSSProperties = {
   flexDirection: 'column',
   minHeight: '100vh',
   width: '100%',
-  maxWidth: '1600px',
-  marginLeft: 'auto',
-  marginRight: 'auto',
-  paddingTop: '60px',
-  paddingBottom: '4rem',
-  marginBottom: '4rem',
-  fontSize: '16px',
   position: 'relative',
   overflowX: 'hidden',
   backgroundColor: 'var(--color-bg)',
@@ -34,10 +27,10 @@ const AboutPage: FC = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
     >
-      {/* Floating StarWarsIntro Panel */}
+      {/* StarWarsIntro - starts below viewport, scrolls up, fades out */}
       <StarWarsIntro />
 
-      {/* Header with Title */}
+      {/* Header with Title - overlaying the page */}
       <NavBar variant="about" title="ABOUT! NEARBY." showMapPin={true} />
 
       {/* Feature Toggles at Bottom Right */}

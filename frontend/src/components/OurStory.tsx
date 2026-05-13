@@ -23,8 +23,8 @@ const OurStory = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: isVisible ? 1 : 0 }}
       transition={{ duration: 0.5 }}
-      className="relative flex flex-col md:flex-row items-center gap-6 md:gap-10 rounded-lg p-4 md:p-5"
-      style={{ position: 'relative', maxWidth: '100%' }}
+      className="relative flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 rounded-lg p-4 md:p-5 w-full"
+      style={{ position: 'relative', maxWidth: '100%', margin: '0 auto' }}
     >
       <div className="flex-none w-full md:w-auto flex justify-center">
         <div
@@ -40,7 +40,7 @@ const OurStory = () => {
         </div>
       </div>
       <div
-        className={`flex-1 text-white text-xl md:text-2xl leading-6 md:leading-7 font-light tracking-[0.05em] text-center md:text-left`}
+        className={`flex-1 text-white text-xl md:text-2xl leading-6 md:leading-7 font-light tracking-[0.05em] text-center md:text-left max-w-[800px] mx-auto`}
       >
         <p>
           We were helped on our journey through Vietnam, by a gracious old
