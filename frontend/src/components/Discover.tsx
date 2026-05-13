@@ -209,7 +209,7 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
       >
         {/* Left: Back button */}
         <button
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/help')}
           style={{
             ...buttonStyle,
             padding: '8px',
