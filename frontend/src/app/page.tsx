@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from '@/components/useTheme';
 import { useRouter } from 'next/navigation';
+import LoginModal from '@/components/LoginModal';
 
 // Z-index layer scale for consistent stacking
 const zBase = 0;
@@ -44,6 +45,7 @@ const Landing: FC = () => {
   const router = useRouter();
   const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
   const [isCycling, setIsCycling] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Start label cycling after the header fades in
@@ -66,6 +68,12 @@ const Landing: FC = () => {
 
   return (
     <div style={rootStyle}>
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
+
       {/* Main container with cycling label row and NEARBY. header */}
       <motion.div
         style={{
@@ -155,6 +163,33 @@ const Landing: FC = () => {
         >
           NEARBY.
         </div>
+
+        {/* Login button below "NEARBY." */}
+        <motion.button
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation();
+            setIsLoginModalOpen(true);
+          }}
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontWeight: 600,
+            fontSize: '16px',
+            marginTop: '32px',
+            padding: '12px 32px',
+            borderRadius: '8px',
+            border: '2px solid var(--color-text)',
+            backgroundColor: 'transparent',
+            color: 'var(--color-text)',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+          }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          Login
+        </motion.button>
       </motion.div>
     </div>
   );

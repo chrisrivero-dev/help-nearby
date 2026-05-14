@@ -13,11 +13,13 @@ type Theme = 'dark' | 'light';
 interface ThemeContextValue {
   theme: Theme;
   toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
 }
 
 export const ThemeContext = createContext<ThemeContextValue>({
   theme: 'dark',
   toggleTheme: () => {},
+  setTheme: () => {},
 });
 
 /**
@@ -52,8 +54,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('theme', next);
   }, []);
 
+  const setThemeValue = useCallback((newTheme: Theme) => {
+    const root = document.documentElement;
+    root.dataset.theme = newTheme;
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+  }, []);
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider
+      value={{ theme, toggleTheme, setTheme: setThemeValue }}
+    >
       {children}
     </ThemeContext.Provider>
   );

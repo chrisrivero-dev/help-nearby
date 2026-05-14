@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
 import type { FC } from 'react';
 import { motion } from 'framer-motion';
+import { ThemeGuard } from '@/components/ThemeGuard';
 import NavBar from '@/components/NavBar';
 import DrawerMenu from '@/components/DrawerMenu';
 import StarWarsIntro from '@/components/StarWarsIntro';
@@ -20,26 +20,21 @@ const pageStyle: React.CSSProperties = {
 };
 
 const AboutPage: FC = () => {
-  // Force dark mode on this page
-  useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.theme = 'dark';
-    localStorage.setItem('theme', 'dark');
-  }, []);
-
   return (
-    <motion.main
-      style={pageStyle}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.35 }}
-    >
-      {/* StarWarsIntro - starts below viewport, scrolls up, fades out */}
-      <StarWarsIntro />
+    <ThemeGuard theme="dark">
+      <motion.main
+        style={pageStyle}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35 }}
+      >
+        {/* StarWarsIntro - starts below viewport, scrolls up, fades out */}
+        <StarWarsIntro />
 
-      {/* Header with Title - overlaying the page */}
-      <NavBar variant="about" title="ABOUT! NEARBY." showMapPin={true} />
-    </motion.main>
+        {/* Header with Title - overlaying the page */}
+        <NavBar variant="about" title="ABOUT! NEARBY." showMapPin={true} />
+      </motion.main>
+    </ThemeGuard>
   );
 };
 

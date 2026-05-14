@@ -7,6 +7,7 @@ import { useTheme } from '@/components/useTheme';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import LanguageToggle from './LanguageToggle';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DrawerMenuProps {
   top?: number;
@@ -108,6 +109,8 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
     gap: '8px', // Add gaps between menu options
   };
 
+  const { logout } = useAuth();
+
   // Menu handlers
   const handleHomeClick = () => {
     setMenuOpen(false);
@@ -124,6 +127,11 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
   const handleAboutClick = () => {
     setMenuOpen(false);
     router.push('/about');
+  };
+  const handleLogoutClick = () => {
+    setMenuOpen(false);
+    logout();
+    router.push('/');
   };
 
   // Container style - fixed positioning
@@ -219,6 +227,21 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
         >
           About
         </Link>
+        {/* Logout button - right aligned */}
+        <div className="w-40 flex justify-end">
+          <button
+            onClick={handleLogoutClick}
+            className={menuItemClass}
+            style={{
+              backgroundColor: '#ef4444',
+              borderColor: '#dc2626',
+              color: '#ffffff',
+              boxShadow: '0 4px 0 #991b1b',
+            }}
+          >
+            Logout
+          </button>
+        </div>
         {/* Language toggle at bottom of menu - right aligned */}
         <div className="w-40 flex justify-end">
           <LanguageToggle />

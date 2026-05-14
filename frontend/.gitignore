@@ -31,10 +31,16 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+# .env.local and .env.development are gitignored
+.env.local
+.env.development
+# .env.example is included for documentation
+# .env
 
-# vercel
 .vercel
+
+# env.example should not be gitignored (contains placeholder values)
+!frontend/.env.example
 
 # typescript
 *.tsbuildinfo
