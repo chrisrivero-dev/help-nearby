@@ -3,32 +3,22 @@
 import type { FC, ReactNode } from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { getSecrets } from '@/lib/awsSecrets';
 import {
   CognitoIdentityProviderClient,
   InitiateAuthCommand,
   GetUserCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 
-// Environment configuration
-let IS_DEV = false;
-let COGNITO_CONFIG = {
-  UserPoolId: '',
-  AppClientId: '',
-  Region: '',
-  ClientSecret: '',
-};
+// Environment configuration - reads directly from process.env
+// NEXT_PUBLIC_ env vars are embedded at build time by Next.js
+const IS_DEV = process.env.NEXT_PUBLIC_ENV === 'development';
 
-// Load secrets on client-side only
-if (typeof window !== 'undefined') {
-  IS_DEV = process.env.NEXT_PUBLIC_ENV === 'development';
-  COGNITO_CONFIG = {
-    UserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || '',
-    AppClientId: process.env.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID || '',
-    Region: process.env.NEXT_PUBLIC_COGNITO_REGION || 'us-east-1',
-    ClientSecret: process.env.NEXT_PUBLIC_COGNITO_CLIENT_SECRET || '',
-  };
-}
+const COGNITO_CONFIG = {
+  UserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || '',
+  AppClientId: process.env.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID || '',
+  Region: process.env.NEXT_PUBLIC_COGNITO_REGION || 'us-east-1',
+  ClientSecret: process.env.NEXT_PUBLIC_COGNITO_CLIENT_SECRET || '',
+};
 
 interface User {
   username: string;

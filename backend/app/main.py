@@ -22,7 +22,7 @@ app.add_middleware(
 # S3 Configuration
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "helpnearby.co")
 S3_REGION = os.getenv("S3_REGION", "us-east-1")
-S3_FILE_PATH = os.getenv("S3_FILE_PATH", "mailing-list/preview-signup.json")
+MAILING_LIST_FILE_PATH = os.getenv("MAILING_LIST_FILE_PATH", "mailing-list/preview-signup.json")
 
 # Initialize S3 client
 s3_client = boto3.client("s3", region_name=S3_REGION)
@@ -38,7 +38,7 @@ def health():
 def get_mailing_list_count():
     """Get the count of emails in the mailing list."""
     try:
-        response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=S3_FILE_PATH)
+        response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=MAILING_LIST_FILE_PATH)
         data = json.loads(response["Body"].read().decode("utf-8"))
         email_count = len(data.get("emails", []))
         return {"count": email_count}
@@ -59,7 +59,7 @@ def join_mailing_list(email_input: EmailInput):
     
     try:
         # Read existing data
-        response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=S3_FILE_PATH)
+        response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=MAILING_LIST_FILE_PATH)
         data = json.loads(response["Body"].read().decode("utf-8"))
         
         emails = data.get("emails", [])
@@ -75,7 +75,7 @@ def join_mailing_list(email_input: EmailInput):
         # Write updated data back to S3
         s3_client.put_object(
             Bucket=S3_BUCKET_NAME,
-            Key=S3_FILE_PATH,
+            Key=MAILING_LIST_FILE_PATH,
             Body=json.dumps(data, indent=2).encode("utf-8"),
             ContentType="application/json"
         )
