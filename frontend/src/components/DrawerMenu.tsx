@@ -1,10 +1,10 @@
 'use client';
 
 import type { FC } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useTheme } from '@/components/useTheme';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import LanguageToggle from './LanguageToggle';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,7 +16,6 @@ interface DrawerMenuProps {
 
 const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
   const { theme } = useTheme();
-  const pathname = usePathname();
   const router = useRouter();
   const isDark = theme === 'dark';
   const [menuOpen, setMenuOpen] = useState(false);
@@ -109,7 +108,7 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
     gap: '8px', // Add gaps between menu options
   };
 
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
 
   // Menu handlers
   const handleHomeClick = () => {
@@ -227,21 +226,23 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
         >
           About
         </Link>
-        {/* Logout button - right aligned */}
-        <div className="w-40 flex justify-end">
-          <button
-            onClick={handleLogoutClick}
-            className={menuItemClass}
-            style={{
-              backgroundColor: '#ef4444',
-              borderColor: '#dc2626',
-              color: '#ffffff',
-              boxShadow: '0 4px 0 #991b1b',
-            }}
-          >
-            Logout
-          </button>
-        </div>
+        {/* Logout button - only shown when authenticated */}
+        {isAuthenticated && (
+          <div className="w-40 flex justify-end">
+            <button
+              onClick={handleLogoutClick}
+              className={menuItemClass}
+              style={{
+                backgroundColor: '#ef4444',
+                borderColor: '#dc2626',
+                color: '#ffffff',
+                boxShadow: '0 4px 0 #991b1b',
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        )}
         {/* Language toggle at bottom of menu - right aligned */}
         <div className="w-40 flex justify-end">
           <LanguageToggle />

@@ -207,10 +207,6 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         new InitiateAuthCommand({ ...authParams }),
       );
 
-      if (result.ChallengeName) {
-        throw new Error(`Auth challenge required: ${result.ChallengeName}`);
-      }
-
       if (result.AuthenticationResult) {
         const userResult = await client.send(
           new GetUserCommand({
