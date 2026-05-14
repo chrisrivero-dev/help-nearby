@@ -41,69 +41,64 @@ jobs:
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/backend:${{ github.sha }} ./backend
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/backend:${{ github.sha }}
 
-      - name: Setup SSH keys
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+       - name: Setup SSH keys
+         uses: webfactory/ssh-agent@v0.7.0
+         with:
+           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-        - name: Deploy to EC2
-          env:
-            EC2_HOST: ${{ secrets.EC2_HOST }}
-            EC2_USER: ${{ secrets.EC2_USER }}
-            AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-            AWS_REGION: ${{ env.AWS_REGION }}
-          run: |
-            mkdir -p ~/.ssh
-            chmod 700 ~/.ssh
-            ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
-            chmod 644 ~/.ssh/known_hosts
+       - name: Deploy to EC2
+         run: |
+           mkdir -p ~/.ssh
+           chmod 700 ~/.ssh
+           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+           chmod 644 ~/.ssh/known_hosts
 
-            ssh $EC2_USER@$EC2_HOST 'bash -s' << 'EOF'
-              set -e
-              set -x
-              AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-              AWS_REGION=us-east-1
-              ECR_REGISTRY=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-              SHA=${{ github.sha }}
-              ECR_PASSWORD=$(aws ecr get-login-password --region $AWS_REGION)
-              echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
-              docker pull $ECR_REGISTRY/helpnearby/frontend:$SHA
-              docker pull $ECR_REGISTRY/helpnearby/backend:$SHA
+           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'bash -s' << 'EOF'
+             set -e
+             set -x
+             AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+             AWS_REGION=us-east-1
+             ECR_REGISTRY=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+             SHA=${{ github.sha }}
+             ECR_PASSWORD=$(aws ecr get-login-password --region $AWS_REGION)
+             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
+             docker pull $ECR_REGISTRY/helpnearby/frontend:$SHA
+             docker pull $ECR_REGISTRY/helpnearby/backend:$SHA
 
-              # Fetch secrets from AWS Secrets Manager (not GitHub)
-              FRONTEND_SECRETS=$(aws secretsmanager get-secret-value --secret-id helpnearby/frontend --query SecretString --output text)
-              S3_SECRETS=$(aws secretsmanager get-secret-value --secret-id helpnearby/backend --query SecretString --output text)
+             # Fetch secrets from AWS Secrets Manager (not GitHub)
+             FRONTEND_SECRETS=$(aws secretsmanager get-secret-value --secret-id helpnearby/frontend --query SecretString --output text)
+             S3_SECRETS=$(aws secretsmanager get-secret-value --secret-id helpnearby/backend --query SecretString --output text)
 
-               # Parse secrets
-               NEXT_PUBLIC_COGNITO_USER_POOL_ID=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_USER_POOL_ID')
-               NEXT_PUBLIC_COGNITO_APP_CLIENT_ID=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID')
-               NEXT_PUBLIC_COGNITO_REGION=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_REGION')
-               NEXT_PUBLIC_COGNITO_CLIENT_SECRET=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_CLIENT_SECRET')
-               NEXT_PUBLIC_ENV=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_ENV')
-               S3_BUCKET_NAME=$(echo "$S3_SECRETS" | jq -r '.S3_BUCKET_NAME')
-               S3_REGION=$(echo "$S3_SECRETS" | jq -r '.S3_REGION')
-               MAILING_LIST_FILE_PATH=$(echo "$S3_SECRETS" | jq -r '.MAILING_LIST_FILE_PATH')
+             # Parse secrets
+             NEXT_PUBLIC_COGNITO_USER_POOL_ID=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_USER_POOL_ID')
+             NEXT_PUBLIC_COGNITO_APP_CLIENT_ID=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID')
+             NEXT_PUBLIC_COGNITO_REGION=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_REGION')
+             NEXT_PUBLIC_COGNITO_CLIENT_SECRET=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_CLIENT_SECRET')
+             NEXT_PUBLIC_ENV=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_ENV')
+             S3_BUCKET_NAME=$(echo "$S3_SECRETS" | jq -r '.S3_BUCKET_NAME')
+             S3_REGION=$(echo "$S3_SECRETS" | jq -r '.S3_REGION')
+             MAILING_LIST_FILE_PATH=$(echo "$S3_SECRETS" | jq -r '.MAILING_LIST_FILE_PATH')
 
-              docker stop helpnearby-frontend 2>/dev/null || true
-              docker rm helpnearby-frontend 2>/dev/null || true
-              docker stop helpnearby-backend 2>/dev/null || true
-              docker rm helpnearby-backend 2>/dev/null || true
+             docker stop helpnearby-frontend 2>/dev/null || true
+             docker rm helpnearby-frontend 2>/dev/null || true
+             docker stop helpnearby-backend 2>/dev/null || true
+             docker rm helpnearby-backend 2>/dev/null || true
 
-              # Frontend
-              docker run -d --name helpnearby-frontend \
-                -p 5000:5000 \
-                -e NEXT_PUBLIC_COGNITO_USER_POOL_ID="$NEXT_PUBLIC_COGNITO_USER_POOL_ID" \
-                -e NEXT_PUBLIC_COGNITO_APP_CLIENT_ID="$NEXT_PUBLIC_COGNITO_APP_CLIENT_ID" \
-                -e NEXT_PUBLIC_COGNITO_REGION="$NEXT_PUBLIC_COGNITO_REGION" \
-                -e NEXT_PUBLIC_COGNITO_CLIENT_SECRET="$NEXT_PUBLIC_COGNITO_CLIENT_SECRET" \
-                -e NEXT_PUBLIC_ENV="$NEXT_PUBLIC_ENV" \
-                $ECR_REGISTRY/helpnearby/frontend:$SHA
+             # Frontend
+             docker run -d --name helpnearby-frontend \
+               -p 5000:5000 \
+               -e NEXT_PUBLIC_COGNITO_USER_POOL_ID="$NEXT_PUBLIC_COGNITO_USER_POOL_ID" \
+               -e NEXT_PUBLIC_COGNITO_APP_CLIENT_ID="$NEXT_PUBLIC_COGNITO_APP_CLIENT_ID" \
+               -e NEXT_PUBLIC_COGNITO_REGION="$NEXT_PUBLIC_COGNITO_REGION" \
+               -e NEXT_PUBLIC_COGNITO_CLIENT_SECRET="$NEXT_PUBLIC_COGNITO_CLIENT_SECRET" \
+               -e NEXT_PUBLIC_ENV="$NEXT_PUBLIC_ENV" \
+               $ECR_REGISTRY/helpnearby/frontend:$SHA
 
-               # Backend
-               docker run -d --name helpnearby-backend \
-                 -p 9000:9000 \
-                 -e S3_BUCKET_NAME="$S3_BUCKET_NAME" \
-                 -e S3_REGION="$S3_REGION" \
-                 -e MAILING_LIST_FILE_PATH="$MAILING_LIST_FILE_PATH" \
-                $ECR_REGISTRY/helpnearby/backend:$SHA
-            EOF
+             # Backend
+             docker run -d --name helpnearby-backend \
+               -p 9000:9000 \
+               -e S3_BUCKET_NAME="$S3_BUCKET_NAME" \
+               -e S3_REGION="$S3_REGION" \
+               -e MAILING_LIST_FILE_PATH="$MAILING_LIST_FILE_PATH" \
+               $ECR_REGISTRY/helpnearby/backend:$SHA
+           EOF
