@@ -1,11 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
 import type { FC } from 'react';
 import { motion } from 'framer-motion';
 import NavBar from '@/components/NavBar';
 import DrawerMenu from '@/components/DrawerMenu';
 import StarWarsIntro from '@/components/StarWarsIntro';
-import FeatureToggles from '@/components/FeatureToggles';
 
 // Styles using CSS variables
 const pageStyle: React.CSSProperties = {
@@ -20,6 +20,13 @@ const pageStyle: React.CSSProperties = {
 };
 
 const AboutPage: FC = () => {
+  // Force dark mode on this page
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.theme = 'dark';
+    localStorage.setItem('theme', 'dark');
+  }, []);
+
   return (
     <motion.main
       style={pageStyle}
@@ -32,9 +39,6 @@ const AboutPage: FC = () => {
 
       {/* Header with Title - overlaying the page */}
       <NavBar variant="about" title="ABOUT! NEARBY." showMapPin={true} />
-
-      {/* Feature Toggles at Bottom Right */}
-      <FeatureToggles bottom={20} right={20} />
     </motion.main>
   );
 };

@@ -37,7 +37,7 @@ const clockStyle: CSSProperties = {
 
 // Title cycling configuration
 const TITLES = ['RESOURCES!', 'HELP!'];
-const TITLE_DISPLAY_TIME = 5000; // 5 seconds
+const TITLE_DISPLAY_TIME = 2000; // 2 seconds
 
 // Landing page with cycling titles above "NEARBY."
 const Landing: FC = () => {

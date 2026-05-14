@@ -124,7 +124,15 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
 };
 
 // Digits display component - rendered separately, opens at bottom center
-function ClockDigits({ isOpen, isDark }: { isOpen: boolean; isDark: boolean }) {
+function ClockDigits({
+  isOpen,
+  isDark,
+  onClose,
+}: {
+  isOpen: boolean;
+  isDark: boolean;
+  onClose: () => void;
+}) {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [nextTime, setNextTime] = useState<string>('');
   const reduceMotion = useReducedMotion();
@@ -198,11 +206,12 @@ function ClockDigits({ isOpen, isDark }: { isOpen: boolean; isDark: boolean }) {
         whiteSpace: 'nowrap',
       }}
       animate={{
-        scale: isOpen ? 1 : 0,
         opacity: isOpen ? 1 : 0,
-        y: isOpen ? 0 : 20,
+        y: isOpen ? 0 : 100,
+        pointerEvents: isOpen ? 'auto' : 'none',
       }}
       transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
+      onClick={onClose}
     >
       <FlipDigit currentValue={currentHourDigit1} nextValue={nextHourDigit1} />
       <FlipDigit currentValue={currentHourDigit2} nextValue={nextHourDigit2} />
@@ -252,7 +261,11 @@ const Clock: FC = () => {
         }}
       />
       {/* Digits display at bottom center */}
-      <ClockDigits isOpen={isOpen} isDark={isDark} />
+      <ClockDigits
+        isOpen={isOpen}
+        isDark={isDark}
+        onClose={() => setIsOpen(false)}
+      />
     </>
   );
 };

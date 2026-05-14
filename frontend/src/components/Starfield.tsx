@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 
 interface StarfieldProps {
   starCount?: number;
@@ -21,11 +22,22 @@ const seededRandom = (seed: number): number => {
  * Starfield component with math-based randomization
  * Creates a galaxy far, far away with 8-bit flicker animations
  */
-const Starfield: React.FC<StarfieldProps> = ({
+const StarfieldComponent: React.FC<StarfieldProps> = ({
   starCount = 150,
   className = '',
   style = {},
 }) => {
+  // Cycle counter to trigger re-renders with new random positions
+  const [cycle, setCycle] = useState(0);
+
+  // Reset shooting stars to random positions every 2.5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCycle((prev) => prev + 1);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
   // Generate stars with math-based randomization using a seed
   const { stars, shootingStars } = useMemo(() => {
     const newStars = [];
@@ -39,14 +51,17 @@ const Starfield: React.FC<StarfieldProps> = ({
       const left = Math.round(seededRandom(seed + i * 37) * 10000) / 100;
 
       // Random size (1-3px for 8-bit feel) - round to 2 decimals
-      const size = Math.round((1 + seededRandom(seed + i * 53) * 2) * 100) / 100;
+      const size =
+        Math.round((1 + seededRandom(seed + i * 53) * 2) * 100) / 100;
 
       // Random flicker animation configuration
-      const duration = Math.round((1.5 + seededRandom(seed + i * 71) * 3) * 1000) / 1000;
+      const duration =
+        Math.round((1.5 + seededRandom(seed + i * 71) * 3) * 1000) / 1000;
       const delay = Math.round(seededRandom(seed + i * 89) * 5 * 1000) / 1000;
 
       // Random opacity variation - round to 2 decimals
-      const minOpacity = Math.round((0.3 + seededRandom(seed + i * 101) * 0.5) * 100) / 100;
+      const minOpacity =
+        Math.round((0.3 + seededRandom(seed + i * 101) * 0.5) * 100) / 100;
 
       // Random color variation (mostly white with slight variations)
       const colorSeed = seededRandom(seed + i * 113);
@@ -58,13 +73,15 @@ const Starfield: React.FC<StarfieldProps> = ({
       const b2 = Math.round(150 + seededRandom(seed + i * 149) * 105);
       const r3 = Math.round(240 + seededRandom(seed + i * 157) * 15);
       const g3 = Math.round(240 + seededRandom(seed + i * 163) * 15);
-      const alpha = Math.round((0.8 + seededRandom(seed + i * 167) * 0.2) * 100) / 100;
+      const alpha =
+        Math.round((0.8 + seededRandom(seed + i * 167) * 0.2) * 100) / 100;
 
-      const color = colorSeed > 0.95
-        ? `rgba(${r}, ${g}, ${b}, ${alpha})` // blue-ish
-        : colorSeed > 0.9
-          ? `rgba(${r2}, ${g2}, ${b2}, ${alpha})` // yellow-ish
-          : `rgba(${r3}, ${g3}, 255, ${alpha})`; // white
+      const color =
+        colorSeed > 0.95
+          ? `rgba(${r}, ${g}, ${b}, ${alpha})` // blue-ish
+          : colorSeed > 0.9
+            ? `rgba(${r2}, ${g2}, ${b2}, ${alpha})` // yellow-ish
+            : `rgba(${r3}, ${g3}, 255, ${alpha})`; // white
 
       newStars.push({
         id: i,
@@ -80,9 +97,11 @@ const Starfield: React.FC<StarfieldProps> = ({
 
     // Generate shooting stars
     for (let i = 0; i < shootingStarCount; i++) {
-      const startX = Math.round(seededRandom(seed + i * 200) * 10000) / 100;
-      const startY = Math.round(seededRandom(seed + i * 210) * 10000) / 100;
-      const duration = 2 + Math.round(seededRandom(seed + i * 220) * 2000) / 1000;
+      // Use Math.random() for varying start positions on each render
+      const startX = Math.round(Math.random() * 10000) / 100;
+      const startY = Math.round(Math.random() * 10000) / 100;
+      const duration =
+        2 + Math.round(seededRandom(seed + i * 220) * 2000) / 1000;
       const delay = 0; // No delay - start immediately
       const length = 50 + Math.round(seededRandom(seed + i * 240) * 100) / 100; // Trail length in %
       const speed = 500 + Math.round(seededRandom(seed + i * 250) * 500); // Speed in ms
@@ -99,7 +118,7 @@ const Starfield: React.FC<StarfieldProps> = ({
     }
 
     return { stars: newStars, shootingStars: newShootingStars };
-  }, [starCount]);
+  }, [starCount, cycle]);
 
   return (
     <div
@@ -124,7 +143,8 @@ const Starfield: React.FC<StarfieldProps> = ({
           left: 0,
           width: '100%',
           height: '100%',
-          background: 'linear-gradient(to bottom, #02020a 0%, #000000 50%, #000000 100%)',
+          background:
+            'linear-gradient(to bottom, #02020a 0%, #000000 50%, #000000 100%)',
           zIndex: -1,
         }}
       />
@@ -143,7 +163,10 @@ const Starfield: React.FC<StarfieldProps> = ({
             borderRadius: '50%',
             opacity: 0.6,
             animation: `starFlicker ${star.duration}s infinite alternate ${star.delay}s ease-in-out`,
-            boxShadow: star.size > 2 ? `0 0 ${Math.round(star.size / 2 * 100) / 100}px ${star.color}` : 'none',
+            boxShadow:
+              star.size > 2
+                ? `0 0 ${Math.round((star.size / 2) * 100) / 100}px ${star.color}`
+                : 'none',
           }}
         />
       ))}
@@ -211,5 +234,10 @@ const Starfield: React.FC<StarfieldProps> = ({
     </div>
   );
 };
+
+// Disable SSR for Starfield component to avoid hydration mismatch with Math.random()
+const Starfield = dynamic(() => Promise.resolve(StarfieldComponent), {
+  ssr: false,
+});
 
 export default Starfield;

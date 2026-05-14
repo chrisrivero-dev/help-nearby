@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTheme } from '@/components/useTheme';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
+import LanguageToggle from './LanguageToggle';
 
 interface DrawerMenuProps {
   top?: number;
@@ -55,11 +56,6 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
     };
   }, [menuOpen]);
 
-  // Colors based on theme
-  const linkColor = isDark ? '#e8e8e8' : '#111111';
-  const cellBackgroundColor = isDark ? '#141414' : '#ffffff';
-  const borderColor = isDark ? '#555555' : '#cccccc';
-
   // Drawer bar style - extended width for proper X shape
   // Using Pythagorean theorem: diagonal = sqrt(width² + height²)
   // For width=30px, height=4px: diagonal = sqrt(900 + 16) = sqrt(916) ≈ 30.27px
@@ -71,7 +67,7 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
     fontWeight: 800,
     width: `${barWidth}px`,
     height: `${barHeight}px`,
-    backgroundColor: linkColor,
+    backgroundColor: isDark ? '#e8e8e8' : '#111111',
     transition: 'all 0.3s ease',
     position: 'relative',
     transformOrigin: 'center center',
@@ -109,29 +105,7 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
     display: menuOpen ? 'flex' : 'none',
     flexDirection: 'column',
     alignItems: 'flex-end',
-  };
-
-  // Menu item style - floating, with container background and borders
-  const menuItemStyle: React.CSSProperties = {
-    display: 'block',
-    padding: '10px 12px',
-    color: linkColor,
-    textDecoration: 'none',
-    fontWeight: 800,
-    fontSize: '1.1rem',
-    fontFamily: "'Poppins', sans-serif",
-    backgroundColor: cellBackgroundColor,
-    border: `1px solid ${borderColor}`,
-    marginBottom: '6px',
-    transition: 'all 0.2s ease',
-  };
-
-  // Menu item hover style
-  const menuItemHoverStyle: React.CSSProperties = {
-    backgroundColor: isDark
-      ? 'rgba(30, 30, 30, 0.95)'
-      : 'rgba(240, 240, 240, 0.95)',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+    gap: '8px', // Add gaps between menu options
   };
 
   // Menu handlers
@@ -177,12 +151,24 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
     display: menuOpen ? 'block' : 'none',
   };
 
-  // Styles for active link (current page)
-  const activeLinkStyle: React.CSSProperties = {
-    ...menuItemStyle,
-    backgroundColor: isDark ? '#1f1f1f' : '#f0f0f0',
-    border: `1px solid ${isDark ? '#666666' : '#bbbbbb'}`,
-  };
+  // All menu items use the same style for consistent sizing and appearance
+  // Uses theme-aware colors: white/dark gray for default, gold for hover
+  const menuItemClass = [
+    'flex items-center justify-center px-6 py-3 text-sm font-black uppercase tracking-widest transition-all border-4',
+    'w-40', // Fixed width for all cells - largest based on content
+    isDark
+      ? 'bg-[#1e1e1e] text-[#e8e8e8] border-[#3e3e3e] shadow-[4px_4px_0px_#374151] hover:bg-[#d97706] hover:shadow-[2px_2px_0px_#374151] hover:translate-x-[2px] hover:translate-y-[2px]'
+      : 'bg-[#ffffff] text-[#111111] border-[#000000] shadow-[4px_4px_0px_#1f2937] hover:bg-[#fbbf24] hover:shadow-[2px_2px_0px_#1f2937] hover:translate-x-[2px] hover:translate-y-[2px]',
+  ].join(' ');
+
+  // Language toggle in menu - uses same styling as drawer menu
+  const menuLanguageToggleClass = [
+    'flex items-center justify-center px-6 py-3 text-sm font-black uppercase tracking-widest transition-all border-4',
+    'w-40', // Same width as other menu items
+    isDark
+      ? 'bg-[#1e1e1e] text-[#e8e8e8] border-[#3e3e3e] shadow-[4px_4px_0px_#374151] hover:bg-[#d97706] hover:shadow-[2px_2px_0px_#374151] hover:translate-x-[2px] hover:translate-y-[2px]'
+      : 'bg-[#ffffff] text-[#111111] border-[#000000] shadow-[4px_4px_0px_#1f2937] hover:bg-[#fbbf24] hover:shadow-[2px_2px_0px_#1f2937] hover:translate-x-[2px] hover:translate-y-[2px]',
+  ].join(' ');
 
   return (
     <>
@@ -213,38 +199,30 @@ const DrawerMenu: FC<DrawerMenuProps> = ({ top = 26, right = 12 }) => {
         }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
       >
-        <Link
-          href="/"
-          onClick={handleHomeClick}
-          style={pathname === '/' ? activeLinkStyle : menuItemStyle}
-          className={pathname === '/' ? 'active' : ''}
-        >
+        <Link href="/" onClick={handleHomeClick} className={menuItemClass}>
           Home
         </Link>
-        <Link
-          href="/help"
-          onClick={handleHelpClick}
-          style={pathname === '/help' ? activeLinkStyle : menuItemStyle}
-          className={pathname === '/help' ? 'active' : ''}
-        >
+        <Link href="/help" onClick={handleHelpClick} className={menuItemClass}>
           Help
         </Link>
         <Link
           href="/resources"
           onClick={handleResourcesClick}
-          style={pathname === '/resources' ? activeLinkStyle : menuItemStyle}
-          className={pathname === '/resources' ? 'active' : ''}
+          className={menuItemClass}
         >
           Resources
         </Link>
         <Link
           href="/about"
           onClick={handleAboutClick}
-          style={pathname === '/about' ? activeLinkStyle : menuItemStyle}
-          className={pathname === '/about' ? 'active' : ''}
+          className={menuItemClass}
         >
           About
         </Link>
+        {/* Language toggle at bottom of menu - right aligned */}
+        <div className="w-40 flex justify-end">
+          <LanguageToggle />
+        </div>
       </motion.div>
     </>
   );

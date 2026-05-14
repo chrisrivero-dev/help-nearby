@@ -4,7 +4,6 @@ import type { FC } from 'react';
 import { motion } from 'framer-motion';
 import { ThemeToggleButton } from './ThemeToggleButton';
 import Clock from './Clock';
-import LanguageToggle from './LanguageToggle';
 
 interface FeatureTogglesProps {
   /**
@@ -55,7 +54,6 @@ const FeatureToggles: FC<FeatureTogglesProps> = ({
 
   return (
     <motion.div style={containerStyle} {...mountTransition}>
-      <LanguageToggle />
       <ThemeToggleButton />
       <Clock />
     </motion.div>

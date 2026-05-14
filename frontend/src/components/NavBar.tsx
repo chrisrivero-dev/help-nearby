@@ -43,11 +43,23 @@ const NavBar: FC<NavBarProps> = ({
     gap: '10px',
   };
 
-  // Drawer menu container style - right side
-  const drawerMenuStyle: React.CSSProperties = {
+  // Right side container style - holds both drawer menu and language toggle side by side
+  const rightSideStyle: React.CSSProperties = {
     flex: '0 0 auto',
     display: 'flex',
     alignItems: 'center',
+    position: 'relative',
+    marginRight: '80px',
+  };
+
+  // Drawer menu absolute position style - right edge of rightSideStyle
+  const drawerMenuWrapperStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '0',
+    right: '0',
+    width: '30px',
+    height: '12px',
+    marginRight: '80px',
   };
 
   return (
@@ -63,8 +75,10 @@ const NavBar: FC<NavBarProps> = ({
       </div>
 
       {/* Right: Drawer Menu */}
-      <div style={drawerMenuStyle}>
-        <DrawerMenu top={35} right={30} />
+      <div style={rightSideStyle}>
+        <div style={drawerMenuWrapperStyle}>
+          <DrawerMenu top={39} right={40} />
+        </div>
       </div>
     </div>
   );
