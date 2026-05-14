@@ -9,16 +9,18 @@ import {
   GetUserCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 
-// Environment configuration - reads directly from process.env
-// NEXT_PUBLIC_ env vars are embedded at build time by Next.js
-const IS_DEV = process.env.NEXT_PUBLIC_ENV === 'development';
+interface CognitoConfig {
+  UserPoolId: string;
+  AppClientId: string;
+  Region: string;
+  ClientSecret: string;
+}
 
-const COGNITO_CONFIG = {
-  UserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || '',
-  AppClientId: process.env.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID || '',
-  Region: process.env.NEXT_PUBLIC_COGNITO_REGION || 'us-east-1',
-  ClientSecret: process.env.NEXT_PUBLIC_COGNITO_CLIENT_SECRET || '',
-};
+interface AuthConfigResponse {
+  userPoolId: string;
+  clientId: string;
+  region: string;
+}
 
 interface User {
   username: string;
@@ -29,6 +31,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  config: CognitoConfig | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   error: string | null;
@@ -37,16 +40,51 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Build-time check for dev mode (Next.js embeds this at build time)
+const IS_DEV = process.env.NEXT_PUBLIC_ENV === 'development';
+
 export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [config, setConfig] = useState<CognitoConfig | null>(null);
+  const [configLoading, setConfigLoading] = useState(true);
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
 
+  // Fetch config at mount
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch('/api/auth/config');
+        const data = await res.json();
+        setConfig({
+          UserPoolId: data.userPoolId,
+          AppClientId: data.clientId,
+          Region: data.region,
+          ClientSecret: process.env.NEXT_PUBLIC_COGNITO_CLIENT_SECRET || '',
+        });
+      } catch (err) {
+        console.error('Failed to fetch auth config:', err);
+        // Fallback to environment variables
+        setConfig({
+          UserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || '',
+          AppClientId: process.env.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID || '',
+          Region: process.env.NEXT_PUBLIC_COGNITO_REGION || 'us-east-1',
+          ClientSecret: process.env.NEXT_PUBLIC_COGNITO_CLIENT_SECRET || '',
+        });
+      } finally {
+        setConfigLoading(false);
+      }
+    };
+    fetchConfig();
+  }, []);
+
   // Check for existing session on mount
   useEffect(() => {
+    if (configLoading) return;
+
     const token = typeof window !== 'undefined' ? getCookie('authToken') : null;
 
     if (token) {
@@ -68,7 +106,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         localStorage.removeItem('cognitoUser');
       }
     }
-  }, []);
+  }, [configLoading]);
 
   // Handle redirect after login
   useEffect(() => {
@@ -120,6 +158,11 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const login = async (email: string, password: string) => {
+    if (!config) {
+      setError('Auth configuration not loaded');
+      throw new Error('Auth configuration not loaded');
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -145,7 +188,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       }
 
       const client = new CognitoIdentityProviderClient({
-        region: COGNITO_CONFIG.Region,
+        region: config.Region,
       });
 
       const authParams: any = {
@@ -154,14 +197,14 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
           USERNAME: email,
           PASSWORD: password,
         },
-        ClientId: COGNITO_CONFIG.AppClientId,
+        ClientId: config.AppClientId,
       };
 
       // Add SECRET_HASH if client secret is configured
       const secretHash = await calculateSecretHash(
         email,
-        COGNITO_CONFIG.AppClientId,
-        COGNITO_CONFIG.ClientSecret,
+        config.AppClientId,
+        config.ClientSecret,
       );
       if (secretHash) {
         authParams.AuthParameters.SECRET_HASH = secretHash;
@@ -235,11 +278,17 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     user,
     isAuthenticated: !!user,
     isLoading,
+    config,
     login,
     logout,
     error,
     redirectPath,
   };
+
+  // Don't render children until config is loaded (to prevent race conditions)
+  if (configLoading) {
+    return <div>Loading...</div>;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

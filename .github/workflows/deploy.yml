@@ -31,24 +31,9 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Fetch frontend build secrets from AWS
-        run: |
-          FRONTEND_SECRETS=$(aws secretsmanager get-secret-value --secret-id helpnearby/frontend --query SecretString --output text)
-          echo "NEXT_PUBLIC_COGNITO_USER_POOL_ID=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_USER_POOL_ID')" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_COGNITO_APP_CLIENT_ID=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID')" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_COGNITO_REGION=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_REGION')" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_COGNITO_CLIENT_SECRET=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_CLIENT_SECRET')" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_ENV=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_ENV')" >> $GITHUB_ENV
-
       - name: Build and push Frontend Docker image
         run: |
-          docker build \
-            --build-arg NEXT_PUBLIC_COGNITO_USER_POOL_ID="$NEXT_PUBLIC_COGNITO_USER_POOL_ID" \
-            --build-arg NEXT_PUBLIC_COGNITO_APP_CLIENT_ID="$NEXT_PUBLIC_COGNITO_APP_CLIENT_ID" \
-            --build-arg NEXT_PUBLIC_COGNITO_REGION="$NEXT_PUBLIC_COGNITO_REGION" \
-            --build-arg NEXT_PUBLIC_COGNITO_CLIENT_SECRET="$NEXT_PUBLIC_COGNITO_CLIENT_SECRET" \
-            --build-arg NEXT_PUBLIC_ENV="$NEXT_PUBLIC_ENV" \
-            -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/frontend:${{ github.sha }} ./frontend
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/frontend:${{ github.sha }} ./frontend
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/frontend:${{ github.sha }}
 
       - name: Build and push Backend Docker image
