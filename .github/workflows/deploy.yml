@@ -33,7 +33,13 @@ jobs:
 
       - name: Build and push Frontend Docker image
         run: |
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/frontend:${{ github.sha }} ./frontend
+          docker build \
+            --build-arg NEXT_PUBLIC_COGNITO_USER_POOL_ID="$NEXT_PUBLIC_COGNITO_USER_POOL_ID" \
+            --build-arg NEXT_PUBLIC_COGNITO_APP_CLIENT_ID="$NEXT_PUBLIC_COGNITO_APP_CLIENT_ID" \
+            --build-arg NEXT_PUBLIC_COGNITO_REGION="$NEXT_PUBLIC_COGNITO_REGION" \
+            --build-arg NEXT_PUBLIC_COGNITO_CLIENT_SECRET="$NEXT_PUBLIC_COGNITO_CLIENT_SECRET" \
+            --build-arg NEXT_PUBLIC_ENV="$NEXT_PUBLIC_ENV" \
+            -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/frontend:${{ github.sha }} ./frontend
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/helpnearby/frontend:${{ github.sha }}
 
       - name: Build and push Backend Docker image
