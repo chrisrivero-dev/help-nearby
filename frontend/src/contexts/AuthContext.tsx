@@ -63,17 +63,10 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
           UserPoolId: data.userPoolId,
           AppClientId: data.clientId,
           Region: data.region,
-          ClientSecret: process.env.NEXT_PUBLIC_COGNITO_CLIENT_SECRET || '',
+          ClientSecret: data.clientSecret || '',
         });
       } catch (err) {
         console.error('Failed to fetch auth config:', err);
-        // Fallback to environment variables
-        setConfig({
-          UserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || '',
-          AppClientId: process.env.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID || '',
-          Region: process.env.NEXT_PUBLIC_COGNITO_REGION || 'us-east-1',
-          ClientSecret: process.env.NEXT_PUBLIC_COGNITO_CLIENT_SECRET || '',
-        });
       } finally {
         setConfigLoading(false);
       }

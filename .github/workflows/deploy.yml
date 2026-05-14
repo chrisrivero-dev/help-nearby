@@ -70,10 +70,10 @@ jobs:
             S3_SECRETS=$(aws secretsmanager get-secret-value --secret-id helpnearby/backend --query SecretString --output text)
 
             # Parse secrets
-            NEXT_PUBLIC_COGNITO_USER_POOL_ID=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_USER_POOL_ID')
-            NEXT_PUBLIC_COGNITO_APP_CLIENT_ID=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID')
-            NEXT_PUBLIC_COGNITO_REGION=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_REGION')
-            NEXT_PUBLIC_COGNITO_CLIENT_SECRET=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_COGNITO_CLIENT_SECRET')
+            COGNITO_USER_POOL_ID=$(echo "$FRONTEND_SECRETS" | jq -r '.COGNITO_USER_POOL_ID')
+            COGNITO_CLIENT_ID=$(echo "$FRONTEND_SECRETS" | jq -r '.COGNITO_CLIENT_ID')
+            COGNITO_REGION=$(echo "$FRONTEND_SECRETS" | jq -r '.COGNITO_REGION')
+            COGNITO_CLIENT_SECRET=$(echo "$FRONTEND_SECRETS" | jq -r '.COGNITO_CLIENT_SECRET')
             NEXT_PUBLIC_ENV=$(echo "$FRONTEND_SECRETS" | jq -r '.NEXT_PUBLIC_ENV')
             S3_BUCKET_NAME=$(echo "$S3_SECRETS" | jq -r '.S3_BUCKET_NAME')
             S3_REGION=$(echo "$S3_SECRETS" | jq -r '.S3_REGION')
@@ -87,10 +87,10 @@ jobs:
             # Frontend
             docker run -d --name helpnearby-frontend \
               -p 5000:5000 \
-              -e NEXT_PUBLIC_COGNITO_USER_POOL_ID="$NEXT_PUBLIC_COGNITO_USER_POOL_ID" \
-              -e NEXT_PUBLIC_COGNITO_APP_CLIENT_ID="$NEXT_PUBLIC_COGNITO_APP_CLIENT_ID" \
-              -e NEXT_PUBLIC_COGNITO_REGION="$NEXT_PUBLIC_COGNITO_REGION" \
-              -e NEXT_PUBLIC_COGNITO_CLIENT_SECRET="$NEXT_PUBLIC_COGNITO_CLIENT_SECRET" \
+              -e COGNITO_USER_POOL_ID="$COGNITO_USER_POOL_ID" \
+              -e COGNITO_CLIENT_ID="$COGNITO_CLIENT_ID" \
+              -e COGNITO_REGION="$COGNITO_REGION" \
+              -e COGNITO_CLIENT_SECRET="$COGNITO_CLIENT_SECRET" \
               -e NEXT_PUBLIC_ENV="$NEXT_PUBLIC_ENV" \
               $ECR_REGISTRY/helpnearby/frontend:$SHA
 
