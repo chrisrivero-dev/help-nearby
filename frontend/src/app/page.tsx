@@ -80,7 +80,7 @@ const Landing: FC = () => {
         onClose={() => setIsLoginModalOpen(false)}
       />
 
-      {/* Center canvas — intro content */}
+      {/* Center canvas — cinematic intro */}
       <motion.div
         style={{
           position: 'absolute',
@@ -93,151 +93,249 @@ const Landing: FC = () => {
           alignItems: 'flex-start',
         }}
       >
-        {/* Headline */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.2 }}
-        >
-          <div
-            style={{
-              fontFamily: "'Poppins', sans-serif",
-              fontWeight: 800,
-              fontSize: 'clamp(2.5rem, 5.5vw, 5rem)',
-              textTransform: 'uppercase',
-              color: textColor,
-              lineHeight: 1.1,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            CONNECTING PEOPLE
-          </div>
-          <div
-            style={{
-              fontFamily: "'Poppins', sans-serif",
-              fontWeight: 800,
-              fontSize: 'clamp(2.5rem, 5.5vw, 5rem)',
-              textTransform: 'uppercase',
-              color: textColor,
-              lineHeight: 1.1,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            TO LOCAL AID.
-          </div>
-        </motion.div>
-
-        {/* Subtitle */}
-        <motion.p
+        {/* Visual depth layer — contained to canvas, no pointer events */}
+        <div
           style={{
-            fontFamily: "'Poppins', sans-serif",
-            fontWeight: 400,
-            fontSize: 'clamp(0.9rem, 1.4vw, 1.05rem)',
-            color: mutedColor,
-            margin: '20px 0 0 0',
-            maxWidth: '480px',
-            lineHeight: 1.65,
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '700px',
+            height: '520px',
+            zIndex: 0,
+            pointerEvents: 'none',
           }}
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.4 }}
         >
-          Find shelter, food, financial assistance, and emergency resources in
-          your area.
-        </motion.p>
+          {/* Ambient radial glow */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: isDark
+                ? 'radial-gradient(ellipse 580px 360px at center, rgba(251, 191, 36, 0.06) 0%, transparent 70%)'
+                : 'radial-gradient(ellipse 580px 360px at center, rgba(0, 0, 0, 0.025) 0%, transparent 70%)',
+            }}
+          />
+          {/* Location signal — three pulsing concentric rings */}
+          <svg
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+            width="480"
+            height="480"
+            viewBox="0 0 480 480"
+            fill="none"
+            aria-hidden="true"
+          >
+            {([0, 1, 2] as const).map((i) => (
+              <motion.circle
+                key={i}
+                cx={240}
+                cy={240}
+                r={72}
+                stroke={
+                  isDark ? 'rgba(251, 191, 36, 0.18)' : 'rgba(0, 0, 0, 0.07)'
+                }
+                strokeWidth={1}
+                fill="none"
+                style={{ transformOrigin: '240px 240px' }}
+                initial={{ opacity: 0, scale: 0.4 }}
+                animate={{ opacity: [0, 0.75, 0], scale: [0.4, 1.05, 1.65] }}
+                transition={{
+                  duration: 3.6,
+                  delay: i * 1.2,
+                  repeat: Infinity,
+                  ease: 'easeOut',
+                }}
+              />
+            ))}
+          </svg>
+        </div>
 
-        {/* CTA Row */}
-        <motion.div
+        {/* Content layer — sits above visual depth layer */}
+        <div
           style={{
+            position: 'relative',
+            zIndex: 1,
             display: 'flex',
-            gap: '16px',
-            marginTop: '40px',
-            flexWrap: 'wrap' as const,
+            flexDirection: 'column',
+            alignItems: 'flex-start',
           }}
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.6 }}
         >
-          {/* Primary: Find Help */}
-          <motion.button
-            onClick={() => router.push('/help')}
+          {/* Headline */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.2 }}
+          >
+            <div
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 800,
+                fontSize: 'clamp(2.5rem, 5.5vw, 5rem)',
+                textTransform: 'uppercase',
+                color: textColor,
+                lineHeight: 1.1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              HELP NEARBY.
+            </div>
+            <div
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 800,
+                fontSize: 'clamp(2.5rem, 5.5vw, 5rem)',
+                textTransform: 'uppercase',
+                color: textColor,
+                lineHeight: 1.1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              WHEN IT MATTERS.
+            </div>
+          </motion.div>
+
+          {/* Accent divider */}
+          <motion.div
+            style={{
+              width: '48px',
+              height: '1px',
+              backgroundColor: isDark
+                ? 'rgba(255, 255, 255, 0.15)'
+                : 'rgba(0, 0, 0, 0.12)',
+              margin: '28px 0',
+              transformOrigin: 'left center',
+            }}
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ duration: 0.5, ease: 'easeOut', delay: 0.45 }}
+          />
+
+          {/* Subtitle */}
+          <motion.p
             style={{
               fontFamily: "'Poppins', sans-serif",
-              fontWeight: 800,
-              fontSize: '13px',
-              textTransform: 'uppercase',
-              letterSpacing: '2px',
-              padding: '14px 28px',
-              border: `4px solid ${textColor}`,
-              backgroundColor: textColor,
-              color: bgColor,
-              cursor: 'pointer',
-              boxShadow: `4px 4px 0 ${shadowColor}`,
+              fontWeight: 400,
+              fontSize: 'clamp(0.9rem, 1.4vw, 1.05rem)',
+              color: mutedColor,
+              margin: 0,
+              maxWidth: '480px',
+              lineHeight: 1.65,
             }}
-            whileHover={{
-              boxShadow: `2px 2px 0 ${shadowColor}`,
-              x: 2,
-              y: 2,
-            }}
-            whileTap={{ scale: 0.97 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.5 }}
           >
-            FIND HELP →
-          </motion.button>
+            Find shelter, food, financial assistance, and emergency resources
+            near you.
+          </motion.p>
 
-          {/* Secondary: Explore Resources */}
-          <motion.button
-            onClick={() => router.push('/resources')}
+          {/* CTA Row */}
+          <motion.div
             style={{
-              fontFamily: "'Poppins', sans-serif",
-              fontWeight: 800,
-              fontSize: '13px',
-              textTransform: 'uppercase',
-              letterSpacing: '2px',
-              padding: '14px 28px',
-              border: `4px solid ${textColor}`,
-              backgroundColor: 'transparent',
-              color: textColor,
-              cursor: 'pointer',
-              boxShadow: `4px 4px 0 ${shadowColor}`,
+              display: 'flex',
+              gap: '16px',
+              marginTop: '40px',
+              flexWrap: 'wrap' as const,
             }}
-            whileHover={{
-              backgroundColor: textColor,
-              color: bgColor,
-              boxShadow: `2px 2px 0 ${shadowColor}`,
-              x: 2,
-              y: 2,
-            }}
-            whileTap={{ scale: 0.97 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.65 }}
           >
-            EXPLORE RESOURCES
-          </motion.button>
-        </motion.div>
+            {/* Primary: Find Help */}
+            <motion.button
+              onClick={() => router.push('/help')}
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 800,
+                fontSize: '13px',
+                textTransform: 'uppercase',
+                letterSpacing: '2px',
+                padding: '14px 28px',
+                border: `4px solid ${textColor}`,
+                backgroundColor: textColor,
+                color: bgColor,
+                cursor: 'pointer',
+                boxShadow: `4px 4px 0 ${shadowColor}`,
+              }}
+              whileHover={{
+                boxShadow: isDark
+                  ? `2px 2px 0 ${shadowColor}, 0 0 18px rgba(251, 191, 36, 0.28)`
+                  : `2px 2px 0 ${shadowColor}`,
+                x: 2,
+                y: 2,
+              }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+            >
+              FIND HELP →
+            </motion.button>
 
-        {/* Login link */}
-        <motion.button
-          onClick={(e: React.MouseEvent) => {
-            e.stopPropagation();
-            setIsLoginModalOpen(true);
-          }}
-          style={{
-            fontFamily: "'Poppins', sans-serif",
-            fontWeight: 400,
-            fontSize: '13px',
-            marginTop: '24px',
-            background: 'none',
-            border: 'none',
-            color: mutedColor,
-            cursor: 'pointer',
-            textDecoration: 'underline',
-            letterSpacing: '0.5px',
-            padding: 0,
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-        >
-          Already have an account? Login
-        </motion.button>
+            {/* Secondary: Explore Resources */}
+            <motion.button
+              onClick={() => router.push('/resources')}
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 800,
+                fontSize: '13px',
+                textTransform: 'uppercase',
+                letterSpacing: '2px',
+                padding: '14px 28px',
+                border: `4px solid ${textColor}`,
+                backgroundColor: 'transparent',
+                color: textColor,
+                cursor: 'pointer',
+                boxShadow: `4px 4px 0 ${shadowColor}`,
+              }}
+              whileHover={{
+                backgroundColor: textColor,
+                color: bgColor,
+                boxShadow: `2px 2px 0 ${shadowColor}`,
+                x: 2,
+                y: 2,
+              }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+            >
+              EXPLORE RESOURCES
+            </motion.button>
+          </motion.div>
+
+          {/* Login — utility footnote, not a primary CTA */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.85 }}
+          >
+            <motion.button
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation();
+                setIsLoginModalOpen(true);
+              }}
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 400,
+                fontSize: '11px',
+                marginTop: '20px',
+                background: 'none',
+                border: 'none',
+                color: mutedColor,
+                cursor: 'pointer',
+                letterSpacing: '0.5px',
+                padding: 0,
+                opacity: 0.5,
+              }}
+              whileHover={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              Login
+            </motion.button>
+          </motion.div>
+        </div>
       </motion.div>
     </div>
   );
