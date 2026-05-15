@@ -43,6 +43,12 @@ const TITLE_DISPLAY_TIME = 2000; // 2 seconds
 // Landing page with cycling titles above "NEARBY."
 const Landing: FC = () => {
   const router = useRouter();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const textColor = isDark ? '#e8e8e8' : '#111111';
+  const bgColor = isDark ? '#0f0f0f' : '#fafafa';
+  const mutedColor = isDark ? '#888888' : '#666666';
+  const shadowColor = isDark ? '#444444' : '#888888';
   const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
   const [isCycling, setIsCycling] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -74,7 +80,7 @@ const Landing: FC = () => {
         onClose={() => setIsLoginModalOpen(false)}
       />
 
-      {/* Main container with cycling label row and NEARBY. header */}
+      {/* Center canvas — intro content */}
       <motion.div
         style={{
           position: 'absolute',
@@ -85,86 +91,129 @@ const Landing: FC = () => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
-          cursor: 'pointer',
         }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 2.5, ease: 'easeOut' }}
-        onClick={() => router.push('/help')}
       >
-        {/* Label row - cycling titles above NEARBY. */}
+        {/* Headline */}
         <motion.div
-          style={{ position: 'relative', overflow: 'hidden' as const }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isCycling ? 1 : 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.2 }}
         >
-          {/* Invisible sizer — always sized to the longest label so the container never shifts */}
           <div
-            aria-hidden="true"
             style={{
-              visibility: 'hidden',
-              pointerEvents: 'none',
               fontFamily: "'Poppins', sans-serif",
               fontWeight: 800,
-              fontSize: 'clamp(4rem, 10vw, 8rem)',
-              textTransform: 'uppercase' as const,
-              lineHeight: 1.2,
-              whiteSpace: 'nowrap' as const,
+              fontSize: 'clamp(2.5rem, 5.5vw, 5rem)',
+              textTransform: 'uppercase',
+              color: textColor,
+              lineHeight: 1.1,
+              whiteSpace: 'nowrap',
             }}
           >
-            RESOURCES!
+            CONNECTING PEOPLE
           </div>
-          <AnimatePresence mode="popLayout">
-            {isCycling && (
-              <motion.div
-                key={TITLES[currentTitleIndex]}
-                style={{
-                  position: 'absolute' as const,
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                }}
-                initial={{ y: '100%', opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: '-100%', opacity: 0 }}
-                transition={{ duration: 0.5, ease: 'easeInOut' }}
-              >
-                <div
-                  style={{
-                    fontFamily: "'Poppins', sans-serif",
-                    fontWeight: 800,
-                    fontSize: 'clamp(4rem, 10vw, 8rem)',
-                    textTransform: 'uppercase',
-                    color: 'var(--color-text)',
-                    lineHeight: 1.2,
-                    whiteSpace: 'nowrap' as const,
-                  }}
-                >
-                  {TITLES[currentTitleIndex]}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 800,
+              fontSize: 'clamp(2.5rem, 5.5vw, 5rem)',
+              textTransform: 'uppercase',
+              color: textColor,
+              lineHeight: 1.1,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            TO LOCAL AID.
+          </div>
         </motion.div>
 
-        {/* "NEARBY." - header with natural line spacing */}
-        <div
+        {/* Subtitle */}
+        <motion.p
           style={{
             fontFamily: "'Poppins', sans-serif",
-            fontWeight: 800,
-            fontSize: 'clamp(4rem, 10vw, 8rem)',
-            textTransform: 'uppercase',
-            color: 'var(--color-text)',
-            textAlign: 'left' as const,
-            lineHeight: 1.2,
-            zIndex: 10, // header behind label animation
+            fontWeight: 400,
+            fontSize: 'clamp(0.9rem, 1.4vw, 1.05rem)',
+            color: mutedColor,
+            margin: '20px 0 0 0',
+            maxWidth: '480px',
+            lineHeight: 1.65,
           }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.4 }}
         >
-          NEARBY.
-        </div>
+          Find shelter, food, financial assistance, and emergency resources in
+          your area.
+        </motion.p>
 
-        {/* Login button below "NEARBY." */}
+        {/* CTA Row */}
+        <motion.div
+          style={{
+            display: 'flex',
+            gap: '16px',
+            marginTop: '40px',
+            flexWrap: 'wrap' as const,
+          }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.6 }}
+        >
+          {/* Primary: Find Help */}
+          <motion.button
+            onClick={() => router.push('/help')}
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 800,
+              fontSize: '13px',
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+              padding: '14px 28px',
+              border: `4px solid ${textColor}`,
+              backgroundColor: textColor,
+              color: bgColor,
+              cursor: 'pointer',
+              boxShadow: `4px 4px 0 ${shadowColor}`,
+            }}
+            whileHover={{
+              boxShadow: `2px 2px 0 ${shadowColor}`,
+              x: 2,
+              y: 2,
+            }}
+            whileTap={{ scale: 0.97 }}
+          >
+            FIND HELP →
+          </motion.button>
+
+          {/* Secondary: Explore Resources */}
+          <motion.button
+            onClick={() => router.push('/resources')}
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 800,
+              fontSize: '13px',
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+              padding: '14px 28px',
+              border: `4px solid ${textColor}`,
+              backgroundColor: 'transparent',
+              color: textColor,
+              cursor: 'pointer',
+              boxShadow: `4px 4px 0 ${shadowColor}`,
+            }}
+            whileHover={{
+              backgroundColor: textColor,
+              color: bgColor,
+              boxShadow: `2px 2px 0 ${shadowColor}`,
+              x: 2,
+              y: 2,
+            }}
+            whileTap={{ scale: 0.97 }}
+          >
+            EXPLORE RESOURCES
+          </motion.button>
+        </motion.div>
+
+        {/* Login link */}
         <motion.button
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
@@ -172,23 +221,22 @@ const Landing: FC = () => {
           }}
           style={{
             fontFamily: "'Poppins', sans-serif",
-            fontWeight: 600,
-            fontSize: '16px',
-            marginTop: '32px',
-            padding: '12px 32px',
-            borderRadius: '8px',
-            border: '2px solid var(--color-text)',
-            backgroundColor: 'transparent',
-            color: 'var(--color-text)',
+            fontWeight: 400,
+            fontSize: '13px',
+            marginTop: '24px',
+            background: 'none',
+            border: 'none',
+            color: mutedColor,
             cursor: 'pointer',
-            transition: 'all 0.2s',
-            textTransform: 'uppercase',
-            letterSpacing: '2px',
+            textDecoration: 'underline',
+            letterSpacing: '0.5px',
+            padding: 0,
           }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
         >
-          Login
+          Already have an account? Login
         </motion.button>
       </motion.div>
     </div>
