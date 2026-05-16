@@ -113,7 +113,7 @@ const OurStory = () => {
             The Team Behind Help Nearby
           </p>
           <p style={{
-            color: '#666',
+            color: '#9a9a9a',
             fontSize: 'clamp(0.8rem, 1.4vw, 0.92rem)',
             lineHeight: 1.7,
             maxWidth: 620,
@@ -133,8 +133,8 @@ const OurStory = () => {
         }}>
           {TEAM.map((person) => (
             <div key={person.name} style={{
-              border: '1px solid #222',
-              backgroundColor: '#090909',
+              border: '1px solid #2e2e2e',
+              backgroundColor: '#0e0e0e',
               padding: '1.4rem',
               display: 'flex',
               flexDirection: 'column',
@@ -179,7 +179,7 @@ const OurStory = () => {
 
               {/* Bio */}
               <p style={{
-                color: '#686868',
+                color: 'rgba(255,255,255,0.74)',
                 fontSize: 'clamp(0.78rem, 1.2vw, 0.85rem)',
                 lineHeight: 1.72,
                 margin: 0,
@@ -194,7 +194,7 @@ const OurStory = () => {
                   fontSize: '0.55rem',
                   fontWeight: 700,
                   letterSpacing: '0.18em',
-                  color: '#333',
+                  color: '#565656',
                   textTransform: 'uppercase' as const,
                   marginBottom: '0.3rem',
                 }}>
@@ -202,7 +202,7 @@ const OurStory = () => {
                 </span>
                 <span style={{
                   fontSize: '0.75rem',
-                  color: '#4a4a4a',
+                  color: '#848484',
                   letterSpacing: '0.03em',
                 }}>
                   {person.work}
@@ -214,7 +214,7 @@ const OurStory = () => {
 
         {/* Closing trust statement */}
         <p style={{
-          color: '#444',
+          color: '#888',
           fontSize: 'clamp(0.78rem, 1.2vw, 0.85rem)',
           lineHeight: 1.75,
           marginTop: '1.75rem',
