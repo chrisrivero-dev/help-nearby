@@ -734,6 +734,40 @@ const HelpPage: FC = () => {
         </div>
       </div>
 
+      {/* ── Demo disclaimer — shown only after location is submitted ─────────── */}
+      <AnimatePresence>
+        {hasLocation && (
+          <motion.div
+            key="demo-disclaimer"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.28 }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.55rem',
+              padding: '0.6rem 1rem',
+              marginBottom: '1rem',
+              background: isDark ? '#0f0d00' : '#fffbeb',
+              border: `1px solid ${isDark ? '#2a2200' : '#fde68a'}`,
+              borderLeft: '3px solid #f59e0b',
+            }}
+          >
+            <AlertTriangle size={12} color="#f59e0b" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+            <span style={{
+              fontFamily: 'Poppins, sans-serif',
+              fontSize: '0.72rem',
+              color: isDark ? '#a07820' : '#92400e',
+              letterSpacing: '0.01em',
+              lineHeight: 1.4,
+            }}>
+              Demo results shown for now — live local data not connected yet.
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Dashboard grid ───────────────────────────────────────────────────── */}
       <motion.div
         style={{
