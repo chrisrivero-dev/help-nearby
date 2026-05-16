@@ -19,6 +19,13 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
 
   const [fadeTextOut, setFadeTextOut] = useState(false);
 
+  const handleSkip = () => {
+    setFadeTextOut(true);
+    setTimeout(() => {
+      document.getElementById('team')?.scrollIntoView({ behavior: 'smooth' });
+    }, 400);
+  };
+
   const paragraphs = [
     'We are Mike and Chris. Two regular people who got tired of watching families scramble for help when things go sideways.',
     'We built Help Nearby with a simple belief: people deserve clear next steps when life gets chaotic.',
@@ -111,6 +118,33 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
             ))}
           </div>
         </motion.div>
+
+        {/* Skip button — visible only while intro is playing */}
+        {!fadeTextOut && (
+          <button
+            onClick={handleSkip}
+            style={{
+              position: 'fixed',
+              bottom: '2rem',
+              right: '2rem',
+              zIndex: 10,
+              background: 'transparent',
+              border: '1px solid #f9c700',
+              color: '#f9c700',
+              padding: '0.5rem 1.1rem',
+              fontSize: '0.72rem',
+              fontWeight: 600,
+              letterSpacing: '0.12em',
+              cursor: 'pointer',
+              opacity: 0.75,
+              transition: 'opacity 0.2s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.75'; }}
+          >
+            Skip intro · Meet the team ↓
+          </button>
+        )}
 
         {/* Our Story component that appears after text fades out */}
         {fadeTextOut && (
