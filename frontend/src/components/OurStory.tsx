@@ -71,10 +71,30 @@ const OurStory = () => {
           woman, an obscure internet forum, and two fellow explorers hiking up a
           mountain in Ha Long Bay.
         </p>
+        <a
+          href="#team"
+          style={{
+            display: 'inline-block',
+            marginTop: '1.25rem',
+            fontSize: '0.72rem',
+            fontWeight: 600,
+            letterSpacing: '0.1em',
+            color: '#f9c700',
+            opacity: 0.7,
+            textDecoration: 'none',
+            borderBottom: '1px solid transparent',
+            transition: 'opacity 0.2s, border-color 0.2s',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = '1'; (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = '#f9c700'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = '0.7'; (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = 'transparent'; }}
+        >
+          Meet the team ↓
+        </a>
       </div>
 
       {/* ── Team section ─────────────────────────────────────────────────────── */}
       <motion.div
+        id="team"
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 14 }}
         transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
