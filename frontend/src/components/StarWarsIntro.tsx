@@ -39,15 +39,13 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
     overflow: 'hidden',
   };
 
-  // OurStory centered on page
+  // OurStory — flows from top of wrapper so team section below is scrollable
   const ourStoryStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
+    position: 'relative',
+    margin: '0 auto',
     width: '100%',
-    maxWidth: '800px',
-    padding: '20px',
+    maxWidth: '900px',
+    padding: '12vh 20px 80px',
     zIndex: 3,
   };
 
