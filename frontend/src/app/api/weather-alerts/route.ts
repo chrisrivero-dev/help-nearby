@@ -1,0 +1,152 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { normalizeLocation } from '@/lib/location/normalizeLocation';
+
+type NwsFeature = {
+  id?: string;
+  properties?: {
+    id?: string;
+    event?: string;
+    headline?: string;
+    description?: string;
+    instruction?: string;
+    severity?: string;
+    urgency?: string;
+    certainty?: string;
+    effective?: string;
+    expires?: string;
+    areaDesc?: string;
+    web?: string;
+    senderName?: string;
+  };
+};
+
+type WeatherAlert = {
+  id: string;
+  title: string;
+  headline: string;
+  description: string;
+  instruction: string;
+  severity: string;
+  urgency: string;
+  certainty: string;
+  effective: string | null;
+  expires: string | null;
+  area: string;
+  url: string;
+};
+
+function jsonResponse(body: unknown, status = 200) {
+  return NextResponse.json(body, { status });
+}
+
+function isValidZip(zip: string | null): zip is string {
+  return Boolean(zip && /^\d{5}$/.test(zip));
+}
+
+export async function GET(request: NextRequest) {
+  const zip = request.nextUrl.searchParams.get('zip');
+
+  if (!isValidZip(zip)) {
+    return jsonResponse(
+      {
+        alerts: [],
+        source: 'National Weather Service',
+        fetchedAt: new Date().toISOString(),
+        location: null,
+        error: 'invalid_zip',
+      },
+      400
+    );
+  }
+
+  try {
+    const location = await normalizeLocation(zip);
+
+    if (!location?.latitude || !location?.longitude) {
+      return jsonResponse(
+        {
+          alerts: [],
+          source: 'National Weather Service',
+          fetchedAt: new Date().toISOString(),
+          location,
+          error: 'unsupported_zip',
+        },
+        404
+      );
+    }
+
+    const lat = Number(location.latitude).toFixed(4);
+    const lng = Number(location.longitude).toFixed(4);
+
+    const nwsUrl = `https://api.weather.gov/alerts/active?point=${lat},${lng}`;
+
+    const response = await fetch(nwsUrl, {
+      headers: {
+        'User-Agent': 'HelpNearby/1.0 (https://helpnearby.co)',
+        Accept: 'application/geo+json',
+      },
+      next: { revalidate: 300 },
+    });
+
+    const fetchedAt = new Date().toISOString();
+
+    if (!response.ok) {
+      return jsonResponse(
+        {
+          alerts: [],
+          source: 'National Weather Service',
+          fetchedAt,
+          location,
+          error: 'nws_unavailable',
+        },
+        502
+      );
+    }
+
+    const data = await response.json();
+
+    const alerts: WeatherAlert[] = Array.isArray(data.features)
+      ? data.features.map((feature: NwsFeature, index: number) => {
+          const properties = feature.properties || {};
+
+          return {
+            id: properties.id || feature.id || `nws-alert-${index}`,
+            title: properties.event || 'Weather Alert',
+            headline: properties.headline || properties.event || 'Official weather alert',
+            description: properties.description || '',
+            instruction: properties.instruction || '',
+            severity: properties.severity || 'Unknown',
+            urgency: properties.urgency || 'Unknown',
+            certainty: properties.certainty || 'Unknown',
+            effective: properties.effective || null,
+            expires: properties.expires || null,
+            area: properties.areaDesc || '',
+            url: properties.web || 'https://www.weather.gov/',
+          };
+        })
+      : [];
+
+    return jsonResponse({
+      alerts,
+      source: {
+        name: 'National Weather Service',
+        url: 'https://www.weather.gov/',
+        attribution: 'Official weather alerts from the National Weather Service',
+      },
+      fetchedAt,
+      location,
+      error: null,
+    });
+  } catch (error) {
+    return jsonResponse(
+      {
+        alerts: [],
+        source: 'National Weather Service',
+        fetchedAt: new Date().toISOString(),
+        location: null,
+        error: 'weather_alerts_failed',
+      },
+      500
+    );
+  }
+}
