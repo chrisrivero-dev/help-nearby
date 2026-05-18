@@ -17,7 +17,7 @@ const TEAM = [
     name: 'Christopher Rivero',
     role: 'Support Operations · Public-Sector Systems · AI Automation',
     bio: 'Chris brings experience in public-sector workflows, GIS/CAD systems, support operations, automation, and AI-assisted knowledge tools. His focus is turning scattered information into structured, usable systems that people and organizations can rely on.',
-    work: 'SupportHub · SOP Search Hub · GIS Workflow Tools · Help Nearby',
+    work: 'Sidecar Support Assistant · Help Nearby · GIS/CAD Workflow Automation · Knowledge Base Systems',
     img: '/images/christopher-rivero-profile.jpg',
     alt: 'Christopher Rivero',
   },
