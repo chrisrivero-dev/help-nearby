@@ -9,8 +9,12 @@ import {
   MapPin, ChevronRight, Flame,
   Thermometer, CloudLightning, Wind, ShieldAlert,
   Home, Utensils, DollarSign, Activity,
-  Navigation, ArrowRight,
+  Navigation, ArrowRight, BookOpen, ExternalLink,
 } from 'lucide-react';
+import { normalizeLocation } from '@/lib/location/normalizeLocation';
+import { haversineDistanceMiles } from '@/lib/location/distance';
+import { RESOURCES_90012 } from '@/data/resources.90012';
+import type { ProductionResource } from '@/data/resources.types';
 import NavBar from '@/components/NavBar';
 import FeatureToggles from '@/components/FeatureToggles';
 import { useTheme } from '@/components/useTheme';
@@ -345,6 +349,11 @@ const HelpPage: FC = () => {
   const [weatherAlertsError, setWeatherAlertsError] = useState(false);
   const [weatherAlertsFetchedAt, setWeatherAlertsFetchedAt] = useState<string | null>(null);
 
+  // Nearby Help state — null = not fetched yet (show demo), [] = unsupported ZIP, populated = real data
+  type SeedResource = ProductionResource & { distanceMi: number };
+  const [nearbyResources, setNearbyResources] = useState<SeedResource[] | null>(null);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -373,6 +382,35 @@ const HelpPage: FC = () => {
     }
   }, []);
 
+  const fetchNearbyResources = useCallback(async (zip: string) => {
+    setNearbyLoading(true);
+    setNearbyResources(null);
+    if (zip !== '90012') {
+      setNearbyResources([]);
+      setNearbyLoading(false);
+      return;
+    }
+    try {
+      const loc = await normalizeLocation(zip);
+      if (!loc.isValid) {
+        setNearbyResources([]);
+        setNearbyLoading(false);
+        return;
+      }
+      const withDist = RESOURCES_90012
+        .map(r => ({
+          ...r,
+          distanceMi: haversineDistanceMiles(loc.latitude, loc.longitude, r.latitude, r.longitude),
+        }))
+        .sort((a, b) => a.distanceMi - b.distanceMi);
+      setNearbyResources(withDist);
+    } catch {
+      setNearbyResources([]);
+    } finally {
+      setNearbyLoading(false);
+    }
+  }, []);
+
   // Submit ZIP/city — validates non-empty, then activates dashboard
   const handleSubmit = useCallback(() => {
     if (!location.trim()) {
@@ -383,8 +421,9 @@ const HelpPage: FC = () => {
     setHasLocation(true);
     if (/^\d{5}$/.test(location.trim())) {
       fetchWeatherAlerts(location.trim());
+      fetchNearbyResources(location.trim());
     }
-  }, [location, fetchWeatherAlerts]);
+  }, [location, fetchWeatherAlerts, fetchNearbyResources]);
 
   // Browser geolocation — activates dashboard on success
   const handleLocate = useCallback(() => {
@@ -407,6 +446,24 @@ const HelpPage: FC = () => {
       { timeout: 8000 }
     );
   }, []);
+
+  // ── Nearby Help helpers ───────────────────────────────────────────────────────
+
+  const formatDist = (mi: number) =>
+    mi < 0.1 ? '< 0.1 mi' : mi < 10 ? `${mi.toFixed(1)} mi` : `${Math.round(mi)} mi`;
+
+  const formatVerifiedDate = (iso: string) => {
+    const [year, month, day] = iso.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
+  };
+
+  const categoryConfig: Record<ProductionResource['category'], { Icon: typeof Heart; color: string }> = {
+    health: { Icon: Heart, color: '#dc2626' },
+    library: { Icon: BookOpen, color: '#7c3aed' },
+    government: { Icon: DollarSign, color: '#059669' },
+    social_services: { Icon: Users, color: '#d97706' },
+  };
 
   // ── Design tokens ────────────────────────────────────────────────────────────
 
@@ -824,7 +881,7 @@ const HelpPage: FC = () => {
               letterSpacing: '0.01em',
               lineHeight: 1.4,
             }}>
-              Demo results shown for now — live local data not connected yet.
+              Official weather alerts and 90012 Nearby Help resources are source-checked. Transit, updates, and community action are still demo.
             </span>
           </motion.div>
         )}
@@ -996,11 +1053,157 @@ const HelpPage: FC = () => {
             transition={{ duration: 0.18 }}
           >
             <div style={{ height: 2, background: '#d97706' }} />
-            <SectionHeader accent="#d97706" Icon={Heart} title="NEARBY HELP" ctaLabel="Browse all resources" ctaHref="/resources" />
+            <SectionHeader
+              accent="#d97706"
+              Icon={Heart}
+              title="NEARBY HELP"
+              ctaLabel="Browse all resources"
+              ctaHref="/resources"
+              showDemo={!(nearbyResources !== null && nearbyResources.length > 0)}
+            />
 
             <AnimatePresence mode="wait">
-              {hasLocation ? (
-                <motion.div key="help-content" variants={contentVariants} initial="hidden" animate="visible">
+              {/* Not yet activated — locked */}
+              {!hasLocation ? (
+                <motion.div key="help-locked" variants={contentVariants} initial="hidden" animate="visible">
+                  <LockedPanel />
+                  <div style={{ padding: '0 1.4rem 1rem' }}>
+                    <Link href="/resources" style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                      padding: '0.62rem',
+                      fontFamily: 'Poppins, sans-serif', fontWeight: 800,
+                      fontSize: '0.72rem', letterSpacing: '0.1em',
+                      color: cardText,
+                      border: `1.5px solid ${isDark ? '#272727' : '#e0e0e0'}`,
+                      textDecoration: 'none',
+                      boxShadow: isDark ? '3px 3px 0px rgba(0,0,0,0.5)' : '3px 3px 0px rgba(0,0,0,0.05)',
+                    }}>
+                      BROWSE ALL RESOURCES <ArrowRight size={12} />
+                    </Link>
+                  </div>
+                </motion.div>
+
+              ) : nearbyLoading ? (
+                /* ZIP submitted — resolving distance */
+                <motion.div key="help-loading" variants={contentVariants} initial="hidden" animate="visible">
+                  <div style={{
+                    padding: '1.4rem',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.78rem', color: mutedText }}>
+                      Searching for nearby resources…
+                    </span>
+                  </div>
+                </motion.div>
+
+              ) : nearbyResources !== null && nearbyResources.length === 0 ? (
+                /* Unsupported ZIP */
+                <motion.div key="help-unavailable" variants={contentVariants} initial="hidden" animate="visible">
+                  <div style={{ padding: '1.2rem 1.4rem' }}>
+                    <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.78rem', color: mutedText, lineHeight: 1.5 }}>
+                      Nearby Help is not available in this ZIP yet.
+                    </span>
+                  </div>
+                  <div style={{ padding: '0 1.4rem 1rem' }}>
+                    <Link href="/resources" style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                      padding: '0.62rem',
+                      fontFamily: 'Poppins, sans-serif', fontWeight: 800,
+                      fontSize: '0.72rem', letterSpacing: '0.1em',
+                      color: cardText,
+                      border: `1.5px solid ${isDark ? '#272727' : '#e0e0e0'}`,
+                      textDecoration: 'none',
+                      boxShadow: isDark ? '3px 3px 0px rgba(0,0,0,0.5)' : '3px 3px 0px rgba(0,0,0,0.05)',
+                    }}>
+                      BROWSE ALL RESOURCES <ArrowRight size={12} />
+                    </Link>
+                  </div>
+                </motion.div>
+
+              ) : nearbyResources !== null && nearbyResources.length > 0 ? (
+                /* Source-verified seed resources for supported ZIP */
+                <motion.div key="help-real" variants={contentVariants} initial="hidden" animate="visible">
+                  {nearbyResources.map((r) => {
+                    const { Icon: CatIcon, color } = categoryConfig[r.category];
+                    return (
+                      <div key={r.id} style={{
+                        display: 'flex', alignItems: 'flex-start', gap: '0.9rem',
+                        padding: '0.9rem 1.4rem',
+                        borderBottom: `1px solid ${divider}`,
+                      }}>
+                        <div style={{
+                          width: 34, height: 34, flexShrink: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: isDark ? color + '14' : color + '0f',
+                          border: `1px solid ${color}35`,
+                        }}>
+                          <CatIcon size={14} color={color} strokeWidth={2} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: '0.82rem', color: cardText }}>
+                            {r.name}
+                          </div>
+                          <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.7rem', color: mutedText, marginTop: '0.06rem' }}>
+                            {r.type} · {r.address}, {r.city}, {r.state} {r.zip}
+                          </div>
+                          <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.7rem', color: mutedText, marginTop: '0.06rem' }}>
+                            {r.hours}{r.phone ? ` · ${r.phone}` : ''}
+                          </div>
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            marginTop: '0.38rem', flexWrap: 'wrap',
+                          }}>
+                            <a
+                              href={r.sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
+                                fontFamily: 'Poppins, sans-serif', fontSize: '0.62rem',
+                                color: isDark ? '#4a7abf' : '#2563eb',
+                                textDecoration: 'none',
+                              }}
+                            >
+                              <ExternalLink size={9} /> Source
+                            </a>
+                            <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.62rem', color: isDark ? '#363636' : '#bbb' }}>·</span>
+                            <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.62rem', color: isDark ? '#363636' : '#bbb' }}>
+                              Source-verified {formatVerifiedDate(r.verifiedAt)}
+                            </span>
+                            <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.62rem', color: isDark ? '#363636' : '#bbb' }}>·</span>
+                            <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.62rem', color: isDark ? '#2e2e2e' : '#c0c0c0', fontStyle: 'italic' }}>
+                              Call before visiting — information may change.
+                            </span>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0, paddingTop: '0.1rem' }}>
+                          <span style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: '0.74rem', color: mutedText }}>
+                            {formatDist(r.distanceMi)}
+                          </span>
+                          <ChevronRight size={12} color={mutedText} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div style={{ padding: '1rem 1.4rem' }}>
+                    <Link href="/resources" style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                      padding: '0.62rem',
+                      fontFamily: 'Poppins, sans-serif', fontWeight: 800,
+                      fontSize: '0.72rem', letterSpacing: '0.1em',
+                      color: cardText,
+                      border: `1.5px solid ${isDark ? '#272727' : '#e0e0e0'}`,
+                      textDecoration: 'none',
+                      boxShadow: isDark ? '3px 3px 0px rgba(0,0,0,0.5)' : '3px 3px 0px rgba(0,0,0,0.05)',
+                    }}>
+                      BROWSE ALL RESOURCES <ArrowRight size={12} />
+                    </Link>
+                  </div>
+                </motion.div>
+
+              ) : (
+                /* Demo fallback — geolocation or city-name input (no ZIP) */
+                <motion.div key="help-demo" variants={contentVariants} initial="hidden" animate="visible">
                   {DEMO_RESOURCES.map((r) => (
                     <div key={r.name} style={{
                       display: 'flex', alignItems: 'center', gap: '0.9rem',
@@ -1034,24 +1237,6 @@ const HelpPage: FC = () => {
                     </div>
                   ))}
                   <div style={{ padding: '1rem 1.4rem' }}>
-                    <Link href="/resources" style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                      padding: '0.62rem',
-                      fontFamily: 'Poppins, sans-serif', fontWeight: 800,
-                      fontSize: '0.72rem', letterSpacing: '0.1em',
-                      color: cardText,
-                      border: `1.5px solid ${isDark ? '#272727' : '#e0e0e0'}`,
-                      textDecoration: 'none',
-                      boxShadow: isDark ? '3px 3px 0px rgba(0,0,0,0.5)' : '3px 3px 0px rgba(0,0,0,0.05)',
-                    }}>
-                      BROWSE ALL RESOURCES <ArrowRight size={12} />
-                    </Link>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div key="help-locked" variants={contentVariants} initial="hidden" animate="visible">
-                  <LockedPanel />
-                  <div style={{ padding: '0 1.4rem 1rem' }}>
                     <Link href="/resources" style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                       padding: '0.62rem',
