@@ -294,6 +294,36 @@ const MapVisualization: FC<{ isDark: boolean }> = ({ isDark }) => {
   );
 };
 
+// ── Weather alert type (matches /api/weather-alerts response) ─────────────────
+
+type WeatherAlert = {
+  id: string;
+  title: string;
+  headline: string;
+  description: string;
+  instruction: string;
+  severity: string;
+  urgency: string;
+  certainty: string;
+  effective: string | null;
+  expires: string | null;
+  area: string;
+  url: string;
+};
+
+const severityColor = (severity: string) => {
+  switch (severity.toLowerCase()) {
+    case 'extreme': return '#dc2626';
+    case 'severe':  return '#ef4444';
+    case 'moderate': return '#f97316';
+    case 'minor':   return '#f59e0b';
+    default:        return '#60a5fa';
+  }
+};
+
+const formatCheckedTime = (iso: string) =>
+  new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
 // ── Help page ──────────────────────────────────────────────────────────────────
 
 const HelpPage: FC = () => {
@@ -309,11 +339,38 @@ const HelpPage: FC = () => {
   const [hasLocation, setHasLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
+  // Weather alerts state — fetched from /api/weather-alerts when a ZIP is submitted
+  const [weatherAlerts, setWeatherAlerts] = useState<WeatherAlert[] | null>(null);
+  const [weatherAlertsLoading, setWeatherAlertsLoading] = useState(false);
+  const [weatherAlertsError, setWeatherAlertsError] = useState(false);
+  const [weatherAlertsFetchedAt, setWeatherAlertsFetchedAt] = useState<string | null>(null);
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
+  }, []);
+
+  const fetchWeatherAlerts = useCallback(async (zip: string) => {
+    setWeatherAlertsLoading(true);
+    setWeatherAlertsError(false);
+    setWeatherAlerts(null);
+    setWeatherAlertsFetchedAt(null);
+    try {
+      const res = await fetch(`/api/weather-alerts?zip=${encodeURIComponent(zip)}`);
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setWeatherAlertsError(true);
+      } else {
+        setWeatherAlerts(data.alerts ?? []);
+        setWeatherAlertsFetchedAt(data.fetchedAt ?? null);
+      }
+    } catch {
+      setWeatherAlertsError(true);
+    } finally {
+      setWeatherAlertsLoading(false);
+    }
   }, []);
 
   // Submit ZIP/city — validates non-empty, then activates dashboard
@@ -324,7 +381,10 @@ const HelpPage: FC = () => {
     }
     setLocationError(null);
     setHasLocation(true);
-  }, [location]);
+    if (/^\d{5}$/.test(location.trim())) {
+      fetchWeatherAlerts(location.trim());
+    }
+  }, [location, fetchWeatherAlerts]);
 
   // Browser geolocation — activates dashboard on success
   const handleLocate = useCallback(() => {
@@ -406,7 +466,7 @@ const HelpPage: FC = () => {
   // ── Section header ────────────────────────────────────────────────────────────
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const SectionHeader = ({ accent, Icon, title, ctaLabel, ctaHref }: { accent: string; Icon: any; title: string; ctaLabel?: string; ctaHref?: string }) => (
+  const SectionHeader = ({ accent, Icon, title, ctaLabel, ctaHref, showDemo = true }: { accent: string; Icon: any; title: string; ctaLabel?: string; ctaHref?: string; showDemo?: boolean }) => (
     <div style={{
       display: 'flex',
       alignItems: 'center',
@@ -426,14 +486,16 @@ const HelpPage: FC = () => {
         }}>
           {title}
         </span>
-        <span style={{
-          fontSize: '0.52rem',
-          fontWeight: 700,
-          letterSpacing: '0.1em',
-          color: isDark ? '#363636' : '#ccc',
-          border: `1px solid ${isDark ? '#2c2c2c' : '#e0e0e0'}`,
-          padding: '1px 4px',
-        }}>DEMO</span>
+        {showDemo && (
+          <span style={{
+            fontSize: '0.52rem',
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            color: isDark ? '#363636' : '#ccc',
+            border: `1px solid ${isDark ? '#2c2c2c' : '#e0e0e0'}`,
+            padding: '1px 4px',
+          }}>DEMO</span>
+        )}
       </div>
       {ctaLabel && ctaHref && hasLocation && (
         <Link href={ctaHref} style={{
@@ -792,7 +854,7 @@ const HelpPage: FC = () => {
             transition={{ duration: 0.18 }}
           >
             <div style={{ height: 2, background: '#dc2626' }} />
-            <SectionHeader accent="#dc2626" Icon={AlertTriangle} title="EMERGENCY ALERTS" ctaLabel="View all alerts" ctaHref="#" />
+            <SectionHeader accent="#dc2626" Icon={AlertTriangle} title="EMERGENCY ALERTS" ctaLabel="View all alerts" ctaHref="#" showDemo={false} />
 
             {/* Category chips — always visible, they describe alert types not nearby data */}
             <div style={{
@@ -820,7 +882,7 @@ const HelpPage: FC = () => {
               ))}
             </div>
 
-            {/* Active alerts — locked until location provided */}
+            {/* Active alerts — locked until location provided, then shows real NWS data */}
             <AnimatePresence mode="wait">
               {hasLocation ? (
                 <motion.div
@@ -828,29 +890,95 @@ const HelpPage: FC = () => {
                   variants={contentVariants}
                   initial="hidden"
                   animate="visible"
-                  style={{ padding: '0.9rem 1.4rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}
                 >
-                  {DEMO_ALERTS.map((alert) => (
-                    <div key={alert.id} style={{
-                      display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
-                      padding: '0.85rem 1rem',
-                      borderLeft: `3px solid ${alert.accentColor}`,
-                      background: isDark ? '#0d0d0d' : '#fafafa',
-                    }}>
-                      <alert.Icon size={14} color={alert.accentColor} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
-                      <div>
-                        <div style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: '0.83rem', color: cardText, marginBottom: '0.2rem' }}>
-                          {alert.title}
-                        </div>
-                        <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.77rem', color: mutedText, lineHeight: 1.5, marginBottom: '0.3rem' }}>
-                          {alert.body}
-                        </div>
-                        <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.64rem', color: mutedText, letterSpacing: '0.02em' }}>
-                          Issued: {alert.issued}
-                        </div>
+                  <div style={{ padding: '0.9rem 1.4rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                    {weatherAlertsLoading ? (
+                      <div style={{
+                        padding: '1.2rem 0',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.78rem', color: mutedText }}>
+                          Checking for official weather alerts…
+                        </span>
                       </div>
+                    ) : weatherAlertsError ? (
+                      <div style={{
+                        padding: '0.85rem 1rem',
+                        borderLeft: '3px solid #f97316',
+                        background: isDark ? '#0d0d0d' : '#fafafa',
+                      }}>
+                        <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.78rem', color: mutedText, lineHeight: 1.5 }}>
+                          Official weather alerts could not be loaded. Check{' '}
+                          <a href="https://www.weather.gov/" target="_blank" rel="noopener noreferrer"
+                            style={{ color: '#f97316', textDecoration: 'underline' }}>
+                            weather.gov
+                          </a>{' '}
+                          directly.
+                        </span>
+                      </div>
+                    ) : weatherAlerts !== null && weatherAlerts.length === 0 ? (
+                      <div style={{ padding: '0.5rem 0' }}>
+                        <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.78rem', color: mutedText, lineHeight: 1.5 }}>
+                          No active official weather alerts near this location.
+                        </span>
+                      </div>
+                    ) : weatherAlerts !== null && weatherAlerts.length > 0 ? (
+                      weatherAlerts.map((alert) => {
+                        const accentColor = severityColor(alert.severity);
+                        return (
+                          <div key={alert.id} style={{
+                            display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
+                            padding: '0.85rem 1rem',
+                            borderLeft: `3px solid ${accentColor}`,
+                            background: isDark ? '#0d0d0d' : '#fafafa',
+                          }}>
+                            <AlertTriangle size={14} color={accentColor} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+                            <div>
+                              <div style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: '0.83rem', color: cardText, marginBottom: '0.2rem' }}>
+                                {alert.title}
+                              </div>
+                              {alert.headline && (
+                                <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.77rem', color: mutedText, lineHeight: 1.5, marginBottom: '0.3rem' }}>
+                                  {alert.headline}
+                                </div>
+                              )}
+                              {alert.area && (
+                                <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.64rem', color: mutedText, letterSpacing: '0.02em' }}>
+                                  {alert.area}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div style={{ padding: '0.5rem 0' }}>
+                        <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.78rem', color: mutedText }}>
+                          Enter a 5-digit ZIP code for official weather alerts.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Source attribution — shown once data is resolved */}
+                  {!weatherAlertsLoading && (weatherAlerts !== null || weatherAlertsError) && (
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '0.55rem 1.4rem',
+                      borderTop: `1px solid ${divider}`,
+                    }}>
+                      <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.62rem', color: mutedText, letterSpacing: '0.02em' }}>
+                        Source: National Weather Service
+                      </span>
+                      {weatherAlertsFetchedAt && (
+                        <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.62rem', color: mutedText, letterSpacing: '0.02em' }}>
+                          Checked {formatCheckedTime(weatherAlertsFetchedAt)}
+                        </span>
+                      )}
                     </div>
-                  ))}
+                  )}
                 </motion.div>
               ) : (
                 <motion.div key="alerts-locked" variants={contentVariants} initial="hidden" animate="visible">
