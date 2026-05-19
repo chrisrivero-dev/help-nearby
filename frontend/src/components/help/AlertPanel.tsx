@@ -3,7 +3,7 @@
 import type { FC } from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
 
@@ -22,19 +22,35 @@ interface WeatherAlert {
   url: string;
 }
 
+const GOLD_COLOR = '#f59e0b';
+
 const ALERT_CATEGORIES = [
-  { label: 'Fire', color: '#ef4444' },
-  { label: 'Earthquake', color: '#f97316' },
-  { label: 'Storm', color: '#60a5fa' },
-  { label: 'Evacuation', color: '#a78bfa' },
-  { label: 'Public Safety', color: '#f9c700' },
-  { label: 'Severe Weather', color: '#6ee7b7' },
+  'Fire',
+  'Earthquake',
+  'Storm',
+  'Evacuation',
+  'Public Safety',
+  'Severe Weather',
 ];
 
 export const AlertPanel: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const { zip, isDemo } = useLocationContext();
+
+  // HeroSection color scheme
+  const heroBg = isDark
+    ? 'linear-gradient(135deg, #09090b 0%, #0a0c10 55%, #0b0d14 100%)'
+    : 'linear-gradient(135deg, #f4f5f7 0%, #f8f9fb 100%)';
+  const heroBorder = isDark ? '#1a1e28' : '#dde2ea';
+  const heroShadow = isDark
+    ? '4px 4px 0px rgba(0,0,0,0.85)'
+    : '4px 4px 0px rgba(0,0,0,0.05)';
+  const cardText = isDark ? '#dedede' : '#111111';
+  const mutedText = isDark ? '#555' : '#999';
+  const inputBg = isDark ? '#07080b' : '#ffffff';
+  const inputBorder = isDark ? '#252a36' : '#d0d4dc';
+  const errorColor = '#dc2626';
 
   const [weatherAlerts, setWeatherAlerts] = useState<WeatherAlert[] | null>(
     null,
@@ -70,30 +86,14 @@ export const AlertPanel: FC = () => {
     }
   }, [zip, isDemo, fetchWeatherAlerts]);
 
-  const severityColor = (severity: string) => {
-    switch (severity.toLowerCase()) {
-      case 'extreme':
-        return '#dc2626';
-      case 'severe':
-        return '#ef4444';
-      case 'moderate':
-        return '#f97316';
-      case 'minor':
-        return '#f59e0b';
-      default:
-        return '#60a5fa';
-    }
-  };
-
   const formatCheckedTime = (iso: string) =>
     new Date(iso).toLocaleTimeString([], {
       hour: 'numeric',
       minute: '2-digit',
     });
 
-  const cardText = isDark ? '#dedede' : '#111111';
-  const mutedText = isDark ? '#555' : '#999';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const accentColor = GOLD_COLOR;
 
   return (
     <motion.div
@@ -133,7 +133,7 @@ export const AlertPanel: FC = () => {
         }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >
-        <div style={{ height: 2, background: '#dc2626' }} />
+        <div style={{ height: 2, background: accentColor }} />
 
         {/* Section Header */}
         <div
@@ -150,11 +150,10 @@ export const AlertPanel: FC = () => {
               style={{
                 width: 2,
                 height: 16,
-                background: '#dc2626',
+                background: accentColor,
                 flexShrink: 0,
               }}
             />
-            <AlertTriangle size={14} color="#dc2626" strokeWidth={2.5} />
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -164,7 +163,7 @@ export const AlertPanel: FC = () => {
                 color: cardText,
               }}
             >
-              EMERGENCY ALERTS
+              ALERTS! NEARBY
             </span>
           </div>
         </div>
@@ -179,7 +178,7 @@ export const AlertPanel: FC = () => {
             borderBottom: `1px solid ${divider}`,
           }}
         >
-          {ALERT_CATEGORIES.map(({ label, color }) => (
+          {ALERT_CATEGORIES.map((label) => (
             <div
               key={label}
               style={{
@@ -187,23 +186,15 @@ export const AlertPanel: FC = () => {
                 alignItems: 'center',
                 gap: '0.28rem',
                 padding: '0.2rem 0.48rem',
-                border: `1px solid ${color}28`,
-                backgroundColor: color + '0c',
+                border: `1px solid ${divider}`,
+                backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
                 fontSize: '0.65rem',
                 fontFamily: "'Poppins', sans-serif",
                 fontWeight: 600,
-                color: isDark ? color + 'cc' : color,
+                color: mutedText,
                 letterSpacing: '0.04em',
               }}
             >
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  backgroundColor: color,
-                }}
-              />
               {label}
             </div>
           ))}
@@ -242,7 +233,7 @@ export const AlertPanel: FC = () => {
               exit={{ opacity: 0 }}
               style={{
                 padding: '0.85rem 1rem',
-                borderLeft: '3px solid #f97316',
+                borderLeft: `3px solid ${accentColor}`,
                 background: isDark ? '#0d0d0d' : '#fafafa',
               }}
             >
@@ -259,7 +250,7 @@ export const AlertPanel: FC = () => {
                   href="https://www.weather.gov/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: '#f97316', textDecoration: 'underline' }}
+                  style={{ color: accentColor, textDecoration: 'underline' }}
                 >
                   weather.gov
                 </a>{' '}
@@ -292,67 +283,58 @@ export const AlertPanel: FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {weatherAlerts.map((alert) => {
-                const accentColor = severityColor(alert.severity);
-                return (
-                  <div
-                    key={alert.id}
-                    style={{
-                      display: 'flex',
-                      gap: '0.75rem',
-                      alignItems: 'flex-start',
-                      padding: '0.85rem 1rem',
-                      borderLeft: `3px solid ${accentColor}`,
-                      background: isDark ? '#0d0d0d' : '#fafafa',
-                    }}
-                  >
-                    <AlertTriangle
-                      size={14}
-                      color={accentColor}
-                      strokeWidth={2}
-                      style={{ flexShrink: 0, marginTop: 2 }}
-                    />
-                    <div>
+              {weatherAlerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  style={{
+                    display: 'flex',
+                    gap: '0.75rem',
+                    alignItems: 'flex-start',
+                    padding: '0.85rem 1rem',
+                    borderLeft: `3px solid ${accentColor}`,
+                    background: isDark ? '#0d0d0d' : '#fafafa',
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontWeight: 700,
+                        fontSize: '0.83rem',
+                        color: cardText,
+                        marginBottom: '0.2rem',
+                      }}
+                    >
+                      {alert.title}
+                    </div>
+                    {alert.headline && (
                       <div
                         style={{
                           fontFamily: "'Poppins', sans-serif",
-                          fontWeight: 700,
-                          fontSize: '0.83rem',
-                          color: cardText,
-                          marginBottom: '0.2rem',
+                          fontSize: '0.77rem',
+                          color: mutedText,
+                          lineHeight: 1.5,
+                          marginBottom: '0.3rem',
                         }}
                       >
-                        {alert.title}
+                        {alert.headline}
                       </div>
-                      {alert.headline && (
-                        <div
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.77rem',
-                            color: mutedText,
-                            lineHeight: 1.5,
-                            marginBottom: '0.3rem',
-                          }}
-                        >
-                          {alert.headline}
-                        </div>
-                      )}
-                      {alert.area && (
-                        <div
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.64rem',
-                            color: mutedText,
-                            letterSpacing: '0.02em',
-                          }}
-                        >
-                          {alert.area}
-                        </div>
-                      )}
-                    </div>
+                    )}
+                    {alert.area && (
+                      <div
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '0.64rem',
+                          color: mutedText,
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        {alert.area}
+                      </div>
+                    )}
                   </div>
-                );
-              })}
+                </div>
+              ))}
               {!weatherAlertsLoading && (
                 <div
                   style={{
@@ -388,25 +370,7 @@ export const AlertPanel: FC = () => {
                 </div>
               )}
             </motion.div>
-          ) : (
-            <motion.div
-              key="alerts-locked"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{ padding: '0.5rem 0' }}
-            >
-              <span
-                style={{
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: '0.78rem',
-                  color: mutedText,
-                }}
-              >
-                Enter a 5-digit ZIP code for official weather alerts.
-              </span>
-            </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
       </motion.div>
     </motion.div>

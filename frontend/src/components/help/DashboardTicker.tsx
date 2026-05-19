@@ -51,8 +51,8 @@ export const DashboardTicker: FC = () => {
     : '2px 2px 0px rgba(0,0,0,0.04)';
   const mutedText = isDark ? '#444' : '#bbb';
 
-  // Calculate duration: 20 seconds for all items to scroll past
-  const totalDuration = '20s';
+  // Calculate duration: 40 seconds for all items to scroll past (slower)
+  const totalDuration = '40s';
 
   return (
     <div

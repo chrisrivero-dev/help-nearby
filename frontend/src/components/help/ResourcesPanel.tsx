@@ -3,7 +3,7 @@
 import type { FC } from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, ChevronRight, ArrowRight, ExternalLink } from 'lucide-react';
+import { ChevronRight, ExternalLink } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
 import { normalizeLocation } from '@/lib/location/normalizeLocation';
@@ -93,19 +93,10 @@ export const ResourcesPanel: FC = () => {
     return `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
   };
 
-  const categoryConfig: Record<
-    ProductionResource['category'],
-    { Icon: typeof Heart; color: string }
-  > = {
-    health: { Icon: Heart, color: '#dc2626' },
-    library: { Icon: Heart, color: '#7c3aed' },
-    government: { Icon: Heart, color: '#059669' },
-    social_services: { Icon: Heart, color: '#d97706' },
-  };
-
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#555' : '#999';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const gold = '#f59e0b';
 
   // Locked panel
   const LockedPanel = ({ minH = 100 }: { minH?: number }) => (
@@ -120,7 +111,7 @@ export const ResourcesPanel: FC = () => {
         minHeight: minH,
       }}
     >
-      <Heart size={16} color={mutedText} strokeWidth={1.5} />
+      {/* Heart icon removed for neutral style */}
       <p
         style={{
           fontFamily: "'Poppins', sans-serif",
@@ -177,7 +168,7 @@ export const ResourcesPanel: FC = () => {
         }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >
-        <div style={{ height: 2, background: '#d97706' }} />
+        <div style={{ height: 2, background: gold }} />
 
         {/* Section Header */}
         <div
@@ -194,11 +185,10 @@ export const ResourcesPanel: FC = () => {
               style={{
                 width: 2,
                 height: 16,
-                background: '#d97706',
+                background: gold,
                 flexShrink: 0,
               }}
             />
-            <Heart size={14} color="#d97706" strokeWidth={2.5} />
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -208,7 +198,7 @@ export const ResourcesPanel: FC = () => {
                 color: cardText,
               }}
             >
-              NEARBY HELP
+              RESOURCES! NEARBY
             </span>
           </div>
         </div>
@@ -274,72 +264,66 @@ export const ResourcesPanel: FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {nearbyResources.map((r) => {
-                const { Icon: CatIcon, color } = categoryConfig[r.category];
-                return (
-                  <div
-                    key={r.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '0.9rem',
-                      padding: '0.9rem 1.4rem',
-                      borderBottom: `1px solid ${divider}`,
-                    }}
-                  >
+              {nearbyResources.map((r, i) => (
+                <div
+                  key={r.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.9rem',
+                    padding: '0.9rem 1.4rem',
+                    borderBottom:
+                      i < nearbyResources.length - 1
+                        ? `1px solid ${divider}`
+                        : undefined,
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
-                        width: 34,
-                        height: 34,
-                        flexShrink: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: isDark ? color + '14' : color + '0f',
-                        border: `1px solid ${color}35`,
+                        fontFamily: "'Poppins', sans-serif",
+                        fontWeight: 700,
+                        fontSize: '0.82rem',
+                        color: cardText,
                       }}
                     >
-                      <CatIcon size={14} color={color} strokeWidth={2} />
+                      {r.name}
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.7rem',
+                        color: mutedText,
+                        marginTop: '0.06rem',
+                      }}
+                    >
+                      {r.type} · {r.address}, {r.city}, {r.state} {r.zip}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.7rem',
+                        color: mutedText,
+                        marginTop: '0.06rem',
+                      }}
+                    >
+                      {r.hours}
+                      {r.phone ? ` · ${r.phone}` : ''}
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        marginTop: '0.38rem',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <span
                         style={{
                           fontFamily: "'Poppins', sans-serif",
-                          fontWeight: 700,
-                          fontSize: '0.82rem',
-                          color: cardText,
-                        }}
-                      >
-                        {r.name}
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.7rem',
+                          fontSize: '0.62rem',
                           color: mutedText,
-                          marginTop: '0.06rem',
-                        }}
-                      >
-                        {r.type} · {r.address}, {r.city}, {r.state} {r.zip}
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.7rem',
-                          color: mutedText,
-                          marginTop: '0.06rem',
-                        }}
-                      >
-                        {r.hours}
-                        {r.phone ? ` · ${r.phone}` : ''}
-                      </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.4rem',
-                          marginTop: '0.38rem',
-                          flexWrap: 'wrap',
                         }}
                       >
                         <a
@@ -347,80 +331,57 @@ export const ResourcesPanel: FC = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.2rem',
-                            fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.62rem',
-                            color: isDark ? '#4a7abf' : '#2563eb',
-                            textDecoration: 'none',
+                            color: mutedText,
+                            textDecoration: 'underline',
                           }}
                         >
-                          <ExternalLink size={9} /> Source
+                          Source
                         </a>
-                        <span
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.62rem',
-                            color: isDark ? '#363636' : '#bbb',
-                          }}
-                        >
-                          ·
-                        </span>
-                        <span
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.62rem',
-                            color: isDark ? '#363636' : '#bbb',
-                          }}
-                        >
-                          Source-verified {formatVerifiedDate(r.verifiedAt)}
-                        </span>
-                        <span
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.62rem',
-                            color: isDark ? '#363636' : '#bbb',
-                          }}
-                        >
-                          ·
-                        </span>
-                        <span
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.62rem',
-                            color: isDark ? '#2e2e2e' : '#c0c0c0',
-                            fontStyle: 'italic',
-                          }}
-                        >
-                          Call before visiting — information may change.
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.35rem',
-                        flexShrink: 0,
-                        paddingTop: '0.1rem',
-                      }}
-                    >
+                      </span>
                       <span
                         style={{
                           fontFamily: "'Poppins', sans-serif",
-                          fontWeight: 700,
-                          fontSize: '0.74rem',
+                          fontSize: '0.62rem',
                           color: mutedText,
                         }}
                       >
-                        {formatDist(r.distanceMi)}
+                        · Source-verified {formatVerifiedDate(r.verifiedAt)}
                       </span>
-                      <ChevronRight size={12} color={mutedText} />
+                      <span
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '0.62rem',
+                          color: mutedText,
+                          fontStyle: 'italic',
+                        }}
+                      >
+                        · Call before visiting — information may change.
+                      </span>
                     </div>
                   </div>
-                );
-              })}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      flexShrink: 0,
+                      paddingTop: '0.1rem',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontWeight: 700,
+                        fontSize: '0.74rem',
+                        color: mutedText,
+                      }}
+                    >
+                      {formatDist(r.distanceMi)}
+                    </span>
+                    <ChevronRight size={12} color={mutedText} />
+                  </div>
+                </div>
+              ))}
             </motion.div>
           ) : (
             <motion.div

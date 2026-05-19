@@ -2,7 +2,6 @@
 
 import type { FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
 
@@ -33,11 +32,7 @@ const DEMO_COMMUNITY = [
   },
 ];
 
-const communityTypeColor = {
-  volunteer: '#059669',
-  donation: '#d97706',
-  event: '#7c3aed',
-};
+const GOLD_COLOR = '#f59e0b';
 
 export const CommunityPanel: FC = () => {
   const { theme } = useTheme();
@@ -48,6 +43,7 @@ export const CommunityPanel: FC = () => {
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#555' : '#999';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const accentColor = GOLD_COLOR;
 
   // Locked panel
   const LockedPanel = ({ minH = 100 }: { minH?: number }) => (
@@ -62,7 +58,7 @@ export const CommunityPanel: FC = () => {
         minHeight: minH,
       }}
     >
-      <Users size={16} color={mutedText} strokeWidth={1.5} />
+      {/* Users icon removed for neutral style */}
       <p
         style={{
           fontFamily: "'Poppins', sans-serif",
@@ -117,7 +113,7 @@ export const CommunityPanel: FC = () => {
         }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >
-        <div style={{ height: 2, background: '#059669' }} />
+        <div style={{ height: 2, background: accentColor }} />
 
         {/* Section Header */}
         <div
@@ -134,11 +130,10 @@ export const CommunityPanel: FC = () => {
               style={{
                 width: 2,
                 height: 16,
-                background: '#059669',
+                background: accentColor,
                 flexShrink: 0,
               }}
             />
-            <Users size={14} color="#059669" strokeWidth={2.5} />
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -148,7 +143,7 @@ export const CommunityPanel: FC = () => {
                 color: cardText,
               }}
             >
-              COMMUNITY ACTION
+              COMMUNITY! NEARBY
             </span>
           </div>
         </div>
@@ -161,66 +156,63 @@ export const CommunityPanel: FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {DEMO_COMMUNITY.map((item, i) => {
-                const typeColor = communityTypeColor[item.type];
-                return (
-                  <div
-                    key={item.title}
+              {DEMO_COMMUNITY.map((item, i) => (
+                <div
+                  key={item.title}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.85rem',
+                    padding: '0.82rem 1.4rem',
+                    borderBottom:
+                      i < DEMO_COMMUNITY.length - 1
+                        ? `1px solid ${divider}`
+                        : undefined,
+                  }}
+                >
+                  <span
                     style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '0.85rem',
-                      padding: '0.82rem 1.4rem',
-                      borderBottom:
-                        i < DEMO_COMMUNITY.length - 1
-                          ? `1px solid ${divider}`
-                          : undefined,
+                      display: 'inline-block',
+                      marginTop: '0.18rem',
+                      padding: '0.18rem 0.45rem',
+                      background: isDark ? '#1a1a1a' : '#f5f5f5',
+                      border: `1px solid ${divider}`,
+                      color: mutedText,
+                      fontFamily: "'Poppins', sans-serif",
+                      fontWeight: 700,
+                      fontSize: '0.57rem',
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase' as const,
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap' as const,
                     }}
                   >
-                    <span
+                    {item.type}
+                  </span>
+                  <div>
+                    <div
                       style={{
-                        display: 'inline-block',
-                        marginTop: '0.18rem',
-                        padding: '0.18rem 0.45rem',
-                        background: typeColor + '18',
-                        border: `1px solid ${typeColor}38`,
-                        color: typeColor,
                         fontFamily: "'Poppins', sans-serif",
                         fontWeight: 700,
-                        fontSize: '0.57rem',
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase' as const,
-                        flexShrink: 0,
-                        whiteSpace: 'nowrap' as const,
+                        fontSize: '0.82rem',
+                        color: cardText,
+                        marginBottom: '0.12rem',
                       }}
                     >
-                      {item.type}
-                    </span>
-                    <div>
-                      <div
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontWeight: 700,
-                          fontSize: '0.82rem',
-                          color: cardText,
-                          marginBottom: '0.12rem',
-                        }}
-                      >
-                        {item.title}
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.7rem',
-                          color: mutedText,
-                        }}
-                      >
-                        {item.org} · {item.when}
-                      </div>
+                      {item.title}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.7rem',
+                        color: mutedText,
+                      }}
+                    >
+                      {item.org} · {item.when}
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
               <div style={{ padding: '1rem 1.4rem' }}>
                 <button
                   style={{
@@ -230,11 +222,10 @@ export const CommunityPanel: FC = () => {
                     fontWeight: 800,
                     fontSize: '0.72rem',
                     letterSpacing: '0.1em',
-                    color: '#fff',
-                    backgroundColor: '#059669',
-                    border: '1.5px solid #059669',
+                    color: cardText,
+                    backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
+                    border: `1.5px solid ${divider}`,
                     cursor: 'pointer',
-                    boxShadow: '3px 3px 0px rgba(0,0,0,0.25)',
                   }}
                 >
                   GET INVOLVED →

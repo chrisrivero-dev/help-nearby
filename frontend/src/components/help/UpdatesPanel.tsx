@@ -2,7 +2,6 @@
 
 import type { FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
 
@@ -33,11 +32,7 @@ const DEMO_UPDATES = [
   },
 ];
 
-const updateTypeColor = {
-  info: '#3b82f6',
-  warning: '#ea580c',
-  critical: '#dc2626',
-};
+const GOLD_COLOR = '#f59e0b';
 
 export const UpdatesPanel: FC = () => {
   const { theme } = useTheme();
@@ -48,6 +43,7 @@ export const UpdatesPanel: FC = () => {
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#555' : '#999';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const accentColor = GOLD_COLOR;
 
   // Locked panel
   const LockedPanel = ({ minH = 100 }: { minH?: number }) => (
@@ -62,7 +58,7 @@ export const UpdatesPanel: FC = () => {
         minHeight: minH,
       }}
     >
-      <Bell size={16} color={mutedText} strokeWidth={1.5} />
+      {/* Bell icon removed for neutral style */}
       <p
         style={{
           fontFamily: "'Poppins', sans-serif",
@@ -117,7 +113,7 @@ export const UpdatesPanel: FC = () => {
         }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >
-        <div style={{ height: 2, background: '#ea580c' }} />
+        <div style={{ height: 2, background: accentColor }} />
 
         {/* Section Header */}
         <div
@@ -134,11 +130,10 @@ export const UpdatesPanel: FC = () => {
               style={{
                 width: 2,
                 height: 16,
-                background: '#ea580c',
+                background: accentColor,
                 flexShrink: 0,
               }}
             />
-            <Bell size={14} color="#ea580c" strokeWidth={2.5} />
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -148,7 +143,7 @@ export const UpdatesPanel: FC = () => {
                 color: cardText,
               }}
             >
-              LATEST UPDATES
+              UPDATES! NEARBY
             </span>
           </div>
         </div>
@@ -161,86 +156,55 @@ export const UpdatesPanel: FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {DEMO_UPDATES.map((u, i) => {
-                const col = updateTypeColor[u.type];
-                return (
-                  <div
-                    key={u.title}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '0.8rem',
-                      padding: '0.85rem 1.4rem',
-                      borderBottom:
-                        i < DEMO_UPDATES.length - 1
-                          ? `1px solid ${divider}`
-                          : undefined,
-                    }}
-                  >
+              {DEMO_UPDATES.map((u, i) => (
+                <div
+                  key={u.title}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.8rem',
+                    padding: '0.85rem 1.4rem',
+                    borderBottom:
+                      i < DEMO_UPDATES.length - 1
+                        ? `1px solid ${divider}`
+                        : undefined,
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
                     <div
                       style={{
-                        position: 'relative',
-                        flexShrink: 0,
-                        marginTop: 6,
+                        fontFamily: "'Poppins', sans-serif",
+                        fontWeight: 700,
+                        fontSize: '0.8rem',
+                        color: cardText,
+                        marginBottom: '0.14rem',
                       }}
                     >
-                      <div
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: '50%',
-                          backgroundColor: col,
-                        }}
-                      />
-                      {u.type === 'critical' && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            inset: -2,
-                            borderRadius: '50%',
-                            border: `1px solid ${col}`,
-                            opacity: 0.4,
-                            animation: 'pulse 2s ease-out infinite',
-                          }}
-                        />
-                      )}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontWeight: 700,
-                          fontSize: '0.8rem',
-                          color: cardText,
-                          marginBottom: '0.14rem',
-                        }}
-                      >
-                        {u.title}
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.7rem',
-                          color: mutedText,
-                        }}
-                      >
-                        {u.detail}
-                      </div>
+                      {u.title}
                     </div>
                     <div
                       style={{
                         fontFamily: "'Poppins', sans-serif",
-                        fontSize: '0.62rem',
-                        color: isDark ? '#303030' : '#c0c0c0',
-                        flexShrink: 0,
-                        marginTop: 1,
+                        fontSize: '0.7rem',
+                        color: mutedText,
                       }}
                     >
-                      {u.ago}
+                      {u.detail}
                     </div>
                   </div>
-                );
-              })}
+                  <div
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.62rem',
+                      color: mutedText,
+                      flexShrink: 0,
+                      marginTop: 1,
+                    }}
+                  >
+                    {u.ago}
+                  </div>
+                </div>
+              ))}
             </motion.div>
           ) : (
             <motion.div

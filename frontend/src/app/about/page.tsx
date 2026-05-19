@@ -4,7 +4,6 @@ import type { FC } from 'react';
 import { motion } from 'framer-motion';
 import { ThemeGuard } from '@/components/ThemeGuard';
 import NavBar from '@/components/NavBar';
-import DrawerMenu from '@/components/DrawerMenu';
 import StarWarsIntro from '@/components/StarWarsIntro';
 
 // Styles using CSS variables

@@ -203,33 +203,7 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
       >
-        {/* Back button - Left */}
-        <button
-          onClick={() => router.push('/help')}
-          style={{
-            ...buttonStyle,
-            padding: '4px 8px',
-            position: 'absolute',
-            left: '20px',
-            top: '12px',
-          }}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5" />
-            <path d="M12 19l-7-7 7-7" />
-          </svg>
-        </button>
-
-        {/* Search bar - Center */}
+        {/* Center container for back button, search bar, and feature bar */}
         <div
           style={{
             position: 'absolute',
@@ -238,74 +212,100 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
             transform: 'translateX(-50%)',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            padding: '2px 4px',
-            borderRadius: '6px',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-            backgroundColor:
-              theme === 'dark'
-                ? 'rgba(0, 0, 0, 0.3)'
-                : 'rgba(255, 255, 255, 0.3)',
-            width: '260px',
+            gap: '12px',
           }}
         >
-          <input
-            type="text"
-            value={zip}
-            onChange={(e) => setZip(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Search for a Location"
-            disabled={isSearching}
+          {/* Back button */}
+          <button
+            onClick={() => router.push('/help')}
             style={{
-              width: '100%',
-              padding: '6px 8px',
-              borderRadius: '4px',
-              border: 'none',
-              fontSize: '14px',
-              outline: 'none',
+              ...buttonStyle,
+              padding: '4px 8px',
+            }}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 12H5" />
+              <path d="M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* Search bar */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '2px 4px',
+              borderRadius: '6px',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
               backgroundColor:
                 theme === 'dark'
-                  ? 'rgba(0, 0, 0, 0.4)'
-                  : 'rgba(255, 255, 255, 0.6)',
-              color: 'var(--color-text)',
-              textAlign: 'center',
+                  ? 'rgba(0, 0, 0, 0.3)'
+                  : 'rgba(255, 255, 255, 0.5)',
+              width: '260px',
             }}
-          />
-          <button
-            onClick={handleLocate}
-            disabled={isSearching}
-            style={{
-              ...buttonStyle,
-              padding: '4px 8px',
-              width: 'auto',
-            }}
-            title="Use my location"
           >
-            <Crosshair size={14} fill="none" />
-          </button>
-          <button
-            onClick={handleSearch}
-            disabled={isSearching}
-            style={{
-              ...buttonStyle,
-              padding: '4px 8px',
-              width: 'auto',
-            }}
-            title="Search"
-          >
-            <Search size={14} fill="none" />
-          </button>
-        </div>
+            <input
+              type="text"
+              value={zip}
+              onChange={(e) => setZip(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Search for a Location"
+              disabled={isSearching}
+              style={{
+                width: '100%',
+                padding: '6px 8px',
+                borderRadius: '4px',
+                border: 'none',
+                fontSize: '14px',
+                outline: 'none',
+                backgroundColor:
+                  theme === 'dark'
+                    ? 'rgba(0, 0, 0, 0.4)'
+                    : 'rgba(255, 255, 255, 0.5)',
+                color: 'var(--color-text)',
+                textAlign: 'center',
+              }}
+            />
+            <button
+              onClick={handleLocate}
+              disabled={isSearching}
+              style={{
+                ...buttonStyle,
+                padding: '4px 8px',
+                width: 'auto',
+              }}
+              title="Use my location"
+            >
+              <Crosshair size={14} fill="none" />
+            </button>
+            <button
+              onClick={handleSearch}
+              disabled={isSearching}
+              style={{
+                ...buttonStyle,
+                padding: '4px 8px',
+                width: 'auto',
+              }}
+              title="Search"
+            >
+              <Search size={14} fill="none" />
+            </button>
+          </div>
 
-        {/* Feature Bar - Right */}
-        <div
-          style={{
-            position: 'absolute',
-            right: '20px',
-            top: '12px',
-          }}
-        >
-          <FeatureBar />
+          {/* Feature Bar */}
+          <div>
+            <FeatureBar bgColor="var(--color-bg)" />
+          </div>
         </div>
       </motion.div>
 
@@ -399,6 +399,7 @@ const Discover: FC<DiscoverProps> = ({ centerLat, centerLng }) => {
           display: 'flex',
           flexDirection: 'column',
           gap: '6px',
+          padding: '8px',
         }}
       >
         <button onClick={() => mapInstance?.zoomIn()} style={zoomButtonStyle}>

@@ -3,7 +3,6 @@
 import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bus } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
 
@@ -377,7 +376,7 @@ export const TransitPanel: FC = () => {
           minHeight: minH,
         }}
       >
-        <Bus size={16} color={mutedText} strokeWidth={1.5} />
+        {/* Bus icon removed for neutral style */}
         <p
           style={{
             fontFamily: "'Poppins', sans-serif",
@@ -458,11 +457,6 @@ export const TransitPanel: FC = () => {
                 flexShrink: 0,
               }}
             />
-            <Bus
-              size={14}
-              color={isDark ? '#60a5fa' : '#2563eb'}
-              strokeWidth={2.5}
-            />
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -472,7 +466,7 @@ export const TransitPanel: FC = () => {
                 color: cardText,
               }}
             >
-              GET THERE
+              WHERE? NEARBY!
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
