@@ -124,11 +124,13 @@ const StarfieldComponent: React.FC<StarfieldProps> = ({
     <div
       className={`starfield ${className}`}
       style={{
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
+        width: '100vw',
+        height: '100vh',
+        minHeight: '100vh',
+        minWidth: '100vw',
         overflow: 'hidden',
         pointerEvents: 'none',
         zIndex: 0,

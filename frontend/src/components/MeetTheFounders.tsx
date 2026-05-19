@@ -45,11 +45,14 @@ const MeetTheFounders: React.FC<MeetTheFoundersProps> = ({ isVisible }) => {
       animate={{ opacity: isVisible ? 1 : 0 }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       style={{
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
         width: '100%',
         maxWidth: '900px',
-        margin: '0 auto',
         padding: '4rem 20px',
-        position: 'relative',
+        zIndex: 10,
       }}
     >
       {/* Divider + heading */}

@@ -1,10 +1,11 @@
 'use client';
 
-import type { FC } from 'react';
+import type { FC, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ThemeGuard } from '@/components/ThemeGuard';
 import NavBar from '@/components/NavBar';
 import StarWarsIntro from '@/components/StarWarsIntro';
+import MeetTheFounders from '@/components/MeetTheFounders';
 
 // Styles using CSS variables
 const pageStyle: React.CSSProperties = {
@@ -14,6 +15,7 @@ const pageStyle: React.CSSProperties = {
   width: '100%',
   position: 'relative',
   overflowX: 'hidden',
+  overflowY: 'hidden',
   backgroundColor: 'var(--color-bg)',
   color: 'var(--color-text)',
 };

@@ -35,7 +35,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
 
   // Text styles
   const textMotionStyle: React.CSSProperties = {
-    position: 'absolute',
+    position: 'fixed',
     width: '100%',
     maxWidth: '800px',
     padding: '0 15px',
@@ -47,11 +47,13 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
 
   // OurStory container style
   const ourStoryStyle: React.CSSProperties = {
-    position: 'relative',
-    margin: '0 auto',
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
     width: '100%',
     maxWidth: '900px',
-    padding: '12vh 20px 80px',
+    padding: '4rem 20px',
     zIndex: 3,
   };
 
@@ -97,9 +99,13 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
 
       <div
         style={{
-          position: 'relative',
-          width: '100%',
-          minHeight: '100vh',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          overflow: 'hidden',
+          zIndex: 1,
         }}
       >
         {/* Starfield background spanning the entire page */}
@@ -109,8 +115,13 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
         {textVisible && !isReplayMode && (
           <motion.div
             style={textMotionStyle}
-            initial={{ top: '100%' }}
-            animate={{ top: ['100%', '-100%'] }}
+            initial={{ transform: 'translateX(-50%) translateY(100vh)' }}
+            animate={{
+              transform: [
+                'translateX(-50%) translateY(100vh)',
+                'translateX(-50%) translateY(-200%)',
+              ],
+            }}
             transition={{
               duration: 25,
               ease: 'linear',
@@ -161,7 +172,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
         {!isReplayMode && ourStoryVisible && (
           <motion.div
             style={ourStoryStyle}
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 0, transform: 'translate(-50%, -50%)' }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.5, ease: 'easeOut' }}
           >
@@ -172,11 +183,10 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
         {/* MeetTheFounders component - appears when skip is clicked */}
         {foundersVisible && (
           <motion.div
-            style={{ ...ourStoryStyle, position: 'absolute', top: 0 }}
-            initial={{ opacity: 0, y: 50 }}
+            style={ourStoryStyle}
+            initial={{ opacity: 0, transform: 'translate(-50%, -50%)' }}
             animate={{
               opacity: foundersVisible ? 1 : 0,
-              y: foundersVisible ? 0 : 50,
             }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           >

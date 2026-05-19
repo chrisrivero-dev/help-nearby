@@ -121,8 +121,8 @@ const HelpDashboard: FC = () => {
         <AlertPanel />
         <ResourcesPanel />
         <CommunityPanel />
-        <TransitPanel />
         <UpdatesPanel />
+        <TransitPanel />
       </PanelLayout>
     </motion.main>
   );

@@ -40,12 +40,12 @@ const rootStyle: CSSProperties = {
   backgroundColor: 'var(--color-bg)',
   color: 'var(--color-text)',
   width: '100%',
-  maxWidth: '1600px',
-  margin: '0 auto',
-  height: '100vh',
+  margin: '0',
+  minHeight: '100vh',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
+  justifyContent: 'flex-start',
   overflow: 'hidden',
 };
 
@@ -134,7 +134,10 @@ const Landing: FC = () => {
   const [activeNode, setActiveNode] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [isTitleModalOpen, setIsTitleModalOpen] = useState(false);
+  const [mobileOrigin, setMobileOrigin] = useState({ x: 220, y: 260 });
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const radarRef = useRef<SVGSVGElement>(null);
+  const bgSvgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -179,6 +182,33 @@ const Landing: FC = () => {
     return () => clearInterval(id);
   }, []);
 
+  // Measure inline radar position and convert it into the background SVG's
+  // coordinate space so all connector lines originate from the radar dot.
+  useEffect(() => {
+    const measure = () => {
+      if (!radarRef.current || !bgSvgRef.current) return;
+      const r = radarRef.current.getBoundingClientRect();
+      const svgRect = bgSvgRef.current.getBoundingClientRect();
+      const screenX = r.left + r.width / 2;
+      const screenY = r.top + r.height / 2;
+      const vbX = 0, vbY = isMobile ? 30 : 0;
+      const vbW = isMobile ? 720 : 1000, vbH = isMobile ? 520 : 600;
+      const scale = Math.min(svgRect.width / vbW, svgRect.height / vbH);
+      const offsetX = svgRect.left + (svgRect.width - vbW * scale) / 2;
+      const offsetY = svgRect.top + (svgRect.height - vbH * scale) / 2;
+      setMobileOrigin({
+        x: (screenX - offsetX) / scale + vbX,
+        y: (screenY - offsetY) / scale + vbY,
+      });
+    };
+    document.fonts.ready.then(() => requestAnimationFrame(measure));
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [isMobile]);
+
+  const getCardPathD = (card: (typeof AID_CARDS)[0]) =>
+    `M ${mobileOrigin.x} ${mobileOrigin.y} L ${card.cx} ${card.cy}`;
+
   return (
     <div style={rootStyle}>
       {/* Login Modal */}
@@ -189,7 +219,18 @@ const Landing: FC = () => {
 
       {/* Center canvas — cinematic intro */}
       <motion.div
-        style={{
+        style={isMobile ? {
+          position: 'relative',
+          width: '100%',
+          minHeight: '100svh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          zIndex: zContent,
+          padding: '0 6vw',
+          boxSizing: 'border-box',
+        } : {
           position: 'absolute',
           top: '50%',
           left: '50%',
@@ -198,17 +239,26 @@ const Landing: FC = () => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
+          width: 'clamp(640px, 78vw, 1050px)',
         }}
       >
         {/* Aid network map — visual depth layer */}
         <div
-          style={{
+          style={isMobile ? {
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 0,
+            pointerEvents: 'none',
+            overflow: 'hidden',
+          } : {
             position: 'absolute',
             left: '50%',
             top: '50%',
             transform: 'translate(-50%, -50%)',
-            width: isMobile ? '100vw' : '700px',
-            height: isMobile ? '100vh' : '520px',
+            width: '100%',
+            height: '70vh',
             zIndex: 0,
             pointerEvents: 'none',
             overflow: 'hidden',
@@ -220,8 +270,12 @@ const Landing: FC = () => {
               position: 'absolute',
               inset: 0,
               background: isDark
-                ? 'radial-gradient(ellipse 560px 360px at 62% 50%, rgba(251, 191, 36, 0.055) 0%, transparent 70%)'
-                : 'radial-gradient(ellipse 560px 360px at 62% 50%, rgba(0, 0, 0, 0.018) 0%, transparent 70%)',
+                ? isMobile
+                  ? 'radial-gradient(ellipse 90vw 60vw at 50% 45%, rgba(251, 191, 36, 0.07) 0%, transparent 70%)'
+                  : 'radial-gradient(ellipse 560px 360px at 62% 50%, rgba(251, 191, 36, 0.055) 0%, transparent 70%)'
+                : isMobile
+                  ? 'radial-gradient(ellipse 90vw 60vw at 50% 45%, rgba(0, 0, 0, 0.022) 0%, transparent 70%)'
+                  : 'radial-gradient(ellipse 560px 360px at 62% 50%, rgba(0, 0, 0, 0.018) 0%, transparent 70%)',
             }}
           />
 
@@ -238,14 +292,9 @@ const Landing: FC = () => {
             }}
           >
             <svg
-              style={{
-                position: 'relative',
-                maxWidth: '100%',
-                maxHeight: '100%',
-                transform: isMobile ? 'scale(0.45)' : 'scale(1)',
-                transformOrigin: 'center center',
-              }}
-              viewBox="0 0 700 520"
+              ref={bgSvgRef}
+              style={{ position: 'relative', width: '100%', height: '100%' }}
+              viewBox={isMobile ? '0 30 720 520' : '0 0 1000 600'}
               preserveAspectRatio="xMidYMid meet"
               fill="none"
               aria-hidden="true"
@@ -380,7 +429,7 @@ const Landing: FC = () => {
               {AID_CARDS.map((card, i) => (
                 <motion.path
                   key={`bgpath-${card.id}`}
-                  d={card.pathD}
+                  d={getCardPathD(card)}
                   stroke={
                     isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'
                   }
@@ -489,7 +538,7 @@ const Landing: FC = () => {
               <AnimatePresence mode="sync">
                 <motion.path
                   key={`conn-${activeNode}`}
-                  d={AID_CARDS[activeNode].pathD}
+                  d={getCardPathD(AID_CARDS[activeNode])}
                   stroke={isDark ? 'rgba(251,191,36,0.35)' : 'rgba(0,0,0,0.18)'}
                   strokeWidth={1.5}
                   fill="none"
@@ -521,32 +570,6 @@ const Landing: FC = () => {
                 </motion.text>
               </AnimatePresence>
 
-              {/* Home node — user location */}
-              <circle
-                cx={220}
-                cy={260}
-                r={5.5}
-                fill={isDark ? 'rgba(251,191,36,0.55)' : 'rgba(0,0,0,0.45)'}
-                stroke={isDark ? 'rgba(251,191,36,0.9)' : 'rgba(0,0,0,0.65)'}
-                strokeWidth={1.5}
-              />
-              <motion.circle
-                cx={220}
-                cy={260}
-                r={5.5}
-                stroke={isDark ? 'rgba(251,191,36,0.5)' : 'rgba(0,0,0,0.2)'}
-                strokeWidth={1}
-                fill="none"
-                style={{ transformOrigin: '220px 260px' }}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: [0, 0.8, 0], scale: [0.5, 2.6, 3.8] }}
-                transition={{
-                  duration: 2.8,
-                  delay: 0.2,
-                  repeat: Infinity,
-                  ease: 'easeOut',
-                }}
-              />
             </svg>
           </div>
         </div>
@@ -559,8 +582,7 @@ const Landing: FC = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'flex-start',
-            maxWidth: '100vw',
-            padding: isMobile ? '0 20px' : '0',
+            width: '100%',
             boxSizing: 'border-box',
           }}
         >
@@ -578,11 +600,13 @@ const Landing: FC = () => {
               style={{
                 fontFamily: "'Poppins', sans-serif",
                 fontWeight: 800,
-                fontSize: 'clamp(2rem, 7vw, 5rem)',
+                fontSize: isMobile
+                  ? 'clamp(2.5rem, 16vw, 5rem)'
+                  : 'clamp(2rem, 7vw, 5rem)',
                 textTransform: 'uppercase',
                 color: textColor,
-                lineHeight: 1.1,
-                whiteSpace: isMobile ? 'normal' : 'nowrap',
+                lineHeight: 0.95,
+                whiteSpace: 'nowrap',
               }}
             >
               HELP!
@@ -591,42 +615,64 @@ const Landing: FC = () => {
               style={{
                 fontFamily: "'Poppins', sans-serif",
                 fontWeight: 800,
-                fontSize: 'clamp(2rem, 7vw, 5rem)',
+                fontSize: isMobile
+                  ? 'clamp(2.5rem, 16vw, 5rem)'
+                  : 'clamp(2rem, 7vw, 5rem)',
                 textTransform: 'uppercase',
                 color: textColor,
-                lineHeight: 1.1,
-                whiteSpace: isMobile ? 'normal' : 'nowrap',
+                lineHeight: 0.95,
+                whiteSpace: 'nowrap',
               }}
             >
               NEARBY.
             </div>
           </motion.div>
 
-          {/* Accent divider */}
-          <motion.div
-            style={{
-              width: '48px',
-              height: '1px',
-              backgroundColor: isDark
-                ? 'rgba(255, 255, 255, 0.15)'
-                : 'rgba(0, 0, 0, 0.12)',
-              margin: '28px 0',
-              transformOrigin: 'left center',
-            }}
-            initial={{ opacity: 0, scaleX: 0 }}
-            animate={{ opacity: 1, scaleX: 1 }}
-            transition={{ duration: 0.5, ease: 'easeOut', delay: 0.45 }}
-          />
+          {/* Radar node — between headline and subtitle on all viewports */}
+          <motion.svg
+            ref={radarRef}
+            width="48"
+            height="48"
+            viewBox="0 0 48 48"
+            fill="none"
+            style={{ margin: isMobile ? '20px 0' : '28px 0', overflow: 'visible' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
+          >
+            <motion.circle
+              cx={24}
+              cy={24}
+              r={6}
+              stroke={isDark ? 'rgba(251,191,36,0.5)' : 'rgba(0,0,0,0.2)'}
+              strokeWidth={1}
+              fill="none"
+              style={{ transformOrigin: '24px 24px' }}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: [0, 0.8, 0], scale: [0.5, 2.6, 3.8] }}
+              transition={{ duration: 2.8, delay: 0.5, repeat: Infinity, ease: 'easeOut' }}
+            />
+            <circle
+              cx={24}
+              cy={24}
+              r={5.5}
+              fill={isDark ? 'rgba(251,191,36,0.55)' : 'rgba(0,0,0,0.45)'}
+              stroke={isDark ? 'rgba(251,191,36,0.9)' : 'rgba(0,0,0,0.65)'}
+              strokeWidth={1.5}
+            />
+          </motion.svg>
 
           {/* Subtitle */}
           <motion.p
             style={{
               fontFamily: "'Poppins', sans-serif",
               fontWeight: 400,
-              fontSize: 'clamp(0.9rem, 1.4vw, 1.05rem)',
+              fontSize: isMobile
+                ? 'clamp(0.8rem, 3.2vw, 1rem)'
+                : 'clamp(0.9rem, 1.4vw, 1.05rem)',
               color: mutedColor,
               margin: 0,
-              maxWidth: '480px',
+              maxWidth: isMobile ? '80vw' : '480px',
               lineHeight: 1.65,
             }}
             initial={{ opacity: 0, y: 20 }}
@@ -644,9 +690,10 @@ const Landing: FC = () => {
           <motion.div
             style={{
               display: 'flex',
-              gap: '16px',
-              marginTop: '40px',
+              gap: isMobile ? '12px' : '16px',
+              marginTop: isMobile ? '28px' : '40px',
               flexWrap: 'wrap' as const,
+              justifyContent: 'flex-start',
             }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

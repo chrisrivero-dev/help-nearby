@@ -21,7 +21,7 @@ const SkipButton: React.FC<SkipButtonProps> = ({
         position: 'fixed',
         bottom: '2rem',
         right: '2rem',
-        zIndex: 10,
+        zIndex: 1002,
         background: 'rgba(0, 0, 0, 0)',
         border: '1px solid #f9c700',
         color: '#f9c700',
