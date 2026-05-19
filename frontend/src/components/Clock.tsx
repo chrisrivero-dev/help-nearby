@@ -123,7 +123,7 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
   );
 };
 
-// Digits display component - rendered separately, opens at bottom center
+// Digits display component - opens at bottom center of viewport
 function ClockDigits({
   isOpen,
   isDark,
@@ -136,10 +136,17 @@ function ClockDigits({
   const [currentTime, setCurrentTime] = useState<string>('');
   const [nextTime, setNextTime] = useState<string>('');
   const reduceMotion = useReducedMotion();
+  const [isClient, setIsClient] = useState(false);
 
   const latestTimeRef = useRef('');
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
     const updateTime = () => {
       const now = new Date();
 
@@ -164,7 +171,18 @@ function ClockDigits({
     const intervalId = setInterval(updateTime, 1000);
 
     return () => clearInterval(intervalId);
-  }, [currentTime]);
+  }, [currentTime, isClient]);
+
+  if (!isClient) {
+    return null;
+  }
+
+  // Calculate positions - use top with calculated values to position at bottom
+  // Window height - element height - 20px padding from bottom
+  const elementHeight = 80; // approximate height of clock element
+  const bottomOffset = 20;
+  const openTop = window.innerHeight - elementHeight - bottomOffset;
+  const closedTop = window.innerHeight + 50; // fully below viewport
 
   const currentHours = currentTime.slice(0, 2);
   const currentMinutes = currentTime.slice(3, 5);
@@ -188,7 +206,7 @@ function ClockDigits({
     <motion.div
       style={{
         position: 'fixed',
-        bottom: '20px',
+        top: openTop,
         left: 0,
         right: 0,
         marginLeft: 'auto',
@@ -200,17 +218,17 @@ function ClockDigits({
         gap: '0.5rem',
         padding: '1rem',
         backgroundColor: isDark ? '#333' : '#f0f0f0',
-        borderRadius: '8px',
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         width: 'fit-content',
         whiteSpace: 'nowrap',
       }}
+      initial={{ opacity: 0, top: closedTop }}
       animate={{
         opacity: isOpen ? 1 : 0,
-        y: isOpen ? 0 : 100,
+        top: isOpen ? openTop : closedTop,
         pointerEvents: isOpen ? 'auto' : 'none',
       }}
-      transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
+      transition={{ type: 'tween', duration: 0.4, ease: 'easeOut' }}
       onClick={onClose}
     >
       <FlipDigit currentValue={currentHourDigit1} nextValue={nextHourDigit1} />
@@ -246,21 +264,24 @@ function ClockDigits({
 const Clock: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      {/* Clock icon in the right column */}
       <ClockIcon
-        onClick={() => setIsOpen(!isOpen)}
         style={{
           cursor: 'pointer',
           color: isDark ? '#e8e8e8' : '#111111',
-          width: '24px',
-          height: '24px',
+          width: '12px',
+          height: '12px',
+          margin: 0,
+          padding: 0,
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
         }}
       />
-      {/* Digits display at bottom center */}
       <ClockDigits
         isOpen={isOpen}
         isDark={isDark}

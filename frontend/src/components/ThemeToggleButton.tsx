@@ -15,7 +15,7 @@ export function ThemeToggleButton() {
   const isDark = theme === 'dark';
 
   return (
-    <motion.button
+    <button
       onClick={toggleTheme}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       style={{
@@ -23,16 +23,13 @@ export function ThemeToggleButton() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '36px',
-        height: '36px',
-        borderRadius: '8px',
+        width: '12px',
+        height: '12px',
+        borderRadius: '4px',
         cursor: 'pointer',
         border: 'none',
         backgroundColor: 'transparent',
-        transition: 'transform 0.2s ease',
       }}
-      whileHover={{ backgroundColor: 'transparent' }}
-      whileTap={{ scale: 0.95 }}
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
@@ -41,12 +38,12 @@ export function ThemeToggleButton() {
           animate={{ opacity: 1, rotate: 0, scale: 1 }}
           exit={{ opacity: 0, rotate: 90, scale: 0.6 }}
           transition={{ duration: 0.2, ease: 'easeInOut' }}
-          style={{ position: 'absolute', fontSize: '18px', lineHeight: '1' }}
+          style={{ position: 'absolute', fontSize: '10px', lineHeight: '1' }}
         >
           {isDark ? <SunIcon /> : <MoonIcon />}
         </motion.span>
       </AnimatePresence>
-    </motion.button>
+    </button>
   );
 }
 
@@ -54,8 +51,8 @@ export function ThemeToggleButton() {
 function SunIcon() {
   return (
     <svg
-      width="24"
-      height="24"
+      width="12"
+      height="12"
       viewBox="0 0 24 24"
       fill="none"
       stroke="#D4AF37"
@@ -70,13 +67,16 @@ function SunIcon() {
 }
 
 function MoonIcon() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   return (
     <svg
-      width="24"
-      height="24"
+      width="12"
+      height="12"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#514e57"
+      stroke={isDark ? '#e8e8e8' : '#111111'}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"

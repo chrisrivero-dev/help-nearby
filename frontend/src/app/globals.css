@@ -307,3 +307,43 @@ html.no-transitions * {
     display: block !important;
   }
 }
+
+/* ── Masonry Grid Layout (panel-masonry) ── */
+/* CSS columns for proper masonry layout that fills vertical gaps */
+.panel-masonry {
+  column-count: 2;
+  column-gap: 1.5rem;
+  width: 100%;
+}
+
+/* Mobile: 1 column */
+@media (max-width: 768px) {
+  .panel-masonry {
+    column-count: 1;
+    column-gap: 1rem;
+  }
+}
+
+/* Prevent panels from splitting across columns; add row gap within each column */
+.panel-masonry > * {
+  break-inside: avoid;
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+/* Tighter row gap on mobile */
+@media (max-width: 768px) {
+  .panel-masonry > * {
+    margin-bottom: 1rem;
+  }
+}
+
+/* ── Ticker Animation ── */
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

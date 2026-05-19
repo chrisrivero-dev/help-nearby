@@ -32,7 +32,12 @@ const AboutPage: FC = () => {
         <StarWarsIntro />
 
         {/* Header with Title - overlaying the page */}
-        <NavBar variant="about" title="ABOUT! NEARBY." showMapPin={true} />
+        <NavBar
+          variant="about"
+          title="ABOUT! NEARBY."
+          showRadar={true}
+          hideThemeToggle
+        />
       </motion.main>
     </ThemeGuard>
   );

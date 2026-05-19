@@ -3,10 +3,7 @@
 import type { FC } from 'react';
 import { motion } from 'framer-motion';
 import NavBar from '@/components/NavBar';
-import DrawerMenu from '@/components/DrawerMenu';
 import ResourceFinder from '@/components/ResourceFinder';
-import LanguageToggle from '@/components/LanguageToggle';
-import FeatureToggles from '@/components/FeatureToggles';
 
 const pageStyle: React.CSSProperties = {
   display: 'flex',
@@ -33,14 +30,7 @@ const ResourcesPage: FC = () => {
       transition={{ duration: 0.35 }}
     >
       {/* Header with Title */}
-      <NavBar
-        variant="resources"
-        title="RESOURCES! NEARBY."
-        showMapPin={true}
-      />
-
-      {/* Feature Toggles at Bottom Right */}
-      <FeatureToggles bottom={20} right={20} />
+      <NavBar variant="resources" title="RESOURCES! NEARBY." showRadar={true} />
 
       {/* ResourceFinder - main content */}
       <ResourceFinder />

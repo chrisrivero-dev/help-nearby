@@ -2,16 +2,17 @@
 
 import type { FC } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from './useTheme';
+import { useI18n } from '@/lib/i18n';
 
 interface TitleProps {
   title?: string;
   subtitle?: string;
-  showMapPin?: boolean;
+  showRadar?: boolean;
   variant?: 'help' | 'resources' | 'about';
+  radarRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 const titleContainerStyle: React.CSSProperties = {
@@ -64,17 +65,31 @@ const variantColors: Record<string, VariantColors> = {
 };
 
 const TitleBase: FC<TitleProps> = ({
-  title = 'TITLE! NEARBY.',
+  title: customTitle,
   subtitle,
-  showMapPin = true,
+  showRadar = true,
   variant = 'about',
+  radarRef: externalRadarRef,
 }) => {
+  const t = useI18n();
+  // Use external ref if provided, otherwise create internal ref
+  const internalRadarRef = useRef<HTMLDivElement | null>(null);
+  const radarRef = externalRadarRef ?? internalRadarRef;
   const { theme } = useTheme();
+
+  // Get default title based on variant when no custom title is provided
+  // Type assertion to ensure we only access string properties
+  const getDefaultTitle = (): string => {
+    if (customTitle) return customTitle;
+    const titleKey = `${variant}Nearby` as keyof typeof t;
+    const titleValue = t[titleKey];
+    // Fallback to helpNearby if the value is a function (type mismatch)
+    if (typeof titleValue === 'string') return titleValue;
+    return t.helpNearby || 'HELP! NEARBY';
+  };
+  const title = getDefaultTitle();
   const isDark = theme === 'dark';
   const router = useRouter();
-
-  const pinStroke = isDark ? '#e8e8e8' : '#111111';
-  const pinFill = isDark ? '#d4af37' : '#fbbf24'; // Gold colors for pin fill
 
   const [isClicked, setIsClicked] = useState(false);
   const [isTitleHovered, setIsTitleHovered] = useState(false);
@@ -87,7 +102,7 @@ const TitleBase: FC<TitleProps> = ({
   const DEFAULT_LAT = 40.7829;
   const DEFAULT_LNG = -73.9654;
 
-  const handlePinClick = () => {
+  const handleRadarClick = () => {
     setIsClicked(true);
     setTimeout(() => {
       setIsClicked(false);
@@ -128,7 +143,7 @@ const TitleBase: FC<TitleProps> = ({
     cursor: 'pointer',
     transition:
       'background-color 0.3s ease, color 0.3s ease, transform 0.3s ease',
-    backgroundColor: isTitleHovered ? colors.hoverBg : 'transparent',
+    backgroundColor: isTitleHovered ? colors.hoverBg : 'rgba(0, 0, 0, 0)',
     color: isTitleHovered ? colors.hoverColor : textColor,
     padding: '0 5px',
     borderRadius: '4px',
@@ -164,30 +179,48 @@ const TitleBase: FC<TitleProps> = ({
             <span style={titleNearbyStyle}>{remainingTitle}</span>
           </div>
         </div>
-        {showMapPin && (
+        {showRadar && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+            ref={radarRef}
+            data-radar="source"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            onClick={handlePinClick}
-            whileHover={{
-              scale: 1.1,
-              y: -5,
-              transition: { duration: 0.15, ease: 'easeOut' },
-            }}
-            whileTap={{
-              scale: 0.95,
-              y: 2,
-              transition: { duration: 0.1, ease: 'easeOut' },
-            }}
+            onClick={handleRadarClick}
+            style={{ cursor: 'pointer', flexShrink: 0, position: 'relative' }}
           >
-            <MapPin
-              size={60}
-              stroke={pinStroke}
-              fill={isClicked ? pinFill : 'none'}
-              strokeWidth={2}
-              style={{ cursor: 'pointer', flexShrink: 0 }}
-            />
+            {/* Pulsing radar animation */}
+            <svg width={60} height={60} viewBox="0 0 60 60" fill="none">
+              {/* Solid center dot — gold fill with dark border */}
+              <circle
+                cx={30}
+                cy={30}
+                r={6}
+                fill="#fbbf24"
+                stroke={isDark ? '#1e1e1e' : '#000000'}
+                strokeWidth={2}
+              />
+              {/* Single radiating radar circle — classic radar sweep that fades as it expands */}
+              <motion.circle
+                key="radar-ring"
+                cx={30}
+                cy={30}
+                r={6}
+                stroke={isDark ? 'rgba(251,191,36,0.5)' : 'rgba(0,0,0,0.2)'}
+                strokeWidth={1.5}
+                fill="none"
+                style={{ transformOrigin: '30px 30px' }}
+                animate={{
+                  opacity: [0.8, 0],
+                  scale: [0.9, 3.8],
+                }}
+                transition={{
+                  duration: 2.8,
+                  ease: 'linear',
+                  repeat: Infinity,
+                }}
+              />
+            </svg>
           </motion.div>
         )}
       </div>

@@ -1,12 +1,19 @@
 'use client';
 
 import { useLocale, type Locale } from '@/lib/i18n';
+import { useTheme } from '@/components/useTheme';
 import { useState } from 'react';
 
 const LOCALES: Locale[] = ['EN', 'ES'];
 
+// Panel border colors
+const panelBorderDark = '#252525';
+const panelBorderLight = '#e4e4e4';
+
 export default function LanguageToggle() {
   const { locale, setLocale } = useLocale();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleLanguage = () => {
@@ -17,18 +24,20 @@ export default function LanguageToggle() {
   };
 
   return (
-    <div className="relative">
-      <button
-        onClick={toggleLanguage}
-        className={[
-          'px-3 py-1 text-sm font-black uppercase tracking-widest transition-colors border-4 border-black shadow-[4px_4px_0px_#000] min-w-[64px]',
-          locale === 'EN' || !isOpen
-            ? 'bg-[#f9c700] text-black'
-            : 'bg-white text-black hover:bg-neutral-100',
-        ].join(' ')}
-      >
-        {locale}
-      </button>
-    </div>
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        fontSize: '0.75rem',
+        fontFamily: "'Poppins', sans-serif",
+        fontWeight: 600,
+        color: isDark ? '#dedede' : '#111111',
+      }}
+      onClick={toggleLanguage}
+    >
+      {locale}
+    </span>
   );
 }

@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import OurStory from './OurStory';
+import MeetTheFounders from './MeetTheFounders';
 import CustomCursor from './CustomCursor';
 import Starfield from './Starfield';
+import SkipButton from './SkipButton';
 import { useTheme } from './useTheme';
 
 interface StarWarsIntroProps {
@@ -17,14 +19,11 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const [fadeTextOut, setFadeTextOut] = useState(false);
-
-  const handleSkip = () => {
-    setFadeTextOut(true);
-    setTimeout(() => {
-      document.getElementById('team')?.scrollIntoView({ behavior: 'smooth' });
-    }, 400);
-  };
+  // States
+  const [textVisible, setTextVisible] = useState(true); // StarWarsIntro text visible
+  const [foundersVisible, setFoundersVisible] = useState(false); // MeetTheFounders visible
+  const [ourStoryVisible, setOurStoryVisible] = useState(false); // OurStory visible
+  const [isReplayMode, setIsReplayMode] = useState(false);
 
   const paragraphs = [
     'We are Mike and Chris. Two regular people who got tired of watching families scramble for help when things go sideways.',
@@ -46,7 +45,7 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
     overflow: 'hidden',
   };
 
-  // OurStory — flows from top of wrapper so team section below is scrollable
+  // OurStory container style
   const ourStoryStyle: React.CSSProperties = {
     position: 'relative',
     margin: '0 auto',
@@ -68,6 +67,30 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
     padding: '20px 0',
   };
 
+  // Auto-start the intro text animation when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTextVisible(false);
+    }, 25000); // After text finishes scrolling
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleSkip = () => {
+    // Fade out text, show founders
+    setTextVisible(false);
+    setOurStoryVisible(false);
+    setFoundersVisible(true);
+    setIsReplayMode(true);
+  };
+
+  const handleReplay = () => {
+    // Reset to initial state
+    setFoundersVisible(false);
+    setOurStoryVisible(false);
+    setIsReplayMode(false);
+    setTextVisible(true);
+  };
+
   return (
     <>
       <CustomCursor isMouseOverPanel={false} />
@@ -82,84 +105,82 @@ const StarWarsIntro: React.FC<StarWarsIntroProps> = ({
         {/* Starfield background spanning the entire page */}
         <Starfield starCount={150} />
 
-        {/* Text animation - starts below viewport, scrolls up over 30 seconds, then fades out */}
-        <motion.div
-          style={textMotionStyle}
-          initial={{ top: '100%' }}
-          animate={{
-            top: fadeTextOut ? '-150%' : ['100%', '-100%'],
-            opacity: fadeTextOut ? 0 : 1,
-          }}
-          transition={{
-            duration: 25,
-            ease: 'linear',
-            delay: 0,
-          }}
-          onAnimationComplete={() => {
-            // Start fading out text after scroll completes
-            setTimeout(() => {
-              setFadeTextOut(true);
-            }, 1000);
-          }}
-        >
-          <div style={textStyle}>
-            {paragraphs.map((text, index) => (
-              <p
-                key={index}
-                style={{
-                  textAlign: 'justify',
-                  marginBottom: index < paragraphs.length - 1 ? '20px' : '0',
-                  color: isDark ? '#f9c700' : '#f9c700',
-                  fontSize: 'clamp(14px, 2.5vw, 22px)',
-                }}
-              >
-                {text}
-              </p>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Skip button — visible only while intro is playing */}
-        {!fadeTextOut && (
-          <button
-            onClick={handleSkip}
-            style={{
-              position: 'fixed',
-              bottom: '2rem',
-              right: '2rem',
-              zIndex: 10,
-              background: 'transparent',
-              border: '1px solid #f9c700',
-              color: '#f9c700',
-              padding: '0.5rem 1.1rem',
-              fontSize: '0.72rem',
-              fontWeight: 600,
-              letterSpacing: '0.12em',
-              cursor: 'pointer',
-              opacity: 0.75,
-              transition: 'opacity 0.2s',
+        {/* StarWarsIntro text animation - scrolls from bottom to top over 25 seconds */}
+        {textVisible && !isReplayMode && (
+          <motion.div
+            style={textMotionStyle}
+            initial={{ top: '100%' }}
+            animate={{ top: ['100%', '-100%'] }}
+            transition={{
+              duration: 25,
+              ease: 'linear',
+              delay: 0,
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.75'; }}
+            onAnimationComplete={() => {
+              setTextVisible(false);
+              setOurStoryVisible(true);
+            }}
           >
-            Skip intro · Meet the team ↓
-          </button>
+            <div style={textStyle}>
+              {paragraphs.map((text, index) => (
+                <p
+                  key={index}
+                  style={{
+                    textAlign: 'justify',
+                    marginBottom: index < paragraphs.length - 1 ? '20px' : '0',
+                    color: isDark ? '#f9c700' : '#f9c700',
+                    fontSize: 'clamp(14px, 2.5vw, 22px)',
+                  }}
+                >
+                  {text}
+                </p>
+              ))}
+            </div>
+          </motion.div>
         )}
 
-        {/* Our Story component that appears after text fades out */}
-        {fadeTextOut && (
+        {/* Skip button - always visible while intro or OurStory is showing */}
+        {!isReplayMode && (
+          <SkipButton
+            onClick={handleSkip}
+            isReplayMode={false}
+            isVisible={true}
+          />
+        )}
+
+        {/* Replay button (ROLL THE CREDITS) - visible when founders are shown */}
+        {isReplayMode && (
+          <SkipButton
+            onClick={handleReplay}
+            isReplayMode={true}
+            isVisible={true}
+          />
+        )}
+
+        {/* Our Story component - appears after StarWarsIntro finishes */}
+        {!isReplayMode && ourStoryVisible && (
           <motion.div
             style={ourStoryStyle}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.5, ease: 'easeOut' }}
-            onAnimationComplete={() => {
-              if (onAnimationComplete) {
-                onAnimationComplete();
-              }
-            }}
           >
-            <OurStory />
+            <OurStory isVisible={true} />
+          </motion.div>
+        )}
+
+        {/* MeetTheFounders component - appears when skip is clicked */}
+        {foundersVisible && (
+          <motion.div
+            style={{ ...ourStoryStyle, position: 'absolute', top: 0 }}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{
+              opacity: foundersVisible ? 1 : 0,
+              y: foundersVisible ? 0 : 50,
+            }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <MeetTheFounders isVisible={foundersVisible} />
           </motion.div>
         )}
       </div>

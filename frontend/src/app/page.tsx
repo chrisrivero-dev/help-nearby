@@ -14,6 +14,27 @@ const zSticky = 100;
 const zOverlay = 200;
 const zToast = 300;
 
+// Panel border colors matching NavBar.tsx
+const panelBorderDark = '#252525';
+const panelBorderLight = '#e4e4e4';
+
+// Panel style helper function - needs isDark to be passed
+const getPanelDefaultStyle = (isDark: boolean): React.CSSProperties => ({
+  background: isDark ? '#121212' : '#ffffff',
+  border: `1px solid ${isDark ? panelBorderDark : panelBorderLight}`,
+  color: isDark ? '#dedede' : '#111111',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '0.5rem 1rem',
+  fontSize: '0.65rem',
+  fontFamily: "'Poppins', sans-serif",
+  fontWeight: 600,
+  letterSpacing: '0.05em',
+  textTransform: 'uppercase',
+  transition: 'background 0.2s ease',
+});
+
 // Root wrapper
 const rootStyle: CSSProperties = {
   backgroundColor: 'var(--color-bg)',
@@ -37,8 +58,8 @@ const clockStyle: CSSProperties = {
 };
 
 // Title cycling configuration
-const TITLES = ['RESOURCES!', 'HELP!'];
-const TITLE_DISPLAY_TIME = 2000; // 2 seconds
+const TITLES = ['HELP!'];
+const TITLE_DISPLAY_TIME = 5000; // 5 seconds (static - no cycling)
 
 const CARD_W = 72;
 const CARD_H = 52;
@@ -47,8 +68,10 @@ const AID_CARDS = [
   {
     id: 'food',
     label: 'FOOD SUPPORT',
-    x: 518, y: 52,
-    cx: 554, cy: 78,
+    x: 518,
+    y: 52,
+    cx: 554,
+    cy: 78,
     pathD: 'M 440 315 L 554 78',
     gradId: 'hn-grad-food',
     marks: ['M 18 38 Q 36 48 54 38', 'M 16 34 L 56 34', 'M 36 18 L 36 34'],
@@ -56,8 +79,10 @@ const AID_CARDS = [
   {
     id: 'shelter',
     label: 'SHELTER',
-    x: 566, y: 102,
-    cx: 602, cy: 128,
+    x: 566,
+    y: 102,
+    cx: 602,
+    cy: 128,
     pathD: 'M 440 315 L 602 128',
     gradId: 'hn-grad-shelter',
     marks: ['M 10 32 L 36 14 L 62 32', 'M 27 32 L 27 46 L 45 46 L 45 32'],
@@ -65,20 +90,32 @@ const AID_CARDS = [
   {
     id: 'financial',
     label: 'FINANCIAL AID',
-    x: 572, y: 252,
-    cx: 608, cy: 278,
+    x: 572,
+    y: 252,
+    cx: 608,
+    cy: 278,
     pathD: 'M 440 315 L 608 278',
     gradId: 'hn-grad-financial',
-    marks: ['M 22 14 L 50 14 L 50 40 L 22 40 Z', 'M 27 22 L 45 22', 'M 27 28 L 39 28'],
+    marks: [
+      'M 22 14 L 50 14 L 50 40 L 22 40 Z',
+      'M 27 22 L 45 22',
+      'M 27 28 L 39 28',
+    ],
   },
   {
     id: 'transit',
     label: 'TRANSIT',
-    x: 552, y: 432,
-    cx: 588, cy: 458,
+    x: 552,
+    y: 432,
+    cx: 588,
+    cy: 458,
     pathD: 'M 440 315 L 588 458',
     gradId: 'hn-grad-transit',
-    marks: ['M 12 26 L 52 26', 'M 40 18 L 52 26 L 40 34', 'M 24 33 L 24 38 L 50 38'],
+    marks: [
+      'M 12 26 L 52 26',
+      'M 40 18 L 52 26 L 40 34',
+      'M 24 33 L 24 38 L 50 38',
+    ],
   },
 ];
 
@@ -96,6 +133,7 @@ const Landing: FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [activeNode, setActiveNode] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [isTitleModalOpen, setIsTitleModalOpen] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -122,6 +160,16 @@ const Landing: FC = () => {
       }
     };
   }, []);
+
+  // Close title modal after timeout
+  useEffect(() => {
+    if (isTitleModalOpen) {
+      const timer = setTimeout(() => {
+        setIsTitleModalOpen(false);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isTitleModalOpen]);
 
   useEffect(() => {
     const id = setInterval(
@@ -178,152 +226,266 @@ const Landing: FC = () => {
           />
 
           {/* City-grid + cycling aid preview cards */}
-          <svg
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-            viewBox="0 0 700 520"
-            fill="none"
-            aria-hidden="true"
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%',
+            }}
           >
-            <defs>
-              <linearGradient id="hn-grad-food" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor={isDark ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.07)'} />
-                <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-              </linearGradient>
-              <linearGradient id="hn-grad-shelter" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor={isDark ? 'rgba(99,179,237,0.22)' : 'rgba(0,0,0,0.07)'} />
-                <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-              </linearGradient>
-              <linearGradient id="hn-grad-financial" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor={isDark ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.07)'} />
-                <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-              </linearGradient>
-              <linearGradient id="hn-grad-transit" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor={isDark ? 'rgba(167,139,250,0.22)' : 'rgba(0,0,0,0.07)'} />
-                <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-              </linearGradient>
-            </defs>
-
-            {/* Grid — horizontal streets */}
-            {[86, 172, 258, 344, 430].map((y) => (
-              <line
-                key={`h-${y}`}
-                x1={0} y1={y} x2={700} y2={y}
-                stroke={isDark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.032)'}
-                strokeWidth={1}
-              />
-            ))}
-
-            {/* Grid — vertical avenues */}
-            {[116, 232, 348, 464, 580].map((x) => (
-              <line
-                key={`v-${x}`}
-                x1={x} y1={0} x2={x} y2={520}
-                stroke={isDark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.032)'}
-                strokeWidth={1}
-              />
-            ))}
-
-            {/* Passive nodes */}
-            {([
-              [116, 86], [348, 86], [580, 86],
-              [116, 172], [232, 172], [464, 172],
-              [116, 258], [348, 258],
-              [116, 344], [232, 344], [464, 344], [580, 344],
-              [116, 430], [348, 430], [580, 430],
-            ] as [number, number][]).map(([cx, cy]) => (
-              <circle
-                key={`node-${cx}-${cy}`}
-                cx={cx} cy={cy}
-                r={cx > 280 ? 3.5 : 2.5}
-                stroke={
-                  cx > 280
-                    ? isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.11)'
-                    : isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)'
-                }
-                strokeWidth={1}
-                fill="none"
-              />
-            ))}
-
-            {/* Background network lines — desktop only */}
-            {!isMobile && AID_CARDS.map((card, i) => (
-              <motion.path
-                key={`bgpath-${card.id}`}
-                d={card.pathD}
-                stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'}
-                strokeWidth={1}
-                fill="none"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 1.4, delay: 0.9 + i * 0.18, ease: 'easeOut' }}
-              />
-            ))}
-
-            {/* Aid preview cards — desktop only */}
-            {!isMobile && AID_CARDS.map((card, i) => {
-              const isActive = i === activeNode;
-              return (
-                <motion.g
-                  key={card.id}
-                  animate={{ opacity: isActive ? 1 : 0.16 }}
-                  transition={{ duration: 0.5, ease: 'easeOut' }}
-                  style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-                  onClick={() => router.push('/help')}
-                >
-                  {/* Card background */}
-                  <rect
-                    x={card.x} y={card.y}
-                    width={CARD_W} height={CARD_H}
-                    rx={4}
-                    fill={isActive ? `url(#${card.gradId})` : 'none'}
-                    stroke={
-                      isActive
-                        ? isDark ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.28)'
-                        : isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.10)'
+            <svg
+              style={{
+                position: 'relative',
+                maxWidth: '100%',
+                maxHeight: '100%',
+                transform: isMobile ? 'scale(0.45)' : 'scale(1)',
+                transformOrigin: 'center center',
+              }}
+              viewBox="0 0 700 520"
+              preserveAspectRatio="xMidYMid meet"
+              fill="none"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id="hn-grad-food" x1="0" y1="0" x2="1" y2="1">
+                  <stop
+                    offset="0%"
+                    stopColor={
+                      isDark ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.07)'
                     }
-                    strokeWidth={isActive ? 1.5 : 1}
                   />
+                  <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                </linearGradient>
+                <linearGradient
+                  id="hn-grad-shelter"
+                  x1="0"
+                  y1="0"
+                  x2="1"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor={
+                      isDark ? 'rgba(99,179,237,0.22)' : 'rgba(0,0,0,0.07)'
+                    }
+                  />
+                  <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                </linearGradient>
+                <linearGradient
+                  id="hn-grad-financial"
+                  x1="0"
+                  y1="0"
+                  x2="1"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor={
+                      isDark ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.07)'
+                    }
+                  />
+                  <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                </linearGradient>
+                <linearGradient
+                  id="hn-grad-transit"
+                  x1="0"
+                  y1="0"
+                  x2="1"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor={
+                      isDark ? 'rgba(167,139,250,0.22)' : 'rgba(0,0,0,0.07)'
+                    }
+                  />
+                  <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                </linearGradient>
+              </defs>
 
-                  {/* Icon marks — only when active */}
-                  {isActive && (
-                    <g transform={`translate(${card.x}, ${card.y})`}>
-                      {card.marks.map((d, mi) => (
-                        <motion.path
-                          key={`mark-${card.id}-${mi}`}
-                          d={d}
-                          stroke={isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.45)'}
-                          strokeWidth={1.5}
-                          fill="none"
-                          strokeLinecap="round"
-                          initial={{ opacity: 0, pathLength: 0 }}
-                          animate={{ opacity: 1, pathLength: 1 }}
-                          transition={{ duration: 0.4, delay: mi * 0.1, ease: 'easeOut' }}
-                        />
-                      ))}
-                    </g>
-                  )}
+              {/* Grid — horizontal streets */}
+              {[86, 172, 258, 344, 430].map((y) => (
+                <line
+                  key={`h-${y}`}
+                  x1={0}
+                  y1={y}
+                  x2={700}
+                  y2={y}
+                  stroke={
+                    isDark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.032)'
+                  }
+                  strokeWidth={1}
+                />
+              ))}
 
-                  {/* Pulse ring — only when active */}
-                  {isActive && (
-                    <motion.rect
-                      x={card.x - 5} y={card.y - 5}
-                      width={CARD_W + 10} height={CARD_H + 10}
-                      rx={7}
-                      fill="none"
-                      stroke={isDark ? 'rgba(251,191,36,0.30)' : 'rgba(0,0,0,0.10)'}
-                      strokeWidth={1}
-                      style={{ transformOrigin: `${card.cx}px ${card.cy}px` }}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: [0, 0.75, 0], scale: [0.9, 1.12, 1.28] }}
-                      transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut' }}
+              {/* Grid — vertical avenues */}
+              {[116, 232, 348, 464, 580].map((x) => (
+                <line
+                  key={`v-${x}`}
+                  x1={x}
+                  y1={0}
+                  x2={x}
+                  y2={520}
+                  stroke={
+                    isDark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.032)'
+                  }
+                  strokeWidth={1}
+                />
+              ))}
+
+              {/* Passive nodes */}
+              {(
+                [
+                  [116, 86],
+                  [348, 86],
+                  [580, 86],
+                  [116, 172],
+                  [232, 172],
+                  [464, 172],
+                  [116, 258],
+                  [348, 258],
+                  [116, 344],
+                  [232, 344],
+                  [464, 344],
+                  [580, 344],
+                  [116, 430],
+                  [348, 430],
+                  [580, 430],
+                ] as [number, number][]
+              ).map(([cx, cy]) => (
+                <circle
+                  key={`node-${cx}-${cy}`}
+                  cx={cx}
+                  cy={cy}
+                  r={cx > 280 ? 3.5 : 2.5}
+                  stroke={
+                    cx > 280
+                      ? isDark
+                        ? 'rgba(255,255,255,0.15)'
+                        : 'rgba(0,0,0,0.11)'
+                      : isDark
+                        ? 'rgba(255,255,255,0.07)'
+                        : 'rgba(0,0,0,0.05)'
+                  }
+                  strokeWidth={1}
+                  fill="none"
+                />
+              ))}
+
+              {/* Background network lines */}
+              {AID_CARDS.map((card, i) => (
+                <motion.path
+                  key={`bgpath-${card.id}`}
+                  d={card.pathD}
+                  stroke={
+                    isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'
+                  }
+                  strokeWidth={1}
+                  fill="none"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{
+                    duration: 1.4,
+                    delay: 0.9 + i * 0.18,
+                    ease: 'easeOut',
+                  }}
+                />
+              ))}
+
+              {/* Aid preview cards */}
+              {AID_CARDS.map((card, i) => {
+                const isActive = i === activeNode;
+                return (
+                  <motion.g
+                    key={card.id}
+                    initial={{ opacity: 0.16 }}
+                    animate={{ opacity: isActive ? 1 : 0.16 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                    onClick={() => router.push('/help')}
+                  >
+                    {/* Card background */}
+                    <rect
+                      x={card.x}
+                      y={card.y}
+                      width={CARD_W}
+                      height={CARD_H}
+                      rx={4}
+                      fill={isActive ? `url(#${card.gradId})` : 'none'}
+                      stroke={
+                        isActive
+                          ? isDark
+                            ? 'rgba(255,255,255,0.38)'
+                            : 'rgba(0,0,0,0.28)'
+                          : isDark
+                            ? 'rgba(255,255,255,0.14)'
+                            : 'rgba(0,0,0,0.10)'
+                      }
+                      strokeWidth={isActive ? 1.5 : 1}
                     />
-                  )}
-                </motion.g>
-              );
-            })}
 
-            {/* Active connection path — desktop only */}
-            {!isMobile && (
+                    {/* Icon marks — only when active */}
+                    {isActive && (
+                      <g transform={`translate(${card.x}, ${card.y})`}>
+                        {card.marks.map((d, mi) => (
+                          <motion.path
+                            key={`mark-${card.id}-${mi}`}
+                            d={d}
+                            stroke={
+                              isDark
+                                ? 'rgba(255,255,255,0.55)'
+                                : 'rgba(0,0,0,0.45)'
+                            }
+                            strokeWidth={1.5}
+                            fill="none"
+                            strokeLinecap="round"
+                            initial={{ opacity: 0, pathLength: 0 }}
+                            animate={{ opacity: 1, pathLength: 1 }}
+                            transition={{
+                              duration: 0.4,
+                              delay: mi * 0.1,
+                              ease: 'easeOut',
+                            }}
+                          />
+                        ))}
+                      </g>
+                    )}
+
+                    {/* Pulse ring — only when active */}
+                    {isActive && (
+                      <motion.rect
+                        x={card.x - 5}
+                        y={card.y - 5}
+                        width={CARD_W + 10}
+                        height={CARD_H + 10}
+                        rx={7}
+                        fill="none"
+                        stroke={
+                          isDark ? 'rgba(251,191,36,0.30)' : 'rgba(0,0,0,0.10)'
+                        }
+                        strokeWidth={1}
+                        style={{ transformOrigin: `${card.cx}px ${card.cy}px` }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{
+                          opacity: [0, 0.75, 0],
+                          scale: [0.9, 1.12, 1.28],
+                        }}
+                        transition={{
+                          duration: 2.2,
+                          repeat: Infinity,
+                          ease: 'easeOut',
+                        }}
+                      />
+                    )}
+                  </motion.g>
+                );
+              })}
+
+              {/* Active connection path */}
               <AnimatePresence mode="sync">
                 <motion.path
                   key={`conn-${activeNode}`}
@@ -337,51 +499,56 @@ const Landing: FC = () => {
                   transition={{ duration: 0.65, ease: 'easeOut' }}
                 />
               </AnimatePresence>
-            )}
 
-            {/* Active card label — desktop only */}
-            {!isMobile && (
+              {/* Active card label */}
               <AnimatePresence mode="sync">
-              <motion.text
-                key={`label-${activeNode}`}
-                x={AID_CARDS[activeNode].cx}
-                y={AID_CARDS[activeNode].y - 8}
-                textAnchor="middle"
-                fontFamily="'Poppins', sans-serif"
-                fontWeight={700}
-                fontSize={8}
-                fill={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.45)'}
-                letterSpacing={1.5}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                {AID_CARDS[activeNode].label}
-              </motion.text>
-            </AnimatePresence>
-            )}
+                <motion.text
+                  key={`label-${activeNode}`}
+                  x={AID_CARDS[activeNode].cx}
+                  y={AID_CARDS[activeNode].y - 8}
+                  textAnchor="middle"
+                  fontFamily="'Poppins', sans-serif"
+                  fontWeight={700}
+                  fontSize={8}
+                  fill={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.45)'}
+                  letterSpacing={1.5}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  {AID_CARDS[activeNode].label}
+                </motion.text>
+              </AnimatePresence>
 
-            {/* Home node — user location */}
-            <circle
-              cx={440} cy={315}
-              r={5.5}
-              fill={isDark ? 'rgba(251,191,36,0.55)' : 'rgba(0,0,0,0.45)'}
-              stroke={isDark ? 'rgba(251,191,36,0.9)' : 'rgba(0,0,0,0.65)'}
-              strokeWidth={1.5}
-            />
-            <motion.circle
-              cx={440} cy={315}
-              r={5.5}
-              stroke={isDark ? 'rgba(251,191,36,0.5)' : 'rgba(0,0,0,0.2)'}
-              strokeWidth={1}
-              fill="none"
-              style={{ transformOrigin: '440px 315px' }}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: [0, 0.8, 0], scale: [0.5, 2.6, 3.8] }}
-              transition={{ duration: 2.8, delay: 0.2, repeat: Infinity, ease: 'easeOut' }}
-            />
-          </svg>
+              {/* Home node — user location */}
+              <circle
+                cx={440}
+                cy={315}
+                r={5.5}
+                fill={isDark ? 'rgba(251,191,36,0.55)' : 'rgba(0,0,0,0.45)'}
+                stroke={isDark ? 'rgba(251,191,36,0.9)' : 'rgba(0,0,0,0.65)'}
+                strokeWidth={1.5}
+              />
+              <motion.circle
+                cx={440}
+                cy={315}
+                r={5.5}
+                stroke={isDark ? 'rgba(251,191,36,0.5)' : 'rgba(0,0,0,0.2)'}
+                strokeWidth={1}
+                fill="none"
+                style={{ transformOrigin: '440px 315px' }}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: [0, 0.8, 0], scale: [0.5, 2.6, 3.8] }}
+                transition={{
+                  duration: 2.8,
+                  delay: 0.2,
+                  repeat: Infinity,
+                  ease: 'easeOut',
+                }}
+              />
+            </svg>
+          </div>
         </div>
 
         {/* Content layer — sits above visual depth layer */}
@@ -401,7 +568,11 @@ const Landing: FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.2 }}
+            transition={{
+              duration: 0.6,
+              ease: [0.25, 0.46, 0.45, 0.94],
+              delay: 0.2,
+            }}
           >
             <div
               style={{
@@ -414,7 +585,7 @@ const Landing: FC = () => {
                 whiteSpace: isMobile ? 'normal' : 'nowrap',
               }}
             >
-              HELP NEARBY.
+              HELP!
             </div>
             <div
               style={{
@@ -427,7 +598,7 @@ const Landing: FC = () => {
                 whiteSpace: isMobile ? 'normal' : 'nowrap',
               }}
             >
-              WHEN IT MATTERS.
+              NEARBY.
             </div>
           </motion.div>
 
@@ -460,11 +631,13 @@ const Landing: FC = () => {
             }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.5 }}
+            transition={{
+              duration: 0.6,
+              ease: [0.25, 0.46, 0.45, 0.94],
+              delay: 0.5,
+            }}
           >
-            Enter your location.
-            <br />
-            See nearby help.
+            Finding help getting and involved in the community made easier.
           </motion.p>
 
           {/* CTA Row */}
@@ -477,65 +650,16 @@ const Landing: FC = () => {
             }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.65 }}
+            transition={{
+              duration: 0.6,
+              ease: [0.25, 0.46, 0.45, 0.94],
+              delay: 0.65,
+            }}
           >
             {/* Primary: Find Help */}
-            <motion.button
-              onClick={() => router.push('/help')}
-              style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 800,
-                fontSize: '13px',
-                textTransform: 'uppercase',
-                letterSpacing: '2px',
-                padding: '14px 28px',
-                border: `4px solid ${textColor}`,
-                backgroundColor: textColor,
-                color: bgColor,
-                cursor: 'pointer',
-                boxShadow: `4px 4px 0 ${shadowColor}`,
-              }}
-              whileHover={{
-                boxShadow: isDark
-                  ? `2px 2px 0 ${shadowColor}, 0 0 18px rgba(251, 191, 36, 0.28)`
-                  : `2px 2px 0 ${shadowColor}`,
-                x: 2,
-                y: 2,
-              }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-            >
-              FIND HELP →
-            </motion.button>
-
-            {/* Secondary: Explore Resources */}
-            <motion.button
-              onClick={() => router.push('/resources')}
-              style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 800,
-                fontSize: '13px',
-                textTransform: 'uppercase',
-                letterSpacing: '2px',
-                padding: '14px 28px',
-                border: `4px solid ${textColor}`,
-                backgroundColor: 'transparent',
-                color: textColor,
-                cursor: 'pointer',
-                boxShadow: `4px 4px 0 ${shadowColor}`,
-              }}
-              whileHover={{
-                backgroundColor: textColor,
-                color: bgColor,
-                boxShadow: `2px 2px 0 ${shadowColor}`,
-                x: 2,
-                y: 2,
-              }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-            >
-              EXPLORE RESOURCES
-            </motion.button>
+            <PanelButton onClick={() => router.push('/help')} isDark={isDark}>
+              EXPLORE NEARBY →
+            </PanelButton>
           </motion.div>
 
           {/* Login — utility footnote, not a primary CTA */}
@@ -544,33 +668,91 @@ const Landing: FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.85 }}
           >
-            <motion.button
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation();
+            <PanelButton
+              onClick={() => {
                 setIsLoginModalOpen(true);
               }}
-              style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 400,
-                fontSize: '11px',
-                marginTop: '20px',
-                background: 'none',
-                border: 'none',
-                color: mutedColor,
-                cursor: 'pointer',
-                letterSpacing: '0.5px',
-                padding: 0,
-                opacity: 0.5,
-              }}
-              whileHover={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
+              isDark={isDark}
+              variant="text"
             >
               Login
-            </motion.button>
+            </PanelButton>
           </motion.div>
         </div>
       </motion.div>
     </div>
+  );
+};
+
+// Panel button component matching NavBar.tsx style
+const PanelButton: FC<{
+  onClick: () => void;
+  children: React.ReactNode;
+  isDark: boolean;
+  variant?: 'primary' | 'secondary' | 'text';
+}> = ({ onClick, children, isDark, variant = 'primary' }) => {
+  return (
+    <motion.div
+      style={{
+        position: 'relative',
+        breakInside: 'avoid',
+        height: 'fit-content',
+      }}
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] as const }}
+    >
+      {/* Back panel - static, same size as front panel, zIndex 1 */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: 1,
+          width: '100%',
+          height: '100%',
+          background: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.05)',
+          border: `1px solid ${isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.05)'}`,
+        }}
+      />
+      {/* Front panel - lifted off back panel, zIndex 2 */}
+      <motion.button
+        onClick={onClick}
+        style={{
+          ...(variant === 'text'
+            ? {
+                ...getPanelDefaultStyle(isDark),
+                background: 'none',
+                border: 'none',
+                padding: '0 0.5rem',
+                color: isDark ? '#dedede' : '#111111',
+              }
+            : variant === 'secondary'
+              ? {
+                  ...getPanelDefaultStyle(isDark),
+                  backgroundColor: 'rgba(0,0,0,0)',
+                  color: isDark ? '#dedede' : '#111111',
+                }
+              : {
+                  ...getPanelDefaultStyle(isDark),
+                  backgroundColor: isDark ? '#e8e8e8' : '#111111',
+                  color: isDark ? '#111111' : '#ffffff',
+                }),
+          position: 'relative',
+          zIndex: 2,
+          cursor: 'pointer',
+        }}
+        whileHover={{
+          x: -4,
+          y: -4,
+          backgroundColor: '#fbbf24',
+          color: isDark ? '#121212' : '#ffffff',
+        }}
+        transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
+      >
+        {children}
+      </motion.button>
+    </motion.div>
   );
 };
 

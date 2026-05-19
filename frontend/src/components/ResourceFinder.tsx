@@ -526,7 +526,7 @@ const useResourceFinderStyles = () => {
       borderBottom: `1px solid ${border}`,
       fontFamily: 'inherit',
       color: textColor,
-      backgroundColor: 'transparent',
+      backgroundColor: 'rgba(0, 0, 0, 0)',
     } as React.CSSProperties,
     subOptionButtonActiveStyle: {
       padding: '0.85rem 1rem',

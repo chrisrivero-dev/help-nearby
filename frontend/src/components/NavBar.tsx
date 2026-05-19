@@ -1,83 +1,103 @@
 'use client';
 
-import type { FC } from 'react';
+import type { FC, RefObject } from 'react';
 import TitleBase from './TitleBase';
-import DrawerMenu from './DrawerMenu';
+import { useTheme } from '@/components/useTheme';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import FeatureBar from './FeatureBar';
+import Menu from './Menu';
 
 interface NavBarProps {
   variant?: 'help' | 'resources' | 'about';
   title?: string;
   subtitle?: string;
+  showRadar?: boolean;
+  radarRef?: RefObject<HTMLDivElement | null>;
   showMapPin?: boolean;
+  hideThemeToggle?: boolean;
 }
+
+// Panel border colors
+const panelBorderDark = '#252525';
+const panelBorderLight = '#e4e4e4';
 
 const NavBar: FC<NavBarProps> = ({
   variant = 'about',
   title,
   subtitle,
-  showMapPin = true,
+  showRadar = true,
+  radarRef,
+  hideThemeToggle,
 }) => {
-  // Header row style - single row with left title and right menu
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const router = useRouter();
+
+  // Header row style - responsive container
   const headerRowStyle: React.CSSProperties = {
     position: 'fixed',
-    top: '20px',
+    top: '0',
     left: '0',
     right: '0',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingLeft: 'max(16px, calc((100vw - 1600px) / 2 + 50px))',
     paddingRight: 'max(16px, calc((100vw - 1600px) / 2 + 50px))',
     boxSizing: 'border-box',
-    backgroundColor: 'transparent',
-    color: 'var(--color-text)',
+    backgroundColor: isDark
+      ? 'rgba(15, 15, 15, 0.7)'
+      : 'rgba(250, 250, 250, 0.7)',
+    backdropFilter: 'blur(10px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(10px) saturate(180%)',
+    color: isDark ? '#e8e8e8' : '#111111',
     zIndex: 1001,
-    minHeight: '60px',
+    minHeight: '80px',
+    paddingTop: '12px',
+    paddingBottom: '12px',
   };
 
-  // Title container style - left side
-  const titleContainerStyle: React.CSSProperties = {
+  // Desktop: title left, menu and feature toggles right
+  // The flex container holds Title (left) and Menu+FeatureBar wrapper (right)
+  const desktopContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  };
+
+  const desktopTitleStyle: React.CSSProperties = {
     flex: '0 0 auto',
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
   };
 
-  // Right side container style - holds both drawer menu and language toggle side by side
-  const rightSideStyle: React.CSSProperties = {
-    flex: '0 0 auto',
-    display: 'flex',
-    alignItems: 'center',
-    position: 'relative',
-    marginRight: '80px',
-  };
-
-  // Drawer menu absolute position style - right edge of rightSideStyle
-  const drawerMenuWrapperStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: '0',
-    right: '0',
-    width: '30px',
-    height: '12px',
-    marginRight: '80px',
-  };
-
   return (
     <div style={{ ...headerRowStyle }}>
-      {/* Left: Title */}
-      <div style={titleContainerStyle}>
-        <TitleBase
-          title={title}
-          subtitle={subtitle}
-          showMapPin={showMapPin}
-          variant={variant}
-        />
-      </div>
+      {/* Desktop: Title left, menu and feature toggles right */}
+      <div style={desktopContainerStyle}>
+        <div style={desktopTitleStyle}>
+          <TitleBase
+            title={title}
+            subtitle={subtitle}
+            showRadar={showRadar}
+            variant={variant}
+            radarRef={radarRef}
+          />
+        </div>
 
-      {/* Right: Drawer Menu */}
-      <div style={rightSideStyle}>
-        <div style={drawerMenuWrapperStyle}>
-          <DrawerMenu top={39} right={40} />
+        {/* FeatureBar aligned to right */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+          }}
+        >
+          <FeatureBar hideThemeToggle={hideThemeToggle} />
+          <Menu />
         </div>
       </div>
     </div>
