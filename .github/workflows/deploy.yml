@@ -1,9 +1,9 @@
 name: Deploy to EC2 via Docker
 
 on:
-  push:
+  workflow_dispatch:
     branches:
-      - deployment/aws-helpnearby-co
+      - main
 
 permissions:
   id-token: write
