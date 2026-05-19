@@ -72,7 +72,7 @@ const AID_CARDS = [
     y: 52,
     cx: 554,
     cy: 78,
-    pathD: 'M 440 315 L 554 78',
+    pathD: 'M 220 260 L 554 78',
     gradId: 'hn-grad-food',
     marks: ['M 18 38 Q 36 48 54 38', 'M 16 34 L 56 34', 'M 36 18 L 36 34'],
   },
@@ -83,7 +83,7 @@ const AID_CARDS = [
     y: 102,
     cx: 602,
     cy: 128,
-    pathD: 'M 440 315 L 602 128',
+    pathD: 'M 220 260 L 602 128',
     gradId: 'hn-grad-shelter',
     marks: ['M 10 32 L 36 14 L 62 32', 'M 27 32 L 27 46 L 45 46 L 45 32'],
   },
@@ -94,7 +94,7 @@ const AID_CARDS = [
     y: 252,
     cx: 608,
     cy: 278,
-    pathD: 'M 440 315 L 608 278',
+    pathD: 'M 220 260 L 608 278',
     gradId: 'hn-grad-financial',
     marks: [
       'M 22 14 L 50 14 L 50 40 L 22 40 Z',
@@ -109,7 +109,7 @@ const AID_CARDS = [
     y: 432,
     cx: 588,
     cy: 458,
-    pathD: 'M 440 315 L 588 458',
+    pathD: 'M 220 260 L 588 458',
     gradId: 'hn-grad-transit',
     marks: [
       'M 12 26 L 52 26',
@@ -523,21 +523,21 @@ const Landing: FC = () => {
 
               {/* Home node — user location */}
               <circle
-                cx={440}
-                cy={315}
+                cx={220}
+                cy={260}
                 r={5.5}
                 fill={isDark ? 'rgba(251,191,36,0.55)' : 'rgba(0,0,0,0.45)'}
                 stroke={isDark ? 'rgba(251,191,36,0.9)' : 'rgba(0,0,0,0.65)'}
                 strokeWidth={1.5}
               />
               <motion.circle
-                cx={440}
-                cy={315}
+                cx={220}
+                cy={260}
                 r={5.5}
                 stroke={isDark ? 'rgba(251,191,36,0.5)' : 'rgba(0,0,0,0.2)'}
                 strokeWidth={1}
                 fill="none"
-                style={{ transformOrigin: '440px 315px' }}
+                style={{ transformOrigin: '220px 260px' }}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: [0, 0.8, 0], scale: [0.5, 2.6, 3.8] }}
                 transition={{
@@ -637,7 +637,7 @@ const Landing: FC = () => {
               delay: 0.5,
             }}
           >
-            Finding help getting and involved in the community made easier.
+            Discover ways to get help and get involved in the community.
           </motion.p>
 
           {/* CTA Row */}
