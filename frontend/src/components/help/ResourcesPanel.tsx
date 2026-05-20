@@ -3,7 +3,7 @@
 import type { FC } from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ExternalLink } from 'lucide-react';
+import { ChevronRight, ExternalLink, Info } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
 import type {
@@ -21,6 +21,7 @@ export const ResourcesPanel: FC = () => {
   );
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [nearbyDegraded, setNearbyDegraded] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   const fetchNearbyResources = useCallback(
     async (lat: number, lng: number) => {
@@ -64,6 +65,9 @@ export const ResourcesPanel: FC = () => {
       setNearbyDegraded(false);
     }
   }, [zip, isValid, latitude, longitude, fetchNearbyResources]);
+
+  const resourceRenderKey = (r: NearbyResource, index: number) =>
+    `${r.sourceName}:${r.id}:${r.latitude ?? ''}:${r.longitude ?? ''}:${index}`;
 
   const formatDist = (mi: number) =>
     mi < 0.1
@@ -191,6 +195,106 @@ export const ResourcesPanel: FC = () => {
               RESOURCES! NEARBY
             </span>
           </div>
+          <div
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setSourcesOpen(true)}
+            onMouseLeave={() => setSourcesOpen(false)}
+          >
+            <button
+              type="button"
+              aria-label="Show live data sources"
+              aria-expanded={sourcesOpen}
+              onClick={() => setSourcesOpen((v) => !v)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 18,
+                height: 18,
+                padding: 0,
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: mutedText,
+                lineHeight: 0,
+              }}
+            >
+              <Info size={13} />
+            </button>
+            {sourcesOpen && (
+              <div
+                role="tooltip"
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  right: 0,
+                  zIndex: 10,
+                  minWidth: 240,
+                  maxWidth: 280,
+                  padding: '0.65rem 0.8rem',
+                  background: isDark ? '#0a0a0a' : '#ffffff',
+                  border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
+                  boxShadow: isDark
+                    ? '0 4px 12px rgba(0,0,0,0.6)'
+                    : '0 4px 12px rgba(0,0,0,0.08)',
+                  fontFamily: "'Poppins', sans-serif",
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: 800,
+                    fontSize: '0.62rem',
+                    letterSpacing: '0.1em',
+                    color: cardText,
+                    marginBottom: '0.4rem',
+                  }}
+                >
+                  LIVE DATA SOURCES
+                </div>
+                <ul
+                  style={{
+                    listStyle: 'none',
+                    padding: 0,
+                    margin: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.22rem',
+                  }}
+                >
+                  {[
+                    'HRSA Health Care Service Delivery Sites',
+                    'City of Los Angeles Department of Recreation and Parks',
+                    'LA County Cooling Centers',
+                    'California Office of Emergency Services Food Banks',
+                  ].map((s) => (
+                    <li
+                      key={s}
+                      style={{
+                        fontSize: '0.68rem',
+                        color: mutedText,
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+                {nearbyDegraded && (
+                  <div
+                    style={{
+                      marginTop: '0.5rem',
+                      paddingTop: '0.4rem',
+                      borderTop: `1px solid ${divider}`,
+                      fontSize: '0.66rem',
+                      color: isDark ? '#d97706' : '#92400e',
+                    }}
+                  >
+                    Fallback active: Help Nearby seed
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
@@ -272,7 +376,7 @@ export const ResourcesPanel: FC = () => {
               )}
               {nearbyResources.map((r, i) => (
                 <div
-                  key={r.id}
+                  key={resourceRenderKey(r, i)}
                   style={{
                     display: 'flex',
                     alignItems: 'flex-start',
