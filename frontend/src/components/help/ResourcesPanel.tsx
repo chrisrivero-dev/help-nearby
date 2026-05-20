@@ -6,66 +6,64 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ExternalLink } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
-import { normalizeLocation } from '@/lib/location/normalizeLocation';
-import { haversineDistanceMiles } from '@/lib/location/distance';
-import { RESOURCES_90012 } from '@/data/resources.90012';
-import type { ProductionResource } from '@/data/resources.types';
-
-interface SeedResource extends ProductionResource {
-  distanceMi: number;
-}
+import type {
+  NearbyResource,
+  NearbyResponse,
+} from '@/lib/resources/schema';
 
 export const ResourcesPanel: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { zip, isDemo } = useLocationContext();
+  const { zip, latitude, longitude, isValid } = useLocationContext();
 
-  const [nearbyResources, setNearbyResources] = useState<SeedResource[] | null>(
+  const [nearbyResources, setNearbyResources] = useState<NearbyResource[] | null>(
     null,
   );
   const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [nearbyDegraded, setNearbyDegraded] = useState(false);
 
-  const fetchNearbyResources = useCallback(async (zipCode: string) => {
-    setNearbyLoading(true);
-    setNearbyResources(null);
-
-    if (zipCode !== '90012') {
-      setNearbyResources([]);
-      setNearbyLoading(false);
-      return;
-    }
-
-    try {
-      const loc = await normalizeLocation(zipCode);
-      if (!loc.isValid) {
+  const fetchNearbyResources = useCallback(
+    async (lat: number, lng: number) => {
+      setNearbyLoading(true);
+      setNearbyResources(null);
+      setNearbyDegraded(false);
+      try {
+        const params = new URLSearchParams({
+          lat: lat.toString(),
+          lng: lng.toString(),
+          radiusMiles: '10',
+        });
+        const res = await fetch(`/api/nearby-resources?${params.toString()}`);
+        if (!res.ok) {
+          setNearbyResources([]);
+          return;
+        }
+        const data = (await res.json()) as NearbyResponse;
+        setNearbyResources(data.resources ?? []);
+        setNearbyDegraded(Boolean(data.degraded));
+      } catch {
         setNearbyResources([]);
+      } finally {
         setNearbyLoading(false);
-        return;
       }
-
-      const withDist = RESOURCES_90012.map((r) => ({
-        ...r,
-        distanceMi: haversineDistanceMiles(
-          loc.latitude,
-          loc.longitude,
-          r.latitude,
-          r.longitude,
-        ),
-      })).sort((a, b) => a.distanceMi - b.distanceMi);
-
-      setNearbyResources(withDist);
-    } catch {
-      setNearbyResources([]);
-    } finally {
-      setNearbyLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
-    if (zip && !isDemo) {
-      fetchNearbyResources(zip);
+    if (!zip) {
+      setNearbyResources(null);
+      setNearbyDegraded(false);
+      return;
     }
-  }, [zip, isDemo, fetchNearbyResources]);
+    if (isValid && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      fetchNearbyResources(latitude, longitude);
+    } else {
+      // ZIP entered but lookup failed — show empty/unavailable, never demo.
+      setNearbyResources([]);
+      setNearbyDegraded(false);
+    }
+  }, [zip, isValid, latitude, longitude, fetchNearbyResources]);
 
   const formatDist = (mi: number) =>
     mi < 0.1
@@ -74,23 +72,15 @@ export const ResourcesPanel: FC = () => {
         ? `${mi.toFixed(1)} mi`
         : `${Math.round(mi)} mi`;
 
-  const formatVerifiedDate = (iso: string) => {
-    const [year, month, day] = iso.split('-');
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
+  const formatChecked = (iso?: string) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
   const cardText = isDark ? '#dedede' : '#111111';
@@ -254,7 +244,8 @@ export const ResourcesPanel: FC = () => {
                   lineHeight: 1.5,
                 }}
               >
-                Nearby Help is not available in this ZIP yet.
+                No live data sources cover this area yet. As more public
+                agencies publish open data, results will appear here.
               </span>
             </motion.div>
           ) : nearbyResources !== null && nearbyResources.length > 0 ? (
@@ -264,6 +255,21 @@ export const ResourcesPanel: FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
+              {nearbyDegraded && (
+                <div
+                  style={{
+                    padding: '0.6rem 1.4rem',
+                    borderBottom: `1px solid ${divider}`,
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.66rem',
+                    letterSpacing: '0.06em',
+                    color: isDark ? '#d97706' : '#92400e',
+                    background: isDark ? '#1a120a' : '#fff7ed',
+                  }}
+                >
+                  LIVE DATA UNAVAILABLE — SHOWING LAST-KNOWN INFORMATION
+                </div>
+              )}
               {nearbyResources.map((r, i) => (
                 <div
                   key={r.id}
@@ -289,27 +295,30 @@ export const ResourcesPanel: FC = () => {
                     >
                       {r.name}
                     </div>
-                    <div
-                      style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontSize: '0.7rem',
-                        color: mutedText,
-                        marginTop: '0.06rem',
-                      }}
-                    >
-                      {r.type} · {r.address}, {r.city}, {r.state} {r.zip}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontSize: '0.7rem',
-                        color: mutedText,
-                        marginTop: '0.06rem',
-                      }}
-                    >
-                      {r.hours}
-                      {r.phone ? ` · ${r.phone}` : ''}
-                    </div>
+                    {r.address && (
+                      <div
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '0.7rem',
+                          color: mutedText,
+                          marginTop: '0.06rem',
+                        }}
+                      >
+                        {r.address}
+                      </div>
+                    )}
+                    {r.phone && (
+                      <div
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '0.7rem',
+                          color: mutedText,
+                          marginTop: '0.06rem',
+                        }}
+                      >
+                        {r.phone}
+                      </div>
+                    )}
                     <div
                       style={{
                         display: 'flex',
@@ -319,34 +328,33 @@ export const ResourcesPanel: FC = () => {
                         flexWrap: 'wrap',
                       }}
                     >
-                      <span
+                      <a
+                        href={r.website ?? r.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.2rem',
                           fontFamily: "'Poppins', sans-serif",
                           fontSize: '0.62rem',
                           color: mutedText,
+                          textDecoration: 'underline',
                         }}
                       >
-                        <a
-                          href={r.sourceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <ExternalLink size={9} /> Source: {r.sourceName}
+                      </a>
+                      {r.lastChecked && (
+                        <span
                           style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontSize: '0.62rem',
                             color: mutedText,
-                            textDecoration: 'underline',
                           }}
                         >
-                          Source
-                        </a>
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.62rem',
-                          color: mutedText,
-                        }}
-                      >
-                        · Source-verified {formatVerifiedDate(r.verifiedAt)}
-                      </span>
+                          · Last checked {formatChecked(r.lastChecked)}
+                        </span>
+                      )}
                       <span
                         style={{
                           fontFamily: "'Poppins', sans-serif",
@@ -368,16 +376,18 @@ export const ResourcesPanel: FC = () => {
                       paddingTop: '0.1rem',
                     }}
                   >
-                    <span
-                      style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.74rem',
-                        color: mutedText,
-                      }}
-                    >
-                      {formatDist(r.distanceMi)}
-                    </span>
+                    {typeof r.distanceMiles === 'number' && (
+                      <span
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.74rem',
+                          color: mutedText,
+                        }}
+                      >
+                        {formatDist(r.distanceMiles)}
+                      </span>
+                    )}
                     <ChevronRight size={12} color={mutedText} />
                   </div>
                 </div>
