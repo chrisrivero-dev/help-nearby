@@ -112,6 +112,41 @@ const caloesFoodBanks: RegisteredSource = {
     ),
 };
 
+const hrsaHealthCenters: RegisteredSource = {
+  id: 'hrsa-health-center-sites',
+  name: 'HRSA Health Care Service Delivery Sites',
+  url: 'https://data.hrsa.gov/topics/health-centers',
+  sourceType: 'arcgis-rest',
+  category: 'health',
+  coverage: 'global',
+  refresh: 'updated by HRSA on an ongoing basis as grantees report site changes',
+  notes:
+    'Federally funded community health centers (FQHCs, look-alikes, migrant, homeless, public-housing, school-based). Safety-net primary care nationwide; uses server-side spatial filter so a national dataset returns only nearby rows.',
+  fetch: (q) =>
+    queryArcgisLayer(
+      {
+        layerUrl:
+          'https://gisportal.hrsa.gov/server/rest/services/HealthCareFacilities/PrimaryHealthCareFacilities_FS/MapServer/0/query',
+        fieldMap: {
+          name: 'SITE_NM',
+          address: 'SITE_ADDRESS',
+          phone: 'SITE_PHONE_NUM',
+          website: 'SITE_URL',
+        },
+        useSpatialQuery: true,
+        where: "HCC_STATUS_DESC='Active'",
+        source: {
+          id: 'hrsa-health-center-sites',
+          name: 'HRSA Health Care Service Delivery Sites',
+          url: 'https://data.hrsa.gov/topics/health-centers',
+          sourceType: 'arcgis-rest',
+          category: 'health',
+        },
+      },
+      q,
+    ),
+};
+
 const laRecParksFacilities: RegisteredSource = {
   id: 'la-city-rec-parks-facilities',
   name: 'City of Los Angeles Department of Recreation and Parks',
@@ -185,6 +220,7 @@ export const LIVE_SOURCES: RegisteredSource[] = [
   laCountyCoolingCenters,
   caloesFoodBanks,
   laRecParksFacilities,
+  hrsaHealthCenters,
 ];
 export const FALLBACK_SOURCES: RegisteredSource[] = [civicCenterSeed];
 

@@ -36,6 +36,13 @@ export interface ArcgisAdapterConfig {
   where?: string;
   /** Timeout in ms. Defaults to 6000. */
   timeoutMs?: number;
+  /**
+   * Opt-in: send the query point + radius to ArcGIS as a spatial filter so the
+   * server returns only nearby features. Required for any source whose layer
+   * has more than ~1000 features nationwide, since ArcGIS otherwise truncates
+   * results by OBJECTID order rather than distance.
+   */
+  useSpatialQuery?: boolean;
 }
 
 interface ArcgisFeature {
@@ -66,7 +73,7 @@ function pickNumber(attrs: Record<string, unknown>, key?: string): number | unde
 
 export async function queryArcgisLayer(
   cfg: ArcgisAdapterConfig,
-  _q: NearbyQuery,
+  q: NearbyQuery,
 ): Promise<NearbyResource[]> {
   const where = cfg.where ?? '1=1';
   const outFields = Array.from(
@@ -84,6 +91,15 @@ export async function queryArcgisLayer(
     outSR: '4326',
     f: 'json',
   });
+
+  if (cfg.useSpatialQuery) {
+    params.set('geometry', JSON.stringify({ x: q.longitude, y: q.latitude }));
+    params.set('geometryType', 'esriGeometryPoint');
+    params.set('inSR', '4326');
+    params.set('spatialRel', 'esriSpatialRelIntersects');
+    params.set('distance', String(q.radiusMiles));
+    params.set('units', 'esriSRUnit_StatuteMile');
+  }
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), cfg.timeoutMs ?? 6000);
