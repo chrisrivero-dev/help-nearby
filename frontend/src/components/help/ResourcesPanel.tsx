@@ -163,8 +163,6 @@ export const ResourcesPanel: FC = () => {
         }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >
-        <div style={{ height: 2, background: gold }} />
-
         {/* Section Header */}
         <div
           style={{
@@ -178,14 +176,20 @@ export const ResourcesPanel: FC = () => {
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <div
-              style={{
-                width: 2,
-                height: 16,
-                background: gold,
-                flexShrink: 0,
-              }}
-            />
+            {/* Status indicator - moved left of title, flat bright square */}
+            {sources.length > 0 && (
+              <div
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 0,
+                  background: !sources.some((s) => s.ok)
+                    ? '#ef4444'
+                    : '#22c55e',
+                  flexShrink: 0,
+                }}
+              />
+            )}
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -199,40 +203,6 @@ export const ResourcesPanel: FC = () => {
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            {/* Live status indicator */}
-            {sources.length > 0 && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                }}
-              >
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle
-                    cx="5"
-                    cy="12"
-                    r="5"
-                    fill={!sources.some((s) => s.ok) ? '#ef4444' : '#22c55e'}
-                  />
-                </svg>
-                <span
-                  style={{
-                    fontFamily: "'Poppins', sans-serif",
-                    fontSize: '0.62rem',
-                    color: mutedText,
-                  }}
-                >
-                  {!sources.some((s) => s.ok) ? 'Offline' : 'Live'}
-                </span>
-              </div>
-            )}
             {/* Info tooltip */}
             <div
               style={{ position: 'relative' }}
@@ -265,9 +235,9 @@ export const ResourcesPanel: FC = () => {
                   role="tooltip"
                   style={{
                     position: 'absolute',
-                    top: 'calc(100% + 6px)',
+                    bottom: 'calc(100% + 12px)',
                     right: 0,
-                    zIndex: 10,
+                    zIndex: 99999,
                     minWidth: 240,
                     maxWidth: 280,
                     padding: '0.65rem 0.8rem',

@@ -38,6 +38,7 @@ const AboutPage: FC = () => {
           title="ABOUT! NEARBY."
           showRadar={true}
           hideThemeToggle
+          showLocation={false}
         />
       </motion.main>
     </ThemeGuard>

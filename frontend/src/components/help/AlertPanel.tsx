@@ -151,8 +151,6 @@ export const AlertPanel: FC = () => {
         }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >
-        <div style={{ height: 2, background: accentColor }} />
-
         {/* Section Header */}
         <div
           style={{
@@ -166,14 +164,18 @@ export const AlertPanel: FC = () => {
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <div
-              style={{
-                width: 2,
-                height: 16,
-                background: accentColor,
-                flexShrink: 0,
-              }}
-            />
+            {/* Status indicator - moved left of title, flat bright square */}
+            {sources.length > 0 && (
+              <div
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 0,
+                  background: isLive ? '#22c55e' : '#ef4444',
+                  flexShrink: 0,
+                }}
+              />
+            )}
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -187,38 +189,6 @@ export const AlertPanel: FC = () => {
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            {/* Live status indicator */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-              }}
-            >
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle
-                  cx="5"
-                  cy="12"
-                  r="5"
-                  fill={isLive ? '#22c55e' : '#ef4444'}
-                />
-              </svg>
-              <span
-                style={{
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: '0.62rem',
-                  color: mutedText,
-                }}
-              >
-                {isLive ? 'Live' : 'Offline'}
-              </span>
-            </div>
             {/* Info tooltip */}
             <div
               style={{ position: 'relative' }}
@@ -251,9 +221,9 @@ export const AlertPanel: FC = () => {
                   role="tooltip"
                   style={{
                     position: 'absolute',
-                    top: 'calc(100% + 6px)',
+                    bottom: 'calc(100% + 12px)',
                     right: 0,
-                    zIndex: 10,
+                    zIndex: 99999,
                     minWidth: 240,
                     maxWidth: 280,
                     padding: '0.65rem 0.8rem',

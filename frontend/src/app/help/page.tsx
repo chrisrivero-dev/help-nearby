@@ -21,9 +21,9 @@ import { useTheme } from '@/components/useTheme';
 
 const HelpDashboard: FC = () => {
   const { theme } = useTheme();
-  const [isMobile, setIsMobile] = useState(false);
 
   // Detect mobile for responsive layout
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -34,6 +34,8 @@ const HelpDashboard: FC = () => {
   // NavBar variant for help page
   const navVariant = 'help' as const;
   const navTitle = 'HELP! NEARBY.' as const;
+
+  const paddingTop = isMobile ? '140px' : '110px';
 
   return (
     <motion.main
@@ -46,7 +48,7 @@ const HelpDashboard: FC = () => {
         margin: '0 auto',
         paddingLeft: 'max(2%, 16px)',
         paddingRight: 'max(2%, 16px)',
-        paddingTop: '110px',
+        paddingTop: paddingTop,
         paddingBottom: '4rem',
         backgroundColor: 'var(--color-bg)',
         color: 'var(--color-text)',
@@ -59,13 +61,13 @@ const HelpDashboard: FC = () => {
       {/* NavBar */}
       <NavBar variant={navVariant} title={navTitle} showRadar={true} />
 
+      {/* Ticker Strip */}
+      <NewsTicker />
+
       {/* Hero Section */}
       <HeroSection />
 
       {/* HeroNetwork is now part of HeroSection */}
-
-      {/* Ticker Strip */}
-      <NewsTicker />
 
       {/* Dashboard Grid - Masonry layout in PanelLayout */}
       <PanelLayout>

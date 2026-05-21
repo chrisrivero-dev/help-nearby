@@ -6,6 +6,8 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from './useTheme';
 import { useI18n } from '@/lib/i18n';
+import { MapPin } from 'lucide-react';
+import { useLocationContext } from './help/LocationContext';
 
 interface TitleProps {
   title?: string;
@@ -13,6 +15,7 @@ interface TitleProps {
   showRadar?: boolean;
   variant?: 'help' | 'resources' | 'about';
   radarRef?: React.RefObject<HTMLDivElement | null>;
+  showLocation?: boolean;
 }
 
 const titleContainerStyle: React.CSSProperties = {
@@ -70,6 +73,7 @@ const TitleBase: FC<TitleProps> = ({
   showRadar = true,
   variant = 'about',
   radarRef: externalRadarRef,
+  showLocation,
 }) => {
   const t = useI18n();
   // Use external ref if provided, otherwise create internal ref
@@ -91,8 +95,40 @@ const TitleBase: FC<TitleProps> = ({
   const isDark = theme === 'dark';
   const router = useRouter();
 
+  // Get showLocation prop (default: only show on help page)
+  const showLocationValue =
+    showLocation !== undefined ? showLocation : variant === 'help';
+
+  // Try to get location context (may not be available on all pages)
+  let locationData: any = null;
+  try {
+    locationData = useLocationContext();
+  } catch (e) {
+    // Location context not available
+    locationData = null;
+  }
+
+  const zip = locationData?.zip || '';
+  const isValid = locationData?.isValid || false;
+  const latitude = locationData?.latitude || 0;
+  const longitude = locationData?.longitude || 0;
+  const city = locationData?.city || '';
+  const state = locationData?.state || '';
+  const setLocation = locationData?.setLocation || (() => {});
+
   const [isClicked, setIsClicked] = useState(false);
   const [isTitleHovered, setIsTitleHovered] = useState(false);
+  const [isNearbyHovered, setIsNearbyHovered] = useState(false);
+
+  // Format location string for display
+  const locationDisplay =
+    zip && isValid
+      ? `${city || ''}${state ? ', ' + state : ''}`
+      : zip
+        ? `ZIP: ${zip}`
+        : latitude && longitude && isValid
+          ? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+          : '';
 
   // Get colors based on variant
   const colors = variantColors[variant] || variantColors['about'];
@@ -157,7 +193,29 @@ const TitleBase: FC<TitleProps> = ({
     textAlign: 'left',
     fontSize: 'clamp(1.5rem, 4.5vw, 3rem)',
     whiteSpace: 'nowrap',
-    color: textColor,
+    cursor: 'pointer',
+    transition: 'color 0.2s ease',
+    color: isNearbyHovered ? '#fbbf24' : textColor,
+    /* no shadow - just black outline via text-stroke */
+  };
+
+  const handleNearbyClick = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        },
+        () => {
+          // Geolocation failed or denied — use default Central Park location
+          setLocation(`40.7829, -73.9654`);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      );
+    } else {
+      // Geolocation not supported — use default
+      setLocation(`40.7829, -73.9654`);
+    }
   };
 
   return (
@@ -176,7 +234,14 @@ const TitleBase: FC<TitleProps> = ({
             >
               <span style={titleHighlightStyle}>{highlightedWord}</span>
             </span>{' '}
-            <span style={titleNearbyStyle}>{remainingTitle}</span>
+            <span
+              onMouseEnter={() => setIsNearbyHovered(true)}
+              onMouseLeave={() => setIsNearbyHovered(false)}
+              onClick={handleNearbyClick}
+              style={titleNearbyStyle}
+            >
+              {remainingTitle}
+            </span>
           </div>
         </div>
         {showRadar && (
@@ -222,6 +287,26 @@ const TitleBase: FC<TitleProps> = ({
               />
             </svg>
           </motion.div>
+        )}
+
+        {/* Location indicator after radar - only show when showLocation is true */}
+        {showLocationValue && locationDisplay && isValid && (
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '2px 6px',
+              background: isDark ? '#1a1a1a' : '#f5f5f5',
+              border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
+              borderRadius: '3px',
+            }}
+          >
+            <MapPin size={12} style={{ color: textColor, flexShrink: 0 }} />
+            <span style={{ fontSize: '0.95rem', fontWeight: 700 }}>
+              {locationDisplay}
+            </span>
+          </div>
         )}
       </div>
     </motion.div>
