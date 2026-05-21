@@ -290,6 +290,106 @@ def detect_skills(project_root: Path) -> list[dict]:
     return skills
 
 
+def detect_frontend_api_routes(project_root: Path) -> list[dict]:
+    """Detect frontend API routes (Next.js App Router)."""
+    routes = []
+    api_dir = project_root / "frontend" / "src" / "app" / "api"
+
+    if not api_dir.exists():
+        return routes
+
+    for route_path in api_dir.rglob("route.ts"):
+        content = read_file(route_path)
+        if not content:
+            continue
+
+        # Calculate relative path from frontend/src
+        rel_path = route_path.relative_to(project_root / "frontend" / "src")
+        
+        # Extract endpoint path from file location
+        # e.g., api/nearby-resources/route.ts -> /api/nearby-resources
+        endpoint_parts = []
+        path_parts = route_path.parts
+        for i, part in enumerate(path_parts):
+            if part == "api":
+                endpoint_parts.extend(path_parts[i+1:-1])  # Skip route.ts
+                break
+        endpoint = "/" + "/".join(endpoint_parts) if endpoint_parts else "/api"
+
+        # Detect HTTP methods
+        methods = []
+        if "export async function GET" in content:
+            methods.append("GET")
+        if "export async function POST" in content:
+            methods.append("POST")
+        if "export async function PUT" in content:
+            methods.append("PUT")
+        if "export async function DELETE" in content:
+            methods.append("DELETE")
+        if "export async function PATCH" in content:
+            methods.append("PATCH")
+
+        # Extract docstring or comment description
+        desc = ""
+        doc_match = re.search(r'"""([^"]+)"""', content)
+        if not doc_match:
+            doc_match = re.search(r'//\s*(.+)$', content, re.MULTILINE)
+        if doc_match:
+            desc = doc_match.group(1).strip()
+
+        routes.append({
+            "path": str(rel_path),
+            "endpoint": endpoint,
+            "methods": methods,
+            "description": desc
+        })
+
+    return routes
+
+
+def detect_backend_endpoints(project_root: Path) -> list[dict]:
+    """Detect backend API endpoints (FastAPI)."""
+    endpoints = []
+    main_py = project_root / "backend" / "app" / "main.py"
+    
+    content = read_file(main_py)
+    if not content:
+        return endpoints
+
+    # Detect FastAPI decorators
+    endpoint_pattern = re.compile(r'@app\.(get|post|put|delete|patch)\s*\(\s*["\']([^"\']+)["\']')
+    
+    for match in endpoint_pattern.finditer(content):
+        method = match.group(1).upper()
+        path = match.group(2)
+        
+        # Find the function definition after the decorator
+        start_pos = match.end()
+        func_match = re.search(r'def\s+(\w+)\s*\([^)]*\)', content[start_pos:start_pos+500])
+        
+        if func_match:
+            func_name = func_match.group(1)
+        else:
+            func_name = "unknown"
+
+        # Extract docstring
+        desc = ""
+        doc_start = content.find('"""', start_pos)
+        if doc_start != -1:
+            doc_end = content.find('"""', doc_start + 3)
+            if doc_end != -1:
+                desc = content[doc_start+3:doc_end].strip()
+
+        endpoints.append({
+            "function": func_name,
+            "method": method,
+            "path": path,
+            "description": desc
+        })
+
+    return endpoints
+
+
 def generate_execution_commands(frontend: dict, backend: dict) -> list[str]:
     """Generate recommended execution commands."""
     lines = ["```bash", "# Frontend", "cd frontend && pnpm dev          # Start dev server",
@@ -369,6 +469,35 @@ def main():
             print(f"- **{skill['name']}** — {skill['description']}")
     else:
         print("- (none)")
+    print()
+
+    # API Registry
+    print("## API Registry")
+    
+    # Frontend APIs
+    frontend_apis = detect_frontend_api_routes(project_root)
+    if frontend_apis:
+        print("\n### Frontend (Next.js App Router)")
+        for api in frontend_apis:
+            methods_str = ", ".join(api["methods"]) if api["methods"] else "unknown"
+            print(f"- **{api['endpoint']}** ({methods_str})")
+            if api["description"]:
+                print(f"  - {api['description']}")
+            print(f"  - Location: `{api['path']}`")
+    else:
+        print("- (no frontend APIs detected)")
+    print()
+    
+    # Backend APIs
+    backend_endpoints = detect_backend_endpoints(project_root)
+    if backend_endpoints:
+        print("\n### Backend (FastAPI)")
+        for ep in backend_endpoints:
+            print(f"- **{ep['method']} {ep['path']}** ({ep['function']})")
+            if ep["description"]:
+                print(f"  - {ep['description']}")
+    else:
+        print("- (no backend endpoints detected)")
     print()
 
     # Execution Commands

@@ -9,6 +9,7 @@ import { useLocationContext } from './LocationContext';
 import type {
   NearbyResource,
   NearbyResponse,
+  SourceMeta,
 } from '@/lib/resources/schema';
 
 export const ResourcesPanel: FC = () => {
@@ -16,40 +17,40 @@ export const ResourcesPanel: FC = () => {
   const isDark = theme === 'dark';
   const { zip, latitude, longitude, isValid } = useLocationContext();
 
-  const [nearbyResources, setNearbyResources] = useState<NearbyResource[] | null>(
-    null,
-  );
+  const [nearbyResources, setNearbyResources] = useState<
+    NearbyResource[] | null
+  >(null);
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [nearbyDegraded, setNearbyDegraded] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [sources, setSources] = useState<SourceMeta[]>([]);
+  const [isExpanded, setIsExpanded] = useState(true);
 
-  const fetchNearbyResources = useCallback(
-    async (lat: number, lng: number) => {
-      setNearbyLoading(true);
-      setNearbyResources(null);
-      setNearbyDegraded(false);
-      try {
-        const params = new URLSearchParams({
-          lat: lat.toString(),
-          lng: lng.toString(),
-          radiusMiles: '10',
-        });
-        const res = await fetch(`/api/nearby-resources?${params.toString()}`);
-        if (!res.ok) {
-          setNearbyResources([]);
-          return;
-        }
-        const data = (await res.json()) as NearbyResponse;
-        setNearbyResources(data.resources ?? []);
-        setNearbyDegraded(Boolean(data.degraded));
-      } catch {
+  const fetchNearbyResources = useCallback(async (lat: number, lng: number) => {
+    setNearbyLoading(true);
+    setNearbyResources(null);
+    setNearbyDegraded(false);
+    try {
+      const params = new URLSearchParams({
+        lat: lat.toString(),
+        lng: lng.toString(),
+        radiusMiles: '10',
+      });
+      const res = await fetch(`/api/nearby-resources?${params.toString()}`);
+      if (!res.ok) {
         setNearbyResources([]);
-      } finally {
-        setNearbyLoading(false);
+        return;
       }
-    },
-    [],
-  );
+      const data = (await res.json()) as NearbyResponse;
+      setNearbyResources(data.resources ?? []);
+      setNearbyDegraded(Boolean(data.degraded));
+      setSources(data.sources ?? []);
+    } catch {
+      setNearbyResources([]);
+    } finally {
+      setNearbyLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!zip) {
@@ -162,8 +163,6 @@ export const ResourcesPanel: FC = () => {
         }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >
-        <div style={{ height: 2, background: gold }} />
-
         {/* Section Header */}
         <div
           style={{
@@ -172,17 +171,25 @@ export const ResourcesPanel: FC = () => {
             justifyContent: 'space-between',
             padding: '1rem 1.4rem',
             borderBottom: `1px solid ${divider}`,
+            cursor: 'pointer',
           }}
+          onClick={() => setIsExpanded(!isExpanded)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <div
-              style={{
-                width: 2,
-                height: 16,
-                background: gold,
-                flexShrink: 0,
-              }}
-            />
+            {/* Status indicator - moved left of title, flat bright square */}
+            {sources.length > 0 && (
+              <div
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 0,
+                  background: !sources.some((s) => s.ok)
+                    ? '#ef4444'
+                    : '#22c55e',
+                  flexShrink: 0,
+                }}
+              />
+            )}
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -195,318 +202,331 @@ export const ResourcesPanel: FC = () => {
               RESOURCES! NEARBY
             </span>
           </div>
-          <div
-            style={{ position: 'relative' }}
-            onMouseEnter={() => setSourcesOpen(true)}
-            onMouseLeave={() => setSourcesOpen(false)}
-          >
-            <button
-              type="button"
-              aria-label="Show live data sources"
-              aria-expanded={sourcesOpen}
-              onClick={() => setSourcesOpen((v) => !v)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 18,
-                height: 18,
-                padding: 0,
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: mutedText,
-                lineHeight: 0,
-              }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            {/* Info tooltip */}
+            <div
+              style={{ position: 'relative' }}
+              onMouseEnter={() => setSourcesOpen(true)}
+              onMouseLeave={() => setSourcesOpen(false)}
             >
-              <Info size={13} />
-            </button>
-            {sourcesOpen && (
-              <div
-                role="tooltip"
+              <button
+                type="button"
+                aria-label="Show live data sources"
+                aria-expanded={sourcesOpen}
+                onClick={() => setSourcesOpen((v) => !v)}
                 style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 6px)',
-                  right: 0,
-                  zIndex: 10,
-                  minWidth: 240,
-                  maxWidth: 280,
-                  padding: '0.65rem 0.8rem',
-                  background: isDark ? '#0a0a0a' : '#ffffff',
-                  border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
-                  boxShadow: isDark
-                    ? '0 4px 12px rgba(0,0,0,0.6)'
-                    : '0 4px 12px rgba(0,0,0,0.08)',
-                  fontFamily: "'Poppins', sans-serif",
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 18,
+                  height: 18,
+                  padding: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: mutedText,
+                  lineHeight: 0,
                 }}
               >
+                <Info size={13} />
+              </button>
+              {sourcesOpen && (
                 <div
+                  role="tooltip"
                   style={{
-                    fontWeight: 800,
-                    fontSize: '0.62rem',
-                    letterSpacing: '0.1em',
-                    color: cardText,
-                    marginBottom: '0.4rem',
+                    position: 'absolute',
+                    bottom: 'calc(100% + 12px)',
+                    right: 0,
+                    zIndex: 99999,
+                    minWidth: 240,
+                    maxWidth: 280,
+                    padding: '0.65rem 0.8rem',
+                    background: isDark ? '#0a0a0a' : '#ffffff',
+                    border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
+                    boxShadow: isDark
+                      ? '0 4px 12px rgba(0,0,0,0.6)'
+                      : '0 4px 12px rgba(0,0,0,0.08)',
+                    fontFamily: "'Poppins', sans-serif",
                   }}
                 >
-                  LIVE DATA SOURCES
-                </div>
-                <ul
-                  style={{
-                    listStyle: 'none',
-                    padding: 0,
-                    margin: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.22rem',
-                  }}
-                >
-                  {[
-                    'HRSA Health Care Service Delivery Sites',
-                    'City of Los Angeles Department of Recreation and Parks',
-                    'LA County Cooling Centers',
-                    'California Office of Emergency Services Food Banks',
-                  ].map((s) => (
-                    <li
-                      key={s}
-                      style={{
-                        fontSize: '0.68rem',
-                        color: mutedText,
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {s}
-                    </li>
-                  ))}
-                </ul>
-                {nearbyDegraded && (
                   <div
                     style={{
-                      marginTop: '0.5rem',
-                      paddingTop: '0.4rem',
-                      borderTop: `1px solid ${divider}`,
-                      fontSize: '0.66rem',
-                      color: isDark ? '#d97706' : '#92400e',
+                      fontWeight: 800,
+                      fontSize: '0.62rem',
+                      letterSpacing: '0.1em',
+                      color: cardText,
+                      marginBottom: '0.4rem',
                     }}
                   >
-                    Fallback active: Help Nearby seed
+                    LIVE DATA SOURCES
                   </div>
-                )}
-              </div>
-            )}
+                  <ul
+                    style={{
+                      listStyle: 'none',
+                      padding: 0,
+                      margin: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.22rem',
+                    }}
+                  >
+                    {sources.map((s) => (
+                      <li
+                        key={s.id}
+                        style={{
+                          fontSize: '0.68rem',
+                          color: mutedText,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {s.name} {s.ok ? '' : '(failed)'}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            {/* Collapse indicator */}
+            <motion.div
+              style={{
+                width: 16,
+                height: 16,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: mutedText,
+              }}
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M6 9L12 15L18 9" />
+              </svg>
+            </motion.div>
           </div>
         </div>
 
         <AnimatePresence mode="wait">
-          {/* Not yet activated */}
-          {!zip ? (
-            <motion.div
-              key="help-locked"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{ padding: '1rem' }}
-            >
-              <LockedPanel />
-            </motion.div>
-          ) : nearbyLoading ? (
-            <motion.div
-              key="help-loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                padding: '1.4rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: '0.78rem',
-                  color: mutedText,
-                }}
-              >
-                Searching for nearby resources...
-              </span>
-            </motion.div>
-          ) : nearbyResources !== null && nearbyResources.length === 0 ? (
-            <motion.div
-              key="help-unavailable"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{ padding: '1.2rem 1.4rem' }}
-            >
-              <span
-                style={{
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: '0.78rem',
-                  color: mutedText,
-                  lineHeight: 1.5,
-                }}
-              >
-                No live data sources cover this area yet. As more public
-                agencies publish open data, results will appear here.
-              </span>
-            </motion.div>
-          ) : nearbyResources !== null && nearbyResources.length > 0 ? (
-            <motion.div
-              key="help-real"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              {nearbyDegraded && (
-                <div
-                  style={{
-                    padding: '0.6rem 1.4rem',
-                    borderBottom: `1px solid ${divider}`,
-                    fontFamily: "'Poppins', sans-serif",
-                    fontSize: '0.66rem',
-                    letterSpacing: '0.06em',
-                    color: isDark ? '#d97706' : '#92400e',
-                    background: isDark ? '#1a120a' : '#fff7ed',
-                  }}
+          {isExpanded && (
+            <>
+              {/* Not yet activated */}
+              {!zip ? (
+                <motion.div
+                  key="help-locked"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{ padding: '1rem' }}
                 >
-                  LIVE DATA UNAVAILABLE — SHOWING LAST-KNOWN INFORMATION
-                </div>
-              )}
-              {nearbyResources.map((r, i) => (
-                <div
-                  key={resourceRenderKey(r, i)}
+                  <LockedPanel />
+                </motion.div>
+              ) : nearbyLoading ? (
+                <motion.div
+                  key="help-loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   style={{
+                    padding: '1.4rem',
                     display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '0.9rem',
-                    padding: '0.9rem 1.4rem',
-                    borderBottom:
-                      i < nearbyResources.length - 1
-                        ? `1px solid ${divider}`
-                        : undefined,
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.82rem',
-                        color: cardText,
-                      }}
-                    >
-                      {r.name}
-                    </div>
-                    {r.address && (
-                      <div
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.7rem',
-                          color: mutedText,
-                          marginTop: '0.06rem',
-                        }}
-                      >
-                        {r.address}
-                      </div>
-                    )}
-                    {r.phone && (
-                      <div
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.7rem',
-                          color: mutedText,
-                          marginTop: '0.06rem',
-                        }}
-                      >
-                        {r.phone}
-                      </div>
-                    )}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.4rem',
-                        marginTop: '0.38rem',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      <a
-                        href={r.website ?? r.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.2rem',
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.62rem',
-                          color: mutedText,
-                          textDecoration: 'underline',
-                        }}
-                      >
-                        <ExternalLink size={9} /> Source: {r.sourceName}
-                      </a>
-                      {r.lastChecked && (
-                        <span
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.62rem',
-                            color: mutedText,
-                          }}
-                        >
-                          · Last checked {formatChecked(r.lastChecked)}
-                        </span>
-                      )}
-                      <span
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.62rem',
-                          color: mutedText,
-                          fontStyle: 'italic',
-                        }}
-                      >
-                        · Call before visiting — information may change.
-                      </span>
-                    </div>
-                  </div>
-                  <div
+                  <span
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      flexShrink: 0,
-                      paddingTop: '0.1rem',
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.78rem',
+                      color: mutedText,
                     }}
                   >
-                    {typeof r.distanceMiles === 'number' && (
-                      <span
+                    Searching for nearby resources...
+                  </span>
+                </motion.div>
+              ) : nearbyResources !== null && nearbyResources.length === 0 ? (
+                <motion.div
+                  key="help-unavailable"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{ padding: '1.2rem 1.4rem' }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.78rem',
+                      color: mutedText,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    No live data sources cover this area yet. As more public
+                    agencies publish open data, results will appear here.
+                  </span>
+                </motion.div>
+              ) : nearbyResources !== null && nearbyResources.length > 0 ? (
+                <motion.div
+                  key="help-real"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {nearbyDegraded && (
+                    <div
+                      style={{
+                        padding: '0.6rem 1.4rem',
+                        borderBottom: `1px solid ${divider}`,
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.66rem',
+                        letterSpacing: '0.06em',
+                        color: isDark ? '#d97706' : '#92400e',
+                        background: isDark ? '#1a120a' : '#fff7ed',
+                      }}
+                    >
+                      LIVE DATA UNAVAILABLE — SHOWING LAST-KNOWN INFORMATION
+                    </div>
+                  )}
+                  {nearbyResources.map((r, i) => (
+                    <div
+                      key={resourceRenderKey(r, i)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '0.9rem',
+                        padding: '0.9rem 1.4rem',
+                        borderBottom:
+                          i < nearbyResources.length - 1
+                            ? `1px solid ${divider}`
+                            : undefined,
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontWeight: 700,
+                            fontSize: '0.82rem',
+                            color: cardText,
+                          }}
+                        >
+                          {r.name}
+                        </div>
+                        {r.address && (
+                          <div
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: '0.7rem',
+                              color: mutedText,
+                              marginTop: '0.06rem',
+                            }}
+                          >
+                            {r.address}
+                          </div>
+                        )}
+                        {r.phone && (
+                          <div
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: '0.7rem',
+                              color: mutedText,
+                              marginTop: '0.06rem',
+                            }}
+                          >
+                            {r.phone}
+                          </div>
+                        )}
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            marginTop: '0.38rem',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          <a
+                            href={r.website ?? r.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.2rem',
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: '0.62rem',
+                              color: mutedText,
+                              textDecoration: 'underline',
+                            }}
+                          >
+                            <ExternalLink size={9} /> Source: {r.sourceName}
+                          </a>
+                          {r.lastChecked && (
+                            <span
+                              style={{
+                                fontFamily: "'Poppins', sans-serif",
+                                fontSize: '0.62rem',
+                                color: mutedText,
+                              }}
+                            >
+                              · Last checked {formatChecked(r.lastChecked)}
+                            </span>
+                          )}
+                          <span
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: '0.62rem',
+                              color: mutedText,
+                              fontStyle: 'italic',
+                            }}
+                          >
+                            · Call before visiting — information may change.
+                          </span>
+                        </div>
+                      </div>
+                      <div
                         style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontWeight: 700,
-                          fontSize: '0.74rem',
-                          color: mutedText,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          flexShrink: 0,
+                          paddingTop: '0.1rem',
                         }}
                       >
-                        {formatDist(r.distanceMiles)}
-                      </span>
-                    )}
-                    <ChevronRight size={12} color={mutedText} />
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="help-locked-empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{ padding: '1rem' }}
-            >
-              <LockedPanel />
-            </motion.div>
+                        {typeof r.distanceMiles === 'number' && (
+                          <span
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontWeight: 700,
+                              fontSize: '0.74rem',
+                              color: mutedText,
+                            }}
+                          >
+                            {formatDist(r.distanceMiles)}
+                          </span>
+                        )}
+                        <ChevronRight size={12} color={mutedText} />
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="help-locked-empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{ padding: '1rem' }}
+                >
+                  <LockedPanel />
+                </motion.div>
+              )}
+            </>
           )}
         </AnimatePresence>
       </motion.div>

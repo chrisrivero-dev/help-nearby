@@ -3,6 +3,7 @@
 import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Info } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
 
@@ -341,8 +342,10 @@ const MapVisualization: FC<{ isDark: boolean }> = ({ isDark }) => {
 export const TransitPanel: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { zip, isDemo } = useLocationContext();
+  const { zip } = useLocationContext();
   const [isMobile, setIsMobile] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -353,6 +356,7 @@ export const TransitPanel: FC = () => {
 
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#555' : '#999';
+  const isLive = false; // Static data only
 
   // Locked panel
   const LockedPanel = ({ minH = 100 }: { minH?: number }) => (
@@ -432,13 +436,7 @@ export const TransitPanel: FC = () => {
         }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >
-        <div
-          style={{
-            height: 2,
-            background: isDark ? '#2563eb' : '#3b82f6',
-          }}
-        />
-
+        {/* Section Header */}
         <div
           style={{
             display: 'flex',
@@ -446,14 +444,18 @@ export const TransitPanel: FC = () => {
             justifyContent: 'space-between',
             padding: '1rem 1.4rem',
             borderBottom: `1px solid ${isDark ? '#0f1e32' : '#bfdbfe'}`,
+            cursor: 'pointer',
           }}
+          onClick={() => setIsExpanded(!isExpanded)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            {/* Status indicator - moved left of title, flat bright square */}
             <div
               style={{
-                width: 2,
-                height: 16,
-                background: isDark ? '#60a5fa' : '#2563eb',
+                width: 12,
+                height: 12,
+                borderRadius: 0,
+                background: isLive ? '#22c55e' : '#ef4444',
                 flexShrink: 0,
               }}
             />
@@ -469,170 +471,268 @@ export const TransitPanel: FC = () => {
               WHERE? NEARBY!
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <span
-              style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontSize: '0.66rem',
-                letterSpacing: '0.05em',
-                color: zip ? (isDark ? '#3b5a80' : '#3b82f6') : mutedText,
-              }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            {/* Info tooltip */}
+            <div
+              style={{ position: 'relative' }}
+              onMouseEnter={() => setSourcesOpen(true)}
+              onMouseLeave={() => setSourcesOpen(false)}
             >
-              {zip ? 'Your Location' : 'Awaiting location'}
-            </span>
+              <button
+                type="button"
+                aria-label="Show live data sources"
+                aria-expanded={sourcesOpen}
+                onClick={() => setSourcesOpen((v) => !v)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 18,
+                  height: 18,
+                  padding: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: mutedText,
+                  lineHeight: 0,
+                }}
+              >
+                <Info size={13} />
+              </button>
+              {sourcesOpen && (
+                <div
+                  role="tooltip"
+                  style={{
+                    position: 'absolute',
+                    bottom: 'calc(100% + 12px)',
+                    right: 0,
+                    zIndex: 99999,
+                    minWidth: 240,
+                    maxWidth: 280,
+                    padding: '0.65rem 0.8rem',
+                    background: isDark ? '#0a0a0a' : '#ffffff',
+                    border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
+                    boxShadow: isDark
+                      ? '0 4px 12px rgba(0,0,0,0.6)'
+                      : '0 4px 12px rgba(0,0,0,0.08)',
+                    fontFamily: "'Poppins', sans-serif",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      fontSize: '0.62rem',
+                      letterSpacing: '0.1em',
+                      color: cardText,
+                      marginBottom: '0.4rem',
+                    }}
+                  >
+                    LIVE DATA SOURCES
+                  </div>
+                  <ul
+                    style={{
+                      listStyle: 'none',
+                      padding: 0,
+                      margin: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.22rem',
+                    }}
+                  >
+                    <li
+                      style={{
+                        fontSize: '0.68rem',
+                        color: mutedText,
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      Demo data only
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
+            {/* Collapse indicator */}
+            <motion.div
+              style={{
+                width: 16,
+                height: 16,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: mutedText,
+              }}
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M6 9L12 15L18 9" />
+              </svg>
+            </motion.div>
           </div>
         </div>
 
         <AnimatePresence mode="wait">
-          {zip && !isDemo ? (
-            <motion.div
-              key="getthere-content"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <MapVisualization isDark={isDark} />
+          {isExpanded ? (
+            <>
+              {zip ? (
+                <motion.div
+                  key="getthere-content"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <MapVisualization isDark={isDark} />
 
-              <div
-                style={{
-                  display: 'flex',
-                  borderTop: `1px solid ${isDark ? '#0f1e32' : '#bfdbfe'}`,
-                  borderBottom: `1px solid ${isDark ? '#0f1e32' : '#bfdbfe'}`,
-                }}
-              >
-                <div
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.7rem 1rem',
-                    borderRight: `1px solid ${isDark ? '#0f1e32' : '#bfdbfe'}`,
-                  }}
-                >
-                  <span style={{ fontSize: '1rem' }}>🚶</span>
-                  <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      borderTop: `1px solid ${isDark ? '#0f1e32' : '#bfdbfe'}`,
+                      borderBottom: `1px solid ${isDark ? '#0f1e32' : '#bfdbfe'}`,
+                    }}
+                  >
                     <div
                       style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.72rem',
-                        color: isDark ? '#93c5fd' : '#1d4ed8',
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.7rem 1rem',
+                        borderRight: `1px solid ${isDark ? '#0f1e32' : '#bfdbfe'}`,
                       }}
                     >
-                      Walking
+                      <span style={{ fontSize: '1rem' }}>🚶</span>
+                      <div>
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontWeight: 700,
+                            fontSize: '0.72rem',
+                            color: isDark ? '#93c5fd' : '#1d4ed8',
+                          }}
+                        >
+                          Walking
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontWeight: 800,
+                            fontSize: '0.82rem',
+                            color: isDark ? '#c8d8ee' : '#111',
+                          }}
+                        >
+                          8 min
+                        </div>
+                      </div>
                     </div>
                     <div
                       style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 800,
-                        fontSize: '0.82rem',
-                        color: isDark ? '#c8d8ee' : '#111',
+                        flex: 1.4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.7rem 1rem',
+                        borderRight: `1px solid ${isDark ? '#0f1e32' : '#bfdbfe'}`,
                       }}
                     >
-                      8 min
+                      <span style={{ fontSize: '1rem' }}>🚌</span>
+                      <div>
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontWeight: 700,
+                            fontSize: '0.72rem',
+                            color: isDark ? '#93c5fd' : '#1d4ed8',
+                          }}
+                        >
+                          Bus Routes
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontWeight: 800,
+                            fontSize: '0.82rem',
+                            color: isDark ? '#c8d8ee' : '#111',
+                          }}
+                        >
+                          2, 5, 12
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.7rem 1rem',
+                      }}
+                    >
+                      <span style={{ fontSize: '1rem' }}>📡</span>
+                      <div>
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontWeight: 700,
+                            fontSize: '0.72rem',
+                            color: isDark ? '#93c5fd' : '#1d4ed8',
+                          }}
+                        >
+                          Next Bus
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontWeight: 800,
+                            fontSize: '0.82rem',
+                            color: isDark ? '#60a5fa' : '#2563eb',
+                          }}
+                        >
+                          6 min
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div
-                  style={{
-                    flex: 1.4,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.7rem 1rem',
-                    borderRight: `1px solid ${isDark ? '#0f1e32' : '#bfdbfe'}`,
-                  }}
-                >
-                  <span style={{ fontSize: '1rem' }}>🚌</span>
-                  <div>
-                    <div
-                      style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.72rem',
-                        color: isDark ? '#93c5fd' : '#1d4ed8',
-                      }}
-                    >
-                      Bus Routes
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 800,
-                        fontSize: '0.82rem',
-                        color: isDark ? '#c8d8ee' : '#111',
-                      }}
-                    >
-                      2, 5, 12
-                    </div>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.7rem 1rem',
-                  }}
-                >
-                  <span style={{ fontSize: '1rem' }}>📡</span>
-                  <div>
-                    <div
-                      style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.72rem',
-                        color: isDark ? '#93c5fd' : '#1d4ed8',
-                      }}
-                    >
-                      Next Bus
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 800,
-                        fontSize: '0.82rem',
-                        color: isDark ? '#60a5fa' : '#2563eb',
-                      }}
-                    >
-                      6 min
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              <div style={{ padding: '1rem 1.4rem' }}>
-                <button
-                  style={{
-                    width: '100%',
-                    padding: '0.65rem',
-                    fontFamily: "'Poppins', sans-serif",
-                    fontWeight: 800,
-                    fontSize: '0.72rem',
-                    letterSpacing: '0.1em',
-                    color: '#fff',
-                    backgroundColor: isDark ? '#1d4ed8' : '#2563eb',
-                    border: `1.5px solid ${isDark ? '#1d4ed8' : '#2563eb'}`,
-                    cursor: 'pointer',
-                    boxShadow: '3px 3px 0px rgba(0,0,0,0.3)',
-                  }}
+                  <div style={{ padding: '1rem 1.4rem' }}>
+                    <button
+                      style={{
+                        width: '100%',
+                        padding: '0.65rem',
+                        fontFamily: "'Poppins', sans-serif",
+                        fontWeight: 800,
+                        fontSize: '0.72rem',
+                        letterSpacing: '0.1em',
+                        color: '#fff',
+                        backgroundColor: isDark ? '#1d4ed8' : '#2563eb',
+                        border: `1.5px solid ${isDark ? '#1d4ed8' : '#2563eb'}`,
+                        cursor: 'pointer',
+                        boxShadow: '3px 3px 0px rgba(0,0,0,0.3)',
+                      }}
+                    >
+                      VIEW DIRECTIONS →
+                    </button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="getthere-locked"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                 >
-                  VIEW DIRECTIONS →
-                </button>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="getthere-locked"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <LockedPanel minH={215} />
-            </motion.div>
-          )}
+                  <LockedPanel minH={215} />
+                </motion.div>
+              )}
+            </>
+          ) : null}
         </AnimatePresence>
       </motion.div>
     </motion.div>

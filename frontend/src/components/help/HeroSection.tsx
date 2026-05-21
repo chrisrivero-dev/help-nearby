@@ -295,6 +295,7 @@ export const HeroSection: FC<HeroSectionProps> = ({ onLocationSubmit }) => {
         position: 'relative',
         overflow: 'hidden',
         marginBottom: '1.25rem',
+        marginTop: 0,
         background: heroBg,
         border: `1px solid ${heroBorder}`,
         boxShadow: heroShadow,
@@ -363,7 +364,7 @@ export const HeroSection: FC<HeroSectionProps> = ({ onLocationSubmit }) => {
               size={14}
               style={{
                 position: 'absolute',
-                left: 14,
+                left: 12,
                 top: '50%',
                 transform: 'translateY(-50%)',
                 color: mutedText,
@@ -379,15 +380,16 @@ export const HeroSection: FC<HeroSectionProps> = ({ onLocationSubmit }) => {
                 if (e.key === 'Enter') handleSubmit();
               }}
               style={{
-                width: 140,
-                padding: '0.9rem 1rem 0.9rem 2.5rem',
+                width: '100%',
+                padding: '0.9rem 1rem 0.9rem 2.2rem',
                 fontFamily: "'Poppins', sans-serif",
                 fontSize: '0.9rem',
                 backgroundColor: inputBg,
                 color: cardText,
-                border: `1.5px solid ${locationError ? errorColor : inputBorder}`,
+                border: 'none',
                 outline: 'none',
                 boxSizing: 'border-box',
+                textAlign: 'center',
               }}
             />
           </div>

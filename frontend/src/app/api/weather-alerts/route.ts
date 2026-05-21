@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { normalizeLocation } from '@/lib/location/normalizeLocation';
 
+function isValidZip(zip: string | null): zip is string {
+  return Boolean(zip && /^\d{5}$/.test(zip));
+}
+
+function isValidCoordinates(lat: number, lng: number) {
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
+}
+
 type NwsFeature = {
   id?: string;
   properties?: {
@@ -39,46 +54,80 @@ function jsonResponse(body: unknown, status = 200) {
   return NextResponse.json(body, { status });
 }
 
-function isValidZip(zip: string | null): zip is string {
-  return Boolean(zip && /^\d{5}$/.test(zip));
-}
-
 export async function GET(request: NextRequest) {
   const zip = request.nextUrl.searchParams.get('zip');
+  const latParam = request.nextUrl.searchParams.get('lat');
+  const lngParam = request.nextUrl.searchParams.get('lng');
 
-  if (!isValidZip(zip)) {
-    return jsonResponse(
-      {
-        alerts: [],
-        source: 'National Weather Service',
-        fetchedAt: new Date().toISOString(),
-        location: null,
-        error: 'invalid_zip',
-      },
-      400
-    );
-  }
+  let lat: number;
+  let lng: number;
+  let location: { latitude: number; longitude: number } | null = null;
 
   try {
-    const location = await normalizeLocation(zip);
-
-    if (!location?.latitude || !location?.longitude) {
+    if (latParam && lngParam) {
+      // Coordinates provided directly
+      lat = parseFloat(latParam);
+      lng = parseFloat(lngParam);
+      if (!isValidCoordinates(lat, lng)) {
+        return jsonResponse(
+          {
+            alerts: [],
+            source: 'National Weather Service',
+            fetchedAt: new Date().toISOString(),
+            location: null,
+            error: 'invalid_coordinates',
+          },
+          400,
+        );
+      }
+      // Normalize location for API response
+      location = await normalizeLocation(zip || '');
+    } else if (zip) {
+      // ZIP provided - normalize to coordinates
+      if (!isValidZip(zip)) {
+        return jsonResponse(
+          {
+            alerts: [],
+            source: 'National Weather Service',
+            fetchedAt: new Date().toISOString(),
+            location: null,
+            error: 'invalid_zip',
+          },
+          400,
+        );
+      }
+      const normalized = await normalizeLocation(zip);
+      if (!normalized?.latitude || !normalized?.longitude) {
+        return jsonResponse(
+          {
+            alerts: [],
+            source: 'National Weather Service',
+            fetchedAt: new Date().toISOString(),
+            location: normalized,
+            error: 'unsupported_zip',
+          },
+          404,
+        );
+      }
+      lat = Number(normalized.latitude);
+      lng = Number(normalized.longitude);
+      location = normalized;
+    } else {
       return jsonResponse(
         {
           alerts: [],
           source: 'National Weather Service',
           fetchedAt: new Date().toISOString(),
-          location,
-          error: 'unsupported_zip',
+          location: null,
+          error: 'missing_location',
         },
-        404
+        400,
       );
     }
 
-    const lat = Number(location.latitude).toFixed(4);
-    const lng = Number(location.longitude).toFixed(4);
-
-    const nwsUrl = `https://api.weather.gov/alerts/active?point=${lat},${lng}`;
+    const nwsUrl = `https://api.weather.gov/alerts/active?point=${lat.toFixed(
+      4,
+    )},${lng.toFixed(4)}`;
 
     const response = await fetch(nwsUrl, {
       headers: {
@@ -99,7 +148,7 @@ export async function GET(request: NextRequest) {
           location,
           error: 'nws_unavailable',
         },
-        502
+        502,
       );
     }
 
@@ -112,7 +161,10 @@ export async function GET(request: NextRequest) {
           return {
             id: properties.id || feature.id || `nws-alert-${index}`,
             title: properties.event || 'Weather Alert',
-            headline: properties.headline || properties.event || 'Official weather alert',
+            headline:
+              properties.headline ||
+              properties.event ||
+              'Official weather alert',
             description: properties.description || '',
             instruction: properties.instruction || '',
             severity: properties.severity || 'Unknown',
@@ -131,7 +183,8 @@ export async function GET(request: NextRequest) {
       source: {
         name: 'National Weather Service',
         url: 'https://www.weather.gov/',
-        attribution: 'Official weather alerts from the National Weather Service',
+        attribution:
+          'Official weather alerts from the National Weather Service',
       },
       fetchedAt,
       location,
@@ -146,7 +199,7 @@ export async function GET(request: NextRequest) {
         location: null,
         error: 'weather_alerts_failed',
       },
-      500
+      500,
     );
   }
 }
