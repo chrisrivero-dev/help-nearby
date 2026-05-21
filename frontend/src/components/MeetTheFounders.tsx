@@ -39,6 +39,9 @@ const MeetTheFounders: React.FC<MeetTheFoundersProps> = ({ isVisible }) => {
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  // Calculate height offset for fixed NavBar (~104px on desktop, ~60px on mobile)
+  const navBarOffset = isMobile ? '60px' : '0px';
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -48,10 +51,12 @@ const MeetTheFounders: React.FC<MeetTheFoundersProps> = ({ isVisible }) => {
         position: 'fixed',
         top: '50%',
         left: '50%',
-        transform: 'translate(-50%, -50%)',
+        transform: `translate(-50%, calc(-50% + ${navBarOffset}))`,
         width: '100%',
         maxWidth: '900px',
-        padding: '4rem 20px',
+        padding: isMobile ? '2.5rem 1rem' : '3rem 2rem',
+        maxHeight: isMobile ? `calc(100vh - ${navBarOffset})` : '90vh',
+        overflowY: 'auto',
         zIndex: 10,
       }}
     >
