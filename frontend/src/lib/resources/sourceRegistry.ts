@@ -131,7 +131,6 @@ const hrsaHealthCenters: RegisteredSource = {
           name: 'SITE_NM',
           address: 'SITE_ADDRESS',
           phone: 'SITE_PHONE_NUM',
-          website: 'SITE_URL',
         },
         useSpatialQuery: true,
         where: "HCC_STATUS_DESC='Active'",
