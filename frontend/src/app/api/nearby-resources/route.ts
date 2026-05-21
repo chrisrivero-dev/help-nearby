@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { haversineDistanceMiles } from '@/lib/location/distance';
 import {
   liveSourcesFor,
-  fallbackSourcesFor,
   type RegisteredSource,
 } from '@/lib/resources/sourceRegistry';
-import type { NearbyResource, NearbyResponse, SourceMeta, ResourceCategory } from '@/lib/resources/schema';
+import type {
+  NearbyResource,
+  NearbyResponse,
+  SourceMeta,
+  ResourceCategory,
+} from '@/lib/resources/schema';
 
 const MAX_RESULTS = 25;
 const MAX_PER_SOURCE_DEFAULT = 8;
@@ -20,8 +24,17 @@ function parseFloatParam(value: string | null): number | null {
 
 async function runSources(
   sources: RegisteredSource[],
-  query: { latitude: number; longitude: number; radiusMiles: number; category?: ResourceCategory },
-): Promise<{ resources: NearbyResource[]; metas: SourceMeta[]; anyFailed: boolean }> {
+  query: {
+    latitude: number;
+    longitude: number;
+    radiusMiles: number;
+    category?: ResourceCategory;
+  },
+): Promise<{
+  resources: NearbyResource[];
+  metas: SourceMeta[];
+  anyFailed: boolean;
+}> {
   const fetchedAt = new Date().toISOString();
   const settled = await Promise.allSettled(sources.map((s) => s.fetch(query)));
   const resources: NearbyResource[] = [];
@@ -47,7 +60,9 @@ async function runSources(
   return { resources, metas, anyFailed };
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse<NearbyResponse>> {
+export async function GET(
+  request: NextRequest,
+): Promise<NextResponse<NearbyResponse>> {
   const { searchParams } = request.nextUrl;
 
   const latitude = parseFloatParam(searchParams.get('lat'));
@@ -57,13 +72,16 @@ export async function GET(request: NextRequest): Promise<NextResponse<NearbyResp
     MAX_RADIUS_MILES,
     Math.max(0.1, radiusRaw ?? DEFAULT_RADIUS_MILES),
   );
-  const category = (searchParams.get('category') as ResourceCategory | null) ?? undefined;
+  const category =
+    (searchParams.get('category') as ResourceCategory | null) ?? undefined;
 
   if (
     latitude === null ||
     longitude === null ||
-    latitude < -90 || latitude > 90 ||
-    longitude < -180 || longitude > 180
+    latitude < -90 ||
+    latitude > 90 ||
+    longitude < -180 ||
+    longitude > 180
   ) {
     return NextResponse.json(
       { resources: [], sources: [], degraded: false },
@@ -86,30 +104,26 @@ export async function GET(request: NextRequest): Promise<NextResponse<NearbyResp
   let metas = liveRun.metas;
   let degraded = false;
 
-  // If every live adapter failed AND nothing was returned, try fallback seeds
-  // for this point. Anything from fallback is labeled isLive:false by design.
-  if (resources.length === 0 && liveRun.anyFailed) {
-    const fb = fallbackSourcesFor(latitude, longitude, category);
-    if (fb.length > 0) {
-      const fbRun = await runSources(fb, query);
-      resources = fbRun.resources;
-      metas = [...metas, ...fbRun.metas];
-      degraded = true;
-    }
-  }
-
   const sortedByDistance = resources
     .map((r) => {
-      if (typeof r.latitude !== 'number' || typeof r.longitude !== 'number') return r;
+      if (typeof r.latitude !== 'number' || typeof r.longitude !== 'number')
+        return r;
       return {
         ...r,
-        distanceMiles: haversineDistanceMiles(latitude, longitude, r.latitude, r.longitude),
+        distanceMiles: haversineDistanceMiles(
+          latitude,
+          longitude,
+          r.latitude,
+          r.longitude,
+        ),
       };
     })
     .filter((r) =>
       r.distanceMiles === undefined ? true : r.distanceMiles <= radiusMiles,
     )
-    .sort((a, b) => (a.distanceMiles ?? Infinity) - (b.distanceMiles ?? Infinity));
+    .sort(
+      (a, b) => (a.distanceMiles ?? Infinity) - (b.distanceMiles ?? Infinity),
+    );
 
   // Source balancing: on uncategorized "snapshot" calls (the Help dashboard's
   // default mode), prevent a single high-density source from filling the whole

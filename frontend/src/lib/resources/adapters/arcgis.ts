@@ -1,4 +1,9 @@
-import type { NearbyResource, NearbyQuery, ResourceCategory, SourceType } from '../schema';
+import type {
+  NearbyResource,
+  NearbyQuery,
+  ResourceCategory,
+  SourceType,
+} from '../schema';
 
 /**
  * Generic adapter for ArcGIS REST FeatureServer / MapServer query endpoints.
@@ -7,7 +12,7 @@ import type { NearbyResource, NearbyQuery, ResourceCategory, SourceType } from '
  */
 
 export interface ArcgisFieldMap {
-  id?: string;       // attribute holding a stable id; if absent we synthesize from OBJECTID
+  id?: string; // attribute holding a stable id; if absent we synthesize from OBJECTID
   name: string;
   address?: string;
   phone?: string;
@@ -55,7 +60,10 @@ interface ArcgisQueryResponse {
   error?: { code: number; message: string };
 }
 
-function pickString(attrs: Record<string, unknown>, key?: string): string | undefined {
+function pickString(
+  attrs: Record<string, unknown>,
+  key?: string,
+): string | undefined {
   if (!key) return undefined;
   const v = attrs[key];
   if (v === null || v === undefined) return undefined;
@@ -63,7 +71,10 @@ function pickString(attrs: Record<string, unknown>, key?: string): string | unde
   return s.length > 0 ? s : undefined;
 }
 
-function pickNumber(attrs: Record<string, unknown>, key?: string): number | undefined {
+function pickNumber(
+  attrs: Record<string, unknown>,
+  key?: string,
+): number | undefined {
   if (!key) return undefined;
   const v = attrs[key];
   if (v === null || v === undefined) return undefined;
@@ -108,7 +119,7 @@ export async function queryArcgisLayer(
     const res = await fetch(`${cfg.layerUrl}?${params.toString()}`, {
       signal: controller.signal,
       headers: { Accept: 'application/json' },
-      next: { revalidate: 300 },
+      next: { revalidate: 3600 },
     });
     if (!res.ok) throw new Error(`arcgis_http_${res.status}`);
     data = (await res.json()) as ArcgisQueryResponse;
@@ -130,8 +141,12 @@ export async function queryArcgisLayer(
     const lat = pickNumber(attrs, cfg.fieldMap.latitude) ?? feat.geometry?.y;
     const lng = pickNumber(attrs, cfg.fieldMap.longitude) ?? feat.geometry?.x;
 
-    const rawId = pickString(attrs, cfg.fieldMap.id) ?? String(attrs.OBJECTID ?? attrs.FID ?? '');
-    const id = rawId ? `${cfg.source.id}:${rawId}` : `${cfg.source.id}:${name}:${lat ?? '?'},${lng ?? '?'}`;
+    const rawId =
+      pickString(attrs, cfg.fieldMap.id) ??
+      String(attrs.OBJECTID ?? attrs.FID ?? '');
+    const id = rawId
+      ? `${cfg.source.id}:${rawId}`
+      : `${cfg.source.id}:${name}:${lat ?? '?'},${lng ?? '?'}`;
 
     out.push({
       id,
@@ -140,8 +155,10 @@ export async function queryArcgisLayer(
       address: pickString(attrs, cfg.fieldMap.address),
       phone: pickString(attrs, cfg.fieldMap.phone),
       website: pickString(attrs, cfg.fieldMap.website),
-      latitude: typeof lat === 'number' && Number.isFinite(lat) ? lat : undefined,
-      longitude: typeof lng === 'number' && Number.isFinite(lng) ? lng : undefined,
+      latitude:
+        typeof lat === 'number' && Number.isFinite(lat) ? lat : undefined,
+      longitude:
+        typeof lng === 'number' && Number.isFinite(lng) ? lng : undefined,
       sourceName: cfg.source.name,
       sourceUrl: cfg.source.url,
       sourceType: cfg.source.sourceType,

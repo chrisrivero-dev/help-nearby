@@ -16,7 +16,6 @@ export interface LocationState {
   latitude: number;
   longitude: number;
   isValid: boolean;
-  isDemo: boolean;
 }
 
 interface LocationContextValue extends LocationState {
@@ -52,7 +51,6 @@ export const LocationProvider: FC<LocationProviderProps> = ({
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [isValid, setIsValid] = useState(false);
-  const [isDemo, setIsDemo] = useState(true);
   const [locationError, setLocationError] = useState<string | null>(null);
 
   // Normalize location - validates ZIP and gets coordinates
@@ -114,7 +112,6 @@ export const LocationProvider: FC<LocationProviderProps> = ({
       setLatitude(0);
       setLongitude(0);
       setIsValid(false);
-      setIsDemo(true);
       return;
     }
 
@@ -125,8 +122,6 @@ export const LocationProvider: FC<LocationProviderProps> = ({
       setLatitude(result.latitude);
       setLongitude(result.longitude);
       setIsValid(result.isValid);
-      // ZIP 90012 is the only one with real data
-      setIsDemo(result.zipCode !== '90012');
     });
   }, [zip, normalizeLocation]);
 
@@ -141,7 +136,6 @@ export const LocationProvider: FC<LocationProviderProps> = ({
     setLatitude(0);
     setLongitude(0);
     setIsValid(false);
-    setIsDemo(true);
     setLocationError(null);
   }, []);
 
@@ -152,7 +146,6 @@ export const LocationProvider: FC<LocationProviderProps> = ({
     latitude,
     longitude,
     isValid,
-    isDemo,
     setLocation,
     clearLocation,
     locationError,

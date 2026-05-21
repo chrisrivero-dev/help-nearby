@@ -1,6 +1,10 @@
-import type { NearbyQuery, NearbyResource, ResourceCategory, SourceType } from './schema';
+import type {
+  NearbyQuery,
+  NearbyResource,
+  ResourceCategory,
+  SourceType,
+} from './schema';
 import { queryArcgisLayer } from './adapters/arcgis';
-import { RESOURCES_90012 } from '@/data/resources.90012';
 
 /**
  * Coverage bounding box in WGS84. A query point must fall inside the bbox
@@ -29,16 +33,42 @@ export interface RegisteredSource {
   fetch: (q: NearbyQuery) => Promise<NearbyResource[]>;
 }
 
-const LA_CITY_BBOX: BBox = { minLat: 33.70, maxLat: 34.34, minLng: -118.67, maxLng: -118.15 };
-const LA_COUNTY_BBOX: BBox = { minLat: 32.79, maxLat: 34.82, minLng: -118.95, maxLng: -117.65 };
-const CA_BBOX: BBox = { minLat: 32.50, maxLat: 42.01, minLng: -124.50, maxLng: -114.13 };
-const CIVIC_CENTER_BBOX: BBox = { minLat: 34.03, maxLat: 34.07, minLng: -118.26, maxLng: -118.22 };
+const LA_CITY_BBOX: BBox = {
+  minLat: 33.7,
+  maxLat: 34.34,
+  minLng: -118.67,
+  maxLng: -118.15,
+};
+const LA_COUNTY_BBOX: BBox = {
+  minLat: 32.79,
+  maxLat: 34.82,
+  minLng: -118.95,
+  maxLng: -117.65,
+};
+const CA_BBOX: BBox = {
+  minLat: 32.5,
+  maxLat: 42.01,
+  minLng: -124.5,
+  maxLng: -114.13,
+};
+const CIVIC_CENTER_BBOX: BBox = {
+  minLat: 34.03,
+  maxLat: 34.07,
+  minLng: -118.26,
+  maxLng: -118.22,
+};
 
 function pointInBBox(lat: number, lng: number, b: BBox): boolean {
-  return lat >= b.minLat && lat <= b.maxLat && lng >= b.minLng && lng <= b.maxLng;
+  return (
+    lat >= b.minLat && lat <= b.maxLat && lng >= b.minLng && lng <= b.maxLng
+  );
 }
 
-export function isCovered(source: RegisteredSource, lat: number, lng: number): boolean {
+export function isCovered(
+  source: RegisteredSource,
+  lat: number,
+  lng: number,
+): boolean {
   return source.coverage === 'global' || pointInBBox(lat, lng, source.coverage);
 }
 
@@ -53,7 +83,8 @@ const laCountyCoolingCenters: RegisteredSource = {
   sourceType: 'arcgis-rest',
   category: 'cooling',
   coverage: LA_COUNTY_BBOX,
-  refresh: 'event-driven — populated by LA County EOC during active heat events',
+  refresh:
+    'event-driven — populated by LA County EOC during active heat events',
   notes:
     'Authoritative LA County cooling-center feed published by the County EOC. Returns 0 features outside an active heat event by design; do NOT synthesize rows when empty.',
   fetch: (q) =>
@@ -119,7 +150,8 @@ const hrsaHealthCenters: RegisteredSource = {
   sourceType: 'arcgis-rest',
   category: 'health',
   coverage: 'global',
-  refresh: 'updated by HRSA on an ongoing basis as grantees report site changes',
+  refresh:
+    'updated by HRSA on an ongoing basis as grantees report site changes',
   notes:
     'Federally funded community health centers (FQHCs, look-alikes, migrant, homeless, public-housing, school-based). Safety-net primary care nationwide; uses server-side spatial filter so a national dataset returns only nearby rows.',
   fetch: (q) =>
@@ -183,38 +215,6 @@ const laRecParksFacilities: RegisteredSource = {
 };
 
 /* ──────────────────────────────────────────────────────────────────────── */
-/*  Manual-fallback (degraded-only)                                         */
-/* ──────────────────────────────────────────────────────────────────────── */
-
-const civicCenterSeed: RegisteredSource = {
-  id: 'help-nearby-seed-90012',
-  name: 'Help Nearby seed (Civic Center pilot)',
-  url: 'https://github.com/anthropics',
-  sourceType: 'manual-fallback',
-  category: 'social_services',
-  coverage: CIVIC_CENTER_BBOX,
-  refresh: 'manual, last verified per row',
-  notes: 'Used only when live sources covering this point all fail.',
-  fetch: async () =>
-    RESOURCES_90012.map((r) => ({
-      id: `seed-90012:${r.id}`,
-      name: r.name,
-      category: (r.category as ResourceCategory) ?? 'other',
-      address: `${r.address}, ${r.city}, ${r.state} ${r.zip}`,
-      phone: r.phone,
-      website: r.sourceUrl,
-      latitude: r.latitude,
-      longitude: r.longitude,
-      sourceName: 'Help Nearby seed',
-      sourceUrl: r.sourceUrl,
-      sourceType: 'manual-fallback' as const,
-      updatedAt: r.verifiedAt,
-      lastChecked: r.verifiedAt,
-      isLive: false,
-    })),
-};
-
-/* ──────────────────────────────────────────────────────────────────────── */
 
 export const LIVE_SOURCES: RegisteredSource[] = [
   laCountyCoolingCenters,
@@ -222,16 +222,13 @@ export const LIVE_SOURCES: RegisteredSource[] = [
   laRecParksFacilities,
   hrsaHealthCenters,
 ];
-export const FALLBACK_SOURCES: RegisteredSource[] = [civicCenterSeed];
 
-export function liveSourcesFor(lat: number, lng: number, category?: ResourceCategory): RegisteredSource[] {
+export function liveSourcesFor(
+  lat: number,
+  lng: number,
+  category?: ResourceCategory,
+): RegisteredSource[] {
   return LIVE_SOURCES.filter(
-    (s) => isCovered(s, lat, lng) && (!category || s.category === category),
-  );
-}
-
-export function fallbackSourcesFor(lat: number, lng: number, category?: ResourceCategory): RegisteredSource[] {
-  return FALLBACK_SOURCES.filter(
     (s) => isCovered(s, lat, lng) && (!category || s.category === category),
   );
 }

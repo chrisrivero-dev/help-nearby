@@ -151,7 +151,7 @@ function ClockDigits({
       const now = new Date();
 
       const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/New_York',
+        timeZone: 'America/Los_Angeles',
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
