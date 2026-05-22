@@ -466,6 +466,29 @@ export const ResourcesPanel: FC = () => {
                           >
                             <ExternalLink size={9} /> Source: {r.sourceName}
                           </a>
+                          {typeof r.latitude === 'number' &&
+                            typeof r.longitude === 'number' &&
+                            Number.isFinite(latitude) &&
+                            Number.isFinite(longitude) && (
+                              <a
+                                href={`https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${r.latitude},${r.longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={`Open directions to ${r.name} in Google Maps`}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.2rem',
+                                  fontFamily: "'Poppins', sans-serif",
+                                  fontSize: '0.62rem',
+                                  fontWeight: 700,
+                                  color: isDark ? '#93c5fd' : '#1d4ed8',
+                                  textDecoration: 'underline',
+                                }}
+                              >
+                                <ExternalLink size={9} /> Directions
+                              </a>
+                            )}
                           {r.lastChecked && (
                             <span
                               style={{
