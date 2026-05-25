@@ -12,6 +12,7 @@ import { HeroSection } from '@/components/help/HeroSection';
 import { NewsTicker } from '@/components/help/NewsTicker';
 import { PanelLayout } from '@/components/help/PanelLayout';
 import { AlertPanel } from '@/components/help/AlertPanel';
+import { IncidentCard } from '@/components/help/IncidentCard';
 import { ResourcesPanel } from '@/components/help/ResourcesPanel';
 import { TransitPanel } from '@/components/help/TransitPanel';
 import { CommunityPanel } from '@/components/help/CommunityPanel';
@@ -71,6 +72,7 @@ const HelpDashboard: FC = () => {
 
       {/* Dashboard Grid - Masonry layout in PanelLayout */}
       <PanelLayout>
+        <IncidentCard />
         <AlertPanel />
         <ResourcesPanel />
         <CommunityPanel />
