@@ -6,21 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Info } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
-
-interface WeatherAlert {
-  id: string;
-  title: string;
-  headline: string;
-  description: string;
-  instruction: string;
-  severity: string;
-  urgency: string;
-  certainty: string;
-  effective: string | null;
-  expires: string | null;
-  area: string;
-  url: string;
-}
+import type { IncidentItem, CheckedSource } from '@/lib/incidents/types';
 
 const GOLD_COLOR = '#f59e0b';
 
@@ -43,66 +29,66 @@ export const AlertPanel: FC = () => {
   const inputBorder = isDark ? '#252a36' : '#d0d4dc';
   const errorColor = '#dc2626';
 
-  const [weatherAlerts, setWeatherAlerts] = useState<WeatherAlert[] | null>(
-    null,
-  );
-
-  // Extract unique event types from alerts for category badges
-  const eventTypes = useMemo(() => {
-    if (!weatherAlerts || weatherAlerts.length === 0) return [];
-    const types = new Set(weatherAlerts.map((a) => a.title));
-    return Array.from(types);
-  }, [weatherAlerts]);
-  const [weatherAlertsLoading, setWeatherAlertsLoading] = useState(false);
-  const [weatherAlertsError, setWeatherAlertsError] = useState(false);
+  // Use generic IncidentItem for alerts (NWS + IPAWS)
+  const [alerts, setAlerts] = useState<IncidentItem[] | null>(null);
+  const [sources, setSources] = useState<CheckedSource[]>([]);
+  const [alertsLoading, setAlertsLoading] = useState(false);
+  const [alertsError, setAlertsError] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [sourcesOpen, setSourcesOpen] = useState(false);
-  const [sources, setSources] = useState<
-    { id: string; name: string; ok: boolean }[]
-  >([{ id: 'nws', name: 'National Weather Service', ok: true }]);
 
-  const fetchWeatherAlerts = useCallback(async (lat: number, lng: number) => {
-    setWeatherAlertsLoading(true);
-    setWeatherAlertsError(false);
-    setWeatherAlerts(null);
+  const fetchAlerts = useCallback(async (lat: number, lng: number) => {
+    setAlertsLoading(true);
+    setAlertsError(false);
+    setAlerts(null);
+    setSources([]);
 
     try {
       const params = new URLSearchParams({
         lat: lat.toString(),
         lng: lng.toString(),
       });
-      const res = await fetch(`/api/weather-alerts?${params.toString()}`);
+      const res = await fetch(`/api/alerts?${params.toString()}`);
       const data = await res.json();
       if (!res.ok || data.error) {
-        setWeatherAlertsError(true);
+        setAlertsError(true);
       } else {
-        setWeatherAlerts(data.alerts ?? []);
+        setAlerts(data.alerts ?? []);
+        setSources(data.sources ?? []);
       }
     } catch {
-      setWeatherAlertsError(true);
+      setAlertsError(true);
     } finally {
-      setWeatherAlertsLoading(false);
+      setAlertsLoading(false);
     }
   }, []);
 
   useEffect(() => {
     if (!zip) {
-      setWeatherAlerts(null);
-      setWeatherAlertsError(false);
+      setAlerts(null);
+      setAlertsError(false);
+      setSources([]);
       return;
     }
     if (isValid && Number.isFinite(latitude) && Number.isFinite(longitude)) {
-      fetchWeatherAlerts(latitude, longitude);
+      fetchAlerts(latitude, longitude);
     } else {
       // ZIP entered but lookup failed — show empty/unavailable.
-      setWeatherAlerts([]);
-      setWeatherAlertsError(false);
+      setAlerts([]);
+      setAlertsError(false);
+      setSources([]);
     }
-  }, [zip, isValid, latitude, longitude, fetchWeatherAlerts]);
+  }, [zip, isValid, latitude, longitude, fetchAlerts]);
 
   // Check if we have live data (fetched successfully without error)
-  const isLive =
-    weatherAlerts !== null && !weatherAlertsError && !weatherAlertsLoading;
+  const isLive = alerts !== null && !alertsError && !alertsLoading;
+
+  // Extract unique event types from alerts for category badges
+  const eventTypes = useMemo(() => {
+    if (!alerts || alerts.length === 0) return [];
+    const types = new Set(alerts.map((a) => a.title));
+    return Array.from(types);
+  }, [alerts]);
 
   const formatCheckedTime = (iso: string) =>
     new Date(iso).toLocaleTimeString([], {
@@ -256,9 +242,9 @@ export const AlertPanel: FC = () => {
                       gap: '0.22rem',
                     }}
                   >
-                    {sources.map((s) => (
+                    {sources.map((s, idx) => (
                       <li
-                        key={s.id}
+                        key={idx}
                         style={{
                           fontSize: '0.68rem',
                           color: mutedText,
@@ -303,7 +289,7 @@ export const AlertPanel: FC = () => {
         <AnimatePresence mode="wait">
           {isExpanded ? (
             <>
-              {/* Event type badges (from NWS properties.event) */}
+              {/* Event type badges (from alerts) */}
               {eventTypes.length > 0 && (
                 <div
                   style={{
@@ -337,7 +323,7 @@ export const AlertPanel: FC = () => {
                 </div>
               )}
 
-              {weatherAlertsLoading ? (
+              {alertsLoading ? (
                 <motion.div
                   key="alerts-loading"
                   initial={{ opacity: 0 }}
@@ -357,10 +343,10 @@ export const AlertPanel: FC = () => {
                       color: mutedText,
                     }}
                   >
-                    Checking for official weather alerts...
+                    Checking for official alerts...
                   </span>
                 </motion.div>
-              ) : weatherAlertsError ? (
+              ) : alertsError ? (
                 <motion.div
                   key="alerts-error"
                   initial={{ opacity: 0 }}
@@ -380,7 +366,7 @@ export const AlertPanel: FC = () => {
                       lineHeight: 1.5,
                     }}
                   >
-                    Official weather alerts could not be loaded. Check{' '}
+                    Official alerts could not be loaded. Check{' '}
                     <a
                       href="https://www.weather.gov/"
                       target="_blank"
@@ -392,10 +378,10 @@ export const AlertPanel: FC = () => {
                     >
                       weather.gov
                     </a>{' '}
-                    directly.
+                    or visit local emergency websites directly.
                   </span>
                 </motion.div>
-              ) : weatherAlerts !== null && weatherAlerts.length === 0 ? (
+              ) : alerts !== null && alerts.length === 0 ? (
                 <motion.div
                   key="alerts-none"
                   initial={{ opacity: 0 }}
@@ -418,17 +404,17 @@ export const AlertPanel: FC = () => {
                       lineHeight: 1.6,
                     }}
                   >
-                    NO WEATHER ALERTS
+                    NO ALERTS
                   </span>
                 </motion.div>
-              ) : weatherAlerts !== null && weatherAlerts.length > 0 ? (
+              ) : alerts !== null && alerts.length > 0 ? (
                 <motion.div
                   key="alerts-content"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {weatherAlerts.map((alert) => (
+                  {alerts.map((alert) => (
                     <div
                       key={alert.id}
                       style={{
@@ -452,19 +438,6 @@ export const AlertPanel: FC = () => {
                         >
                           {alert.title}
                         </div>
-                        {alert.headline && (
-                          <div
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.77rem',
-                              color: mutedText,
-                              lineHeight: 1.5,
-                              marginBottom: '0.3rem',
-                            }}
-                          >
-                            {alert.headline}
-                          </div>
-                        )}
                         {alert.area && (
                           <div
                             style={{
@@ -477,10 +450,21 @@ export const AlertPanel: FC = () => {
                             {alert.area}
                           </div>
                         )}
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontSize: '0.72rem',
+                            color: mutedText,
+                            marginTop: '0.25rem',
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {alert.instructions}
+                        </div>
                       </div>
                     </div>
                   ))}
-                  {!weatherAlertsLoading && (
+                  {!alertsLoading && (
                     <div
                       style={{
                         display: 'flex',
@@ -498,9 +482,9 @@ export const AlertPanel: FC = () => {
                           letterSpacing: '0.02em',
                         }}
                       >
-                        Source: National Weather Service
+                        Sources: {sources.map((s) => s.name).join(', ')}
                       </span>
-                      {weatherAlerts[0]?.effective && (
+                      {alerts[0]?.effective && (
                         <span
                           style={{
                             fontFamily: "'Poppins', sans-serif",
@@ -509,8 +493,7 @@ export const AlertPanel: FC = () => {
                             letterSpacing: '0.02em',
                           }}
                         >
-                          Checked{' '}
-                          {formatCheckedTime(weatherAlerts[0].effective)}
+                          Checked {formatCheckedTime(alerts[0].effective)}
                         </span>
                       )}
                     </div>
@@ -524,3 +507,5 @@ export const AlertPanel: FC = () => {
     </motion.div>
   );
 };
+
+export default AlertPanel;
