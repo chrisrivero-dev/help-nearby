@@ -152,6 +152,21 @@ export const CommunityPanel: FC = () => {
             >
               COMMUNITY! NEARBY
             </span>
+            <span
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 800,
+                fontSize: '0.56rem',
+                letterSpacing: '0.12em',
+                color: mutedText,
+                border: `1px solid ${divider}`,
+                background: isDark ? '#1a1a1a' : '#f5f5f5',
+                padding: '0.14rem 0.4rem',
+                flexShrink: 0,
+              }}
+            >
+              PREVIEW
+            </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             {/* Info tooltip */}
@@ -162,7 +177,7 @@ export const CommunityPanel: FC = () => {
             >
               <button
                 type="button"
-                aria-label="Show live data sources"
+                aria-label="About this preview panel"
                 aria-expanded={sourcesOpen}
                 onClick={() => setSourcesOpen((v) => !v)}
                 style={{
@@ -209,7 +224,7 @@ export const CommunityPanel: FC = () => {
                       marginBottom: '0.4rem',
                     }}
                   >
-                    LIVE DATA SOURCES
+                    PREVIEW PANEL
                   </div>
                   <ul
                     style={{
@@ -228,7 +243,8 @@ export const CommunityPanel: FC = () => {
                         lineHeight: 1.4,
                       }}
                     >
-                      Demo data only
+                      Example content showing how this panel will work. Not
+                      live local information.
                     </li>
                   </ul>
                 </div>
@@ -271,6 +287,19 @@ export const CommunityPanel: FC = () => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
+                  <div
+                    style={{
+                      padding: '0.6rem 1.4rem',
+                      borderBottom: `1px solid ${divider}`,
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.66rem',
+                      color: mutedText,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Preview — example content only. Not live local
+                    information.
+                  </div>
                   {DEMO_COMMUNITY.map((item, i) => (
                     <div
                       key={item.title}

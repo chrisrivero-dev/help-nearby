@@ -6,13 +6,17 @@ const IS_DEV = process.env.NEXT_PUBLIC_ENV === 'development';
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  // Don't protect API routes, static files, or the root path
+  // Don't protect API routes, static files, the root path, or the public
+  // embed widget and its demo pages (they must load inside third-party
+  // iframes with no auth cookie).
   if (
     path.startsWith('/api') ||
     path.startsWith('/_next') ||
     path === '/' ||
     path.startsWith('/fonts') ||
-    path.startsWith('/images')
+    path.startsWith('/images') ||
+    path.startsWith('/embed') ||
+    path.startsWith('/demo')
   ) {
     return NextResponse.next();
   }

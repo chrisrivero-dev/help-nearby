@@ -217,7 +217,14 @@ const Landing: FC = () => {
         onClose={() => setIsLoginModalOpen(false)}
       />
 
-      {/* Center canvas — cinematic intro */}
+      {/* First screen — cinematic intro (relative wrapper so the page can scroll) */}
+      <section
+        style={{
+          position: 'relative',
+          width: '100%',
+          minHeight: isMobile ? 'auto' : '100vh',
+        }}
+      >
       <motion.div
         style={isMobile ? {
           position: 'relative',
@@ -683,7 +690,34 @@ const Landing: FC = () => {
               delay: 0.5,
             }}
           >
-            Discover ways to get help and get involved in the community.
+            Find source-backed help nearby — food, health, shelter, cooling,
+            and emergency resources from official public sources, with
+            directions, source attribution, and honest status indicators.
+          </motion.p>
+
+          {/* Positioning line */}
+          <motion.p
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 600,
+              fontSize: '0.68rem',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: mutedColor,
+              margin: '14px 0 0',
+              maxWidth: isMobile ? '80vw' : '480px',
+              lineHeight: 1.7,
+            }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.6,
+              ease: [0.25, 0.46, 0.45, 0.94],
+              delay: 0.58,
+            }}
+          >
+            Source-backed local aid infrastructure for communities, cities,
+            and nonprofits.
           </motion.p>
 
           {/* CTA Row */}
@@ -727,6 +761,339 @@ const Landing: FC = () => {
           </motion.div>
         </div>
       </motion.div>
+      </section>
+
+      {/* Below the fold — credibility, audiences, and partner CTA */}
+      <BelowFold isDark={isDark} isMobile={isMobile} />
+    </div>
+  );
+};
+
+// ── Below-the-fold sections ───────────────────────────────────────────────────
+
+const LIVE_NOW = [
+  {
+    title: 'Live resource search',
+    desc: 'Nearby food banks, health centers, cooling centers, and parks from public datasets, searched by ZIP or location.',
+  },
+  {
+    title: 'Source attribution',
+    desc: 'Listings link back to the public dataset they came from, where available.',
+  },
+  {
+    title: 'Directions',
+    desc: 'One-tap Google Maps directions for every listed resource.',
+  },
+  {
+    title: 'Where Nearby map',
+    desc: 'A visual map panel wired to the same live resource results.',
+  },
+  {
+    title: 'Official-source incidents',
+    desc: 'A manually reviewed incident registry backed by official links, with NWS active-alert and FEMA/IPAWS checks.',
+  },
+  {
+    title: 'Current coverage',
+    desc: 'Strongest current coverage: Southern California and California aid resources, with national health-center and weather/IPAWS coverage.',
+  },
+];
+
+const BUILT_FOR = [
+  {
+    title: 'Residents',
+    desc: 'Find source-backed help nearby — food, health, shelter, and cooling resources from official public datasets, with directions and source links.',
+  },
+  {
+    title: 'Cities & counties',
+    desc: 'A clearer public information layer for local resources, built on datasets agencies already publish.',
+  },
+  {
+    title: 'Nonprofits & community organizations',
+    desc: 'A faster way to check and share local resource information, traceable to its original source where available.',
+  },
+  {
+    title: 'Investors & partners',
+    desc: 'A working early-stage platform for source-backed local aid discovery, built to scale across cities and datasets.',
+  },
+];
+
+const CONTACT_MAILTO =
+  'mailto:rrslider@gmail.com?subject=Help%20Nearby%20%E2%80%94%20Partner%20Conversation';
+
+const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
+  isDark,
+  isMobile,
+}) => {
+  const textColor = isDark ? '#e8e8e8' : '#111111';
+  const mutedColor = isDark ? '#888888' : '#666666';
+  const cardBg = isDark ? '#121212' : '#ffffff';
+  const cardBorder = isDark ? panelBorderDark : panelBorderLight;
+  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+
+  const sectionLabelStyle: CSSProperties = {
+    fontFamily: "'Poppins', sans-serif",
+    fontWeight: 800,
+    fontSize: '0.66rem',
+    letterSpacing: '0.18em',
+    textTransform: 'uppercase',
+    color: '#f59e0b',
+    margin: '0 0 1rem',
+  };
+
+  const bodyStyle: CSSProperties = {
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '0.85rem',
+    color: mutedColor,
+    lineHeight: 1.75,
+    margin: 0,
+  };
+
+  const cardStyle: CSSProperties = {
+    background: cardBg,
+    border: `1px solid ${cardBorder}`,
+    padding: '1.2rem 1.3rem',
+  };
+
+  const cardTitleStyle: CSSProperties = {
+    fontFamily: "'Poppins', sans-serif",
+    fontWeight: 700,
+    fontSize: '0.82rem',
+    color: textColor,
+    margin: '0 0 0.4rem',
+  };
+
+  const cardDescStyle: CSSProperties = {
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '0.75rem',
+    color: mutedColor,
+    lineHeight: 1.65,
+    margin: 0,
+  };
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        zIndex: zContent,
+        width: '100%',
+        maxWidth: 1050,
+        margin: '0 auto',
+        padding: isMobile ? '2.5rem 6vw 3.5rem' : '3.5rem 2rem 4.5rem',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: isMobile ? '3rem' : '4rem',
+      }}
+    >
+      {/* What is live now */}
+      <section>
+        <p style={sectionLabelStyle}>What is live now</p>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile
+              ? '1fr'
+              : 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '1rem',
+          }}
+        >
+          {LIVE_NOW.map((item) => (
+            <div key={item.title} style={cardStyle}>
+              <p style={cardTitleStyle}>{item.title}</p>
+              <p style={cardDescStyle}>{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Data approach */}
+      <section>
+        <p style={sectionLabelStyle}>Data approach</p>
+        <div style={{ maxWidth: 680 }}>
+          <p style={{ ...bodyStyle, marginBottom: '0.9rem' }}>
+            Help Nearby is being built around source-backed local aid
+            discovery. The goal is to make public resource information easier
+            to find, easier to understand, and easier to trace back to its
+            original source.
+          </p>
+          <p style={bodyStyle}>
+            Current work focuses on connecting public datasets, showing source
+            attribution where available, and avoiding confusion between live
+            data, preview content, and manually reviewed information.
+          </p>
+        </div>
+        {/* Source strip */}
+        <p
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: '0.72rem',
+            color: mutedColor,
+            lineHeight: 1.7,
+            margin: '1.4rem 0 0',
+            paddingTop: '1rem',
+            borderTop: `1px solid ${divider}`,
+            maxWidth: 680,
+          }}
+        >
+          Data sources include public datasets and feeds from HRSA, CalOES,
+          NWS, FEMA/IPAWS, and local ArcGIS/Open Data portals.
+        </p>
+      </section>
+
+      {/* Built for */}
+      <section>
+        <p style={sectionLabelStyle}>Built for</p>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+            gap: '1rem',
+          }}
+        >
+          {BUILT_FOR.map((item) => (
+            <div key={item.title} style={cardStyle}>
+              <p style={cardTitleStyle}>{item.title}</p>
+              <p style={cardDescStyle}>{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Embed widget */}
+      <section style={{ ...cardStyle, padding: isMobile ? '1.6rem 1.4rem' : '2rem 2.2rem' }}>
+        <p style={sectionLabelStyle}>Embed widget</p>
+        <p
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontWeight: 700,
+            fontSize: '1rem',
+            color: textColor,
+            margin: '0 0 0.75rem',
+          }}
+        >
+          Embed Help Nearby on your website
+        </p>
+        <p style={{ ...bodyStyle, maxWidth: 640, marginBottom: '0.8rem' }}>
+          Cities, nonprofits, clinics, schools, churches, and community
+          organizations can add a source-backed local resource finder to their
+          own website with a simple iframe. Visitors search by ZIP, filter by
+          category, and get directions and source links for nearby food banks,
+          health centers, and cooling centers — directly on your page. No
+          accounts or API keys required.
+        </p>
+        <p
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: '0.72rem',
+            color: mutedColor,
+            lineHeight: 1.7,
+            margin: '0 0 1.4rem',
+            maxWidth: 640,
+          }}
+        >
+          Data comes from public datasets where available. This widget is not an
+          official government emergency alert system and does not guarantee
+          accuracy of all listings.
+        </p>
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.8rem',
+            flexWrap: 'wrap' as const,
+            alignItems: 'center',
+          }}
+        >
+          <a
+            href="/demo/city"
+            style={{
+              ...getPanelDefaultStyle(isDark),
+              backgroundColor: isDark ? '#e8e8e8' : '#111111',
+              color: isDark ? '#111111' : '#ffffff',
+              textDecoration: 'none',
+            }}
+          >
+            VIEW DEMO CITY PAGE →
+          </a>
+          <a
+            href="/embed/builder"
+            style={{
+              ...getPanelDefaultStyle(isDark),
+              textDecoration: 'none',
+            }}
+          >
+            OPEN EMBED BUILDER →
+          </a>
+          <a
+            href="/embed"
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: '0.65rem',
+              fontWeight: 600,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase' as const,
+              color: mutedColor,
+              textDecoration: 'none',
+            }}
+          >
+            Preview standalone widget ↗
+          </a>
+        </div>
+      </section>
+
+      {/* Partner CTA */}
+      <section
+        style={{
+          ...cardStyle,
+          padding: isMobile ? '1.6rem 1.4rem' : '2rem 2.2rem',
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          justifyContent: 'space-between',
+          gap: '1.2rem',
+        }}
+      >
+        <p
+          style={{
+            ...bodyStyle,
+            color: textColor,
+            fontWeight: 600,
+            maxWidth: 560,
+          }}
+        >
+          Interested in reviewing Help Nearby for a city, county, nonprofit,
+          or pilot conversation?
+        </p>
+        <a
+          href={CONTACT_MAILTO}
+          style={{
+            ...getPanelDefaultStyle(isDark),
+            backgroundColor: isDark ? '#e8e8e8' : '#111111',
+            color: isDark ? '#111111' : '#ffffff',
+            textDecoration: 'none',
+            flexShrink: 0,
+          }}
+        >
+          CONTACT US →
+        </a>
+      </section>
+
+      {/* Independent disclaimer */}
+      <p
+        style={{
+          fontFamily: "'Poppins', sans-serif",
+          fontSize: '0.7rem',
+          color: mutedColor,
+          lineHeight: 1.7,
+          margin: 0,
+          paddingTop: '1.2rem',
+          borderTop: `1px solid ${divider}`,
+          textAlign: 'center',
+        }}
+      >
+        Help Nearby is independently built and uses official public data
+        sources with attribution. It is not an official government emergency
+        alert system. In an emergency, call 911.
+      </p>
     </div>
   );
 };

@@ -7,7 +7,7 @@ import { useTheme } from './useTheme';
 const TEAM = [
   {
     name: 'Mike',
-    role: 'Product Design · Healthcare Systems · Information Architecture',
+    role: 'Co-Founder · Product Design · Healthcare Systems · Information Architecture',
     bio: 'Mike brings experience in healthcare workflows, product design, and structured digital tools. His work spans pharmacy systems, drug reference tools, real estate platforms, and community resource discovery — giving Help Nearby a strong foundation in clarity, usability, and practical system design.',
     work: 'Property Manager · Pharm.OS · Drug Reference · Help Nearby',
     img: '/images/mike-profile.jpg',
@@ -15,7 +15,7 @@ const TEAM = [
   },
   {
     name: 'Christopher',
-    role: 'Support Operations · Public-Sector Systems · AI Automation',
+    role: 'Co-Founder · Support Operations · Public-Sector Systems · AI Automation',
     bio: 'Chris brings experience in public-sector workflows, GIS/CAD systems, support operations, automation, and AI-assisted knowledge tools. His focus is turning scattered information into structured, usable systems that people and organizations can rely on.',
     work: 'Sidecar Support Assistant · Help Nearby · GIS/CAD Workflow Automation · Knowledge Base Systems',
     img: '/images/christopher-profile.jpg',
@@ -247,6 +247,44 @@ const MeetTheFounders: React.FC<MeetTheFoundersProps> = ({ isVisible }) => {
         directory. The goal is to create a practical resource-discovery platform
         that helps people, organizations, and local partners move from scattered
         information to clear next steps.
+      </p>
+
+      {/* Partner contact */}
+      <p
+        style={{
+          color: '#9a9a9a',
+          fontSize: 'clamp(0.78rem, 1.2vw, 0.85rem)',
+          lineHeight: 1.75,
+          marginTop: '1.25rem',
+          textAlign: 'center',
+        }}
+      >
+        Interested in reviewing Help Nearby for a city, county, nonprofit, or
+        pilot conversation?{' '}
+        <a
+          href="mailto:rrslider@gmail.com?subject=Help%20Nearby%20%E2%80%94%20Partner%20Conversation"
+          style={{ color: '#f9c700', textDecoration: 'underline' }}
+        >
+          Contact us
+        </a>
+        .
+      </p>
+
+      {/* Independent disclaimer */}
+      <p
+        style={{
+          color: '#666',
+          fontSize: '0.72rem',
+          lineHeight: 1.7,
+          marginTop: '1.25rem',
+          paddingTop: '1rem',
+          borderTop: '1px solid #181818',
+          textAlign: 'center',
+        }}
+      >
+        Help Nearby is independently built and uses official public data
+        sources with attribution. It is not an official government emergency
+        alert system.
       </p>
     </motion.div>
   );
