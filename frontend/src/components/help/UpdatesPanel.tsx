@@ -1,40 +1,28 @@
 'use client';
 
 import type { FC } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
-
-const DEMO_UPDATES = [
-  {
-    title: 'Cooling Center Now Open',
-    detail: 'Central Library · 200 Park Ave',
-    ago: '1h ago',
-    type: 'info' as const,
-  },
-  {
-    title: 'Road Closure: Main St',
-    detail: 'Between 4th & 5th Ave until 5PM',
-    ago: '3h ago',
-    type: 'warning' as const,
-  },
-  {
-    title: 'Free Food Distribution',
-    detail: 'Unity Church · 12PM – 3PM',
-    ago: '5h ago',
-    type: 'info' as const,
-  },
-  {
-    title: 'Emergency Shelter Activated',
-    detail: 'Community Center · 800 Elm St',
-    ago: '8h ago',
-    type: 'critical' as const,
-  },
-];
+import type { LocalUpdate } from '@/lib/community/types';
 
 const GOLD_COLOR = '#f59e0b';
+
+function timeAgo(iso?: string): string | undefined {
+  if (!iso) return undefined;
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return undefined;
+  const diffMs = Date.now() - t;
+  if (diffMs < 0) return undefined;
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 60) return `${Math.max(1, mins)}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 export const UpdatesPanel: FC = () => {
   const { theme } = useTheme();
@@ -43,15 +31,40 @@ export const UpdatesPanel: FC = () => {
   const hasLocation = !!zip;
   const [isExpanded, setIsExpanded] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [items, setItems] = useState<LocalUpdate[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#555' : '#999';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
-  const accentColor = GOLD_COLOR;
-  const isLive = false; // Static data only
+  const isLive = items.length > 0;
 
-  // Locked panel
-  const LockedPanel = ({ minH = 100 }: { minH?: number }) => (
+  // Fetch real, approved, non-expired updates once opened with a location set.
+  // No demo fallback — an empty result renders the empty state.
+  useEffect(() => {
+    if (!isExpanded || !hasLocation || loaded) return;
+    let cancelled = false;
+    setLoading(true);
+    fetch('/api/local-updates')
+      .then((r) => (r.ok ? r.json() : { updates: [] }))
+      .then((d: { updates?: LocalUpdate[] }) => {
+        if (cancelled) return;
+        setItems(Array.isArray(d.updates) ? d.updates : []);
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (!cancelled) setLoaded(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isExpanded, hasLocation, loaded]);
+
+  const EmptyOrLocked = ({ text }: { text: string }) => (
     <div
       style={{
         padding: '1.75rem 1.4rem',
@@ -60,10 +73,9 @@ export const UpdatesPanel: FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         gap: '0.55rem',
-        minHeight: minH,
+        minHeight: 100,
       }}
     >
-      {/* Bell icon removed for neutral style */}
       <p
         style={{
           fontFamily: "'Poppins', sans-serif",
@@ -75,7 +87,7 @@ export const UpdatesPanel: FC = () => {
           maxWidth: 280,
         }}
       >
-        Enter your location to see latest updates.
+        {text}
       </p>
     </div>
   );
@@ -112,10 +124,7 @@ export const UpdatesPanel: FC = () => {
           position: 'relative',
           zIndex: 2,
         }}
-        whileHover={{
-          x: -4,
-          y: -4,
-        }}
+        whileHover={{ x: -4, y: -4 }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >
         {/* Section Header */}
@@ -131,7 +140,6 @@ export const UpdatesPanel: FC = () => {
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            {/* Status indicator - moved left of title, flat bright square */}
             <div
               style={{
                 width: 12,
@@ -152,24 +160,8 @@ export const UpdatesPanel: FC = () => {
             >
               UPDATES! NEARBY
             </span>
-            <span
-              style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 800,
-                fontSize: '0.56rem',
-                letterSpacing: '0.12em',
-                color: mutedText,
-                border: `1px solid ${divider}`,
-                background: isDark ? '#1a1a1a' : '#f5f5f5',
-                padding: '0.14rem 0.4rem',
-                flexShrink: 0,
-              }}
-            >
-              PREVIEW
-            </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            {/* Info tooltip */}
             <div
               style={{ position: 'relative' }}
               onMouseEnter={() => setSourcesOpen(true)}
@@ -177,7 +169,7 @@ export const UpdatesPanel: FC = () => {
             >
               <button
                 type="button"
-                aria-label="About this preview panel"
+                aria-label="About this panel"
                 aria-expanded={sourcesOpen}
                 onClick={() => setSourcesOpen((v) => !v)}
                 style={{
@@ -224,7 +216,7 @@ export const UpdatesPanel: FC = () => {
                       marginBottom: '0.4rem',
                     }}
                   >
-                    PREVIEW PANEL
+                    VERIFIED UPDATES
                   </div>
                   <ul
                     style={{
@@ -243,14 +235,13 @@ export const UpdatesPanel: FC = () => {
                         lineHeight: 1.4,
                       }}
                     >
-                      Example content showing how this panel will work. Not
-                      live local information.
+                      Only admin-verified, non-expired local updates appear
+                      here. Each carries a named source.
                     </li>
                   </ul>
                 </div>
               )}
             </div>
-            {/* Collapse indicator */}
             <motion.div
               style={{
                 width: 16,
@@ -279,88 +270,102 @@ export const UpdatesPanel: FC = () => {
 
         <AnimatePresence mode="wait">
           {isExpanded ? (
-            <>
-              {hasLocation ? (
-                <motion.div
-                  key="updates-content"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <div
-                    style={{
-                      padding: '0.6rem 1.4rem',
-                      borderBottom: `1px solid ${divider}`,
-                      fontFamily: "'Poppins', sans-serif",
-                      fontSize: '0.66rem',
-                      color: mutedText,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    Preview — example content only. Not live local
-                    information.
-                  </div>
-                  {DEMO_UPDATES.map((u, i) => (
-                    <div
-                      key={u.title}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '0.8rem',
-                        padding: '0.85rem 1.4rem',
-                        borderBottom:
-                          i < DEMO_UPDATES.length - 1
-                            ? `1px solid ${divider}`
-                            : undefined,
-                      }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <div
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontWeight: 700,
-                            fontSize: '0.8rem',
-                            color: cardText,
-                            marginBottom: '0.14rem',
-                          }}
-                        >
-                          {u.title}
-                        </div>
-                        <div
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.7rem',
-                            color: mutedText,
-                          }}
-                        >
-                          {u.detail}
-                        </div>
-                      </div>
+            <motion.div
+              key="updates-content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {!hasLocation ? (
+                <EmptyOrLocked text="Enter your location to see latest updates." />
+              ) : loading ? (
+                <EmptyOrLocked text="Loading local updates…" />
+              ) : items.length === 0 ? (
+                <EmptyOrLocked text="No verified local updates are currently listed nearby." />
+              ) : (
+                <>
+                  {items.map((u, i) => {
+                    const ago = timeAgo(u.startsAt ?? u.updatedAt ?? u.createdAt);
+                    return (
                       <div
+                        key={u.id}
                         style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.62rem',
-                          color: mutedText,
-                          flexShrink: 0,
-                          marginTop: 1,
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.8rem',
+                          padding: '0.85rem 1.4rem',
+                          borderBottom:
+                            i < items.length - 1
+                              ? `1px solid ${divider}`
+                              : undefined,
                         }}
                       >
-                        {u.ago}
+                        <div style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontWeight: 700,
+                              fontSize: '0.8rem',
+                              color: cardText,
+                              marginBottom: '0.14rem',
+                            }}
+                          >
+                            {u.title}
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: '0.7rem',
+                              color: mutedText,
+                            }}
+                          >
+                            {u.description}
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: '0.62rem',
+                              color: mutedText,
+                              marginTop: '0.2rem',
+                            }}
+                          >
+                            Source:{' '}
+                            {u.sourceUrl ? (
+                              <a
+                                href={u.sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  color: GOLD_COLOR,
+                                  textDecoration: 'none',
+                                }}
+                              >
+                                {u.sourceName}
+                              </a>
+                            ) : (
+                              u.sourceName
+                            )}
+                          </div>
+                        </div>
+                        {ago ? (
+                          <div
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: '0.62rem',
+                              color: mutedText,
+                              flexShrink: 0,
+                              marginTop: 1,
+                            }}
+                          >
+                            {ago}
+                          </div>
+                        ) : null}
                       </div>
-                    </div>
-                  ))}
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="updates-locked"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <LockedPanel />
-                </motion.div>
+                    );
+                  })}
+                </>
               )}
-            </>
+            </motion.div>
           ) : null}
         </AnimatePresence>
       </motion.div>

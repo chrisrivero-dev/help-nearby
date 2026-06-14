@@ -10,6 +10,7 @@ import type {
   SourceMeta,
   ResourceCategory,
 } from '@/lib/resources/schema';
+import { computeResourceKey } from '@/lib/community/resourceKey';
 
 const MAX_RESULTS = 25;
 const MAX_PER_SOURCE_DEFAULT = 8;
@@ -142,5 +143,10 @@ export async function GET(
     if (balanced.length >= MAX_RESULTS) break;
   }
 
-  return NextResponse.json({ resources: balanced, sources: metas, degraded });
+  const withKeys = balanced.map((r) => ({
+    ...r,
+    resource_key: computeResourceKey(r.name, r.address),
+  }));
+
+  return NextResponse.json({ resources: withKeys, sources: metas, degraded });
 }

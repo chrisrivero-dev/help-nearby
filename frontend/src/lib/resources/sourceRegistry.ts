@@ -128,6 +128,9 @@ const caloesFoodBanks: RegisteredSource = {
         fieldMap: {
           name: 'Name',
           address: 'Address',
+          city: 'City',
+          state: 'State',
+          zip: 'Zip',
           phone: 'Phone',
           website: 'Webpage',
         },
@@ -162,6 +165,9 @@ const hrsaHealthCenters: RegisteredSource = {
         fieldMap: {
           name: 'SITE_NM',
           address: 'SITE_ADDRESS',
+          city: 'SITE_CITY',
+          state: 'SITE_STATE_ABBR',
+          zip: 'SITE_ZIP_CD',
           phone: 'SITE_PHONE_NUM',
         },
         useSpatialQuery: true,

@@ -15,6 +15,9 @@ export interface ArcgisFieldMap {
   id?: string; // attribute holding a stable id; if absent we synthesize from OBJECTID
   name: string;
   address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
   phone?: string;
   website?: string;
   /** Attribute holding latitude in WGS84. If absent, geometry.y is used (after projection). */
@@ -153,6 +156,9 @@ export async function queryArcgisLayer(
       name,
       category: cfg.source.category,
       address: pickString(attrs, cfg.fieldMap.address),
+      city: pickString(attrs, cfg.fieldMap.city),
+      state: pickString(attrs, cfg.fieldMap.state),
+      zip: pickString(attrs, cfg.fieldMap.zip),
       phone: pickString(attrs, cfg.fieldMap.phone),
       website: pickString(attrs, cfg.fieldMap.website),
       latitude:

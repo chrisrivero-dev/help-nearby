@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
+    "verify:real-demo": "node scripts/verify-real-demo.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {

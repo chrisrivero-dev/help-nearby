@@ -1,40 +1,26 @@
 'use client';
 
 import type { FC } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
-
-const DEMO_COMMUNITY = [
-  {
-    title: 'Food Bank Volunteers Needed',
-    org: 'Unity Church',
-    when: 'Today · 2PM–6PM',
-    type: 'volunteer' as const,
-  },
-  {
-    title: 'Blanket & Supply Drive',
-    org: 'Red Cross Chapter',
-    when: 'Ongoing · This week',
-    type: 'donation' as const,
-  },
-  {
-    title: 'Community Aid Fair',
-    org: 'City Outreach Network',
-    when: 'Sat May 18 · 10AM–2PM',
-    type: 'event' as const,
-  },
-  {
-    title: 'Nonprofit Resource Drive',
-    org: 'Community Alliance',
-    when: 'Sun May 19 · 9AM–1PM',
-    type: 'donation' as const,
-  },
-];
+import type { CommunityOpportunity } from '@/lib/community/types';
 
 const GOLD_COLOR = '#f59e0b';
+
+function formatWhen(o: CommunityOpportunity): string | undefined {
+  if (!o.startAt) return undefined;
+  const start = new Date(o.startAt);
+  if (Number.isNaN(start.getTime())) return undefined;
+  return start.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
 
 export const CommunityPanel: FC = () => {
   const { theme } = useTheme();
@@ -43,15 +29,41 @@ export const CommunityPanel: FC = () => {
   const hasLocation = !!zip;
   const [isExpanded, setIsExpanded] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [items, setItems] = useState<CommunityOpportunity[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#555' : '#999';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
-  const accentColor = GOLD_COLOR;
-  const isLive = false; // Static data only
+  const isLive = items.length > 0;
 
-  // Locked panel
-  const LockedPanel = ({ minH = 100 }: { minH?: number }) => (
+  // Fetch real, approved, non-expired opportunities once the panel is opened
+  // with a location set. There is no demo fallback — an empty result renders
+  // the empty state below.
+  useEffect(() => {
+    if (!isExpanded || !hasLocation || loaded) return;
+    let cancelled = false;
+    setLoading(true);
+    fetch('/api/community-opportunities')
+      .then((r) => (r.ok ? r.json() : { opportunities: [] }))
+      .then((d: { opportunities?: CommunityOpportunity[] }) => {
+        if (cancelled) return;
+        setItems(Array.isArray(d.opportunities) ? d.opportunities : []);
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (!cancelled) setLoaded(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isExpanded, hasLocation, loaded]);
+
+  const EmptyOrLocked = ({ text }: { text: string }) => (
     <div
       style={{
         padding: '1.75rem 1.4rem',
@@ -60,10 +72,9 @@ export const CommunityPanel: FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         gap: '0.55rem',
-        minHeight: minH,
+        minHeight: 100,
       }}
     >
-      {/* Users icon removed for neutral style */}
       <p
         style={{
           fontFamily: "'Poppins', sans-serif",
@@ -75,7 +86,7 @@ export const CommunityPanel: FC = () => {
           maxWidth: 280,
         }}
       >
-        Enter your location to see community action items.
+        {text}
       </p>
     </div>
   );
@@ -112,10 +123,7 @@ export const CommunityPanel: FC = () => {
           position: 'relative',
           zIndex: 2,
         }}
-        whileHover={{
-          x: -4,
-          y: -4,
-        }}
+        whileHover={{ x: -4, y: -4 }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >
         {/* Section Header */}
@@ -131,7 +139,6 @@ export const CommunityPanel: FC = () => {
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            {/* Status indicator - moved left of title, flat bright square */}
             <div
               style={{
                 width: 12,
@@ -152,24 +159,8 @@ export const CommunityPanel: FC = () => {
             >
               COMMUNITY! NEARBY
             </span>
-            <span
-              style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 800,
-                fontSize: '0.56rem',
-                letterSpacing: '0.12em',
-                color: mutedText,
-                border: `1px solid ${divider}`,
-                background: isDark ? '#1a1a1a' : '#f5f5f5',
-                padding: '0.14rem 0.4rem',
-                flexShrink: 0,
-              }}
-            >
-              PREVIEW
-            </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            {/* Info tooltip */}
             <div
               style={{ position: 'relative' }}
               onMouseEnter={() => setSourcesOpen(true)}
@@ -177,7 +168,7 @@ export const CommunityPanel: FC = () => {
             >
               <button
                 type="button"
-                aria-label="About this preview panel"
+                aria-label="About this panel"
                 aria-expanded={sourcesOpen}
                 onClick={() => setSourcesOpen((v) => !v)}
                 style={{
@@ -224,7 +215,7 @@ export const CommunityPanel: FC = () => {
                       marginBottom: '0.4rem',
                     }}
                   >
-                    PREVIEW PANEL
+                    VERIFIED OPPORTUNITIES
                   </div>
                   <ul
                     style={{
@@ -243,14 +234,13 @@ export const CommunityPanel: FC = () => {
                         lineHeight: 1.4,
                       }}
                     >
-                      Example content showing how this panel will work. Not
-                      live local information.
+                      Only admin-verified, non-expired community opportunities
+                      appear here. Nothing is shown until a record is approved.
                     </li>
                   </ul>
                 </div>
               )}
             </div>
-            {/* Collapse indicator */}
             <motion.div
               style={{
                 width: 16,
@@ -279,114 +269,99 @@ export const CommunityPanel: FC = () => {
 
         <AnimatePresence mode="wait">
           {isExpanded ? (
-            <>
-              {hasLocation ? (
-                <motion.div
-                  key="community-content"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <div
-                    style={{
-                      padding: '0.6rem 1.4rem',
-                      borderBottom: `1px solid ${divider}`,
-                      fontFamily: "'Poppins', sans-serif",
-                      fontSize: '0.66rem',
-                      color: mutedText,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    Preview — example content only. Not live local
-                    information.
-                  </div>
-                  {DEMO_COMMUNITY.map((item, i) => (
-                    <div
-                      key={item.title}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '0.85rem',
-                        padding: '0.82rem 1.4rem',
-                        borderBottom:
-                          i < DEMO_COMMUNITY.length - 1
-                            ? `1px solid ${divider}`
-                            : undefined,
-                      }}
-                    >
-                      <span
+            <motion.div
+              key="community-content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {!hasLocation ? (
+                <EmptyOrLocked text="Enter your location to see community action items." />
+              ) : loading ? (
+                <EmptyOrLocked text="Loading community opportunities…" />
+              ) : items.length === 0 ? (
+                <EmptyOrLocked text="No verified community opportunities are currently listed nearby." />
+              ) : (
+                <>
+                  {items.map((item, i) => {
+                    const when = formatWhen(item);
+                    return (
+                      <div
+                        key={item.id}
                         style={{
-                          display: 'inline-block',
-                          marginTop: '0.18rem',
-                          padding: '0.18rem 0.45rem',
-                          background: isDark ? '#1a1a1a' : '#f5f5f5',
-                          border: `1px solid ${divider}`,
-                          color: mutedText,
-                          fontFamily: "'Poppins', sans-serif",
-                          fontWeight: 700,
-                          fontSize: '0.57rem',
-                          letterSpacing: '0.1em',
-                          textTransform: 'uppercase' as const,
-                          flexShrink: 0,
-                          whiteSpace: 'nowrap' as const,
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.85rem',
+                          padding: '0.82rem 1.4rem',
+                          borderBottom:
+                            i < items.length - 1
+                              ? `1px solid ${divider}`
+                              : undefined,
                         }}
                       >
-                        {item.type}
-                      </span>
-                      <div>
-                        <div
+                        <span
                           style={{
+                            display: 'inline-block',
+                            marginTop: '0.18rem',
+                            padding: '0.18rem 0.45rem',
+                            background: isDark ? '#1a1a1a' : '#f5f5f5',
+                            border: `1px solid ${divider}`,
+                            color: mutedText,
                             fontFamily: "'Poppins', sans-serif",
                             fontWeight: 700,
-                            fontSize: '0.82rem',
-                            color: cardText,
-                            marginBottom: '0.12rem',
+                            fontSize: '0.57rem',
+                            letterSpacing: '0.1em',
+                            textTransform: 'uppercase' as const,
+                            flexShrink: 0,
+                            whiteSpace: 'nowrap' as const,
                           }}
                         >
-                          {item.title}
-                        </div>
-                        <div
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.7rem',
-                            color: mutedText,
-                          }}
-                        >
-                          {item.org} · {item.when}
+                          {item.type}
+                        </span>
+                        <div>
+                          <div
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontWeight: 700,
+                              fontSize: '0.82rem',
+                              color: cardText,
+                              marginBottom: '0.12rem',
+                            }}
+                          >
+                            {item.title}
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: '0.7rem',
+                              color: mutedText,
+                            }}
+                          >
+                            {item.organizationName}
+                            {when ? ` · ${when}` : ''}
+                          </div>
+                          {item.sourceUrl ? (
+                            <a
+                              href={item.sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                fontFamily: "'Poppins', sans-serif",
+                                fontSize: '0.66rem',
+                                color: GOLD_COLOR,
+                                textDecoration: 'none',
+                              }}
+                            >
+                              View source →
+                            </a>
+                          ) : null}
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  <div style={{ padding: '1rem 1.4rem' }}>
-                    <button
-                      style={{
-                        width: '100%',
-                        padding: '0.62rem',
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 800,
-                        fontSize: '0.72rem',
-                        letterSpacing: '0.1em',
-                        color: cardText,
-                        backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-                        border: `1.5px solid ${divider}`,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      GET INVOLVED →
-                    </button>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="community-locked"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <LockedPanel />
-                </motion.div>
+                    );
+                  })}
+                </>
               )}
-            </>
+            </motion.div>
           ) : null}
         </AnimatePresence>
       </motion.div>

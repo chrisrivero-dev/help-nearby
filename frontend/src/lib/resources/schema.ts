@@ -19,9 +19,13 @@ export type ResourceCategory =
 
 export interface NearbyResource {
   id: string;
+  resource_key?: string;
   name: string;
   category: ResourceCategory;
   address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
   phone?: string;
   website?: string;
   latitude?: number;

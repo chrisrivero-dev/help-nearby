@@ -11,6 +11,8 @@ import type {
   NearbyResponse,
   SourceMeta,
 } from '@/lib/resources/schema';
+import type { CommunityTip } from '@/lib/community/types';
+import { ResourceCardCommunityNotes } from './ResourceCardCommunityNotes';
 
 export const ResourcesPanel: FC = () => {
   const { theme } = useTheme();
@@ -25,11 +27,13 @@ export const ResourcesPanel: FC = () => {
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [sources, setSources] = useState<SourceMeta[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [communityTips, setCommunityTips] = useState<Record<string, CommunityTip[]>>({});
 
   const fetchNearbyResources = useCallback(async (lat: number, lng: number) => {
     setNearbyLoading(true);
     setNearbyResources(null);
     setNearbyDegraded(false);
+    setCommunityTips({});
     try {
       const params = new URLSearchParams({
         lat: lat.toString(),
@@ -42,9 +46,23 @@ export const ResourcesPanel: FC = () => {
         return;
       }
       const data = (await res.json()) as NearbyResponse;
-      setNearbyResources(data.resources ?? []);
+      const resources = data.resources ?? [];
+      setNearbyResources(resources);
       setNearbyDegraded(Boolean(data.degraded));
       setSources(data.sources ?? []);
+
+      // Batch-fetch community tips for all loaded resources
+      const keys = resources
+        .map((r) => r.resource_key)
+        .filter((k): k is string => Boolean(k));
+      if (keys.length > 0) {
+        fetch(`/api/community-tips?resourceKeys=${keys.join(',')}`)
+          .then((r) => r.json())
+          .then((d: { tips: Record<string, CommunityTip[]> }) => {
+            setCommunityTips(d.tips ?? {});
+          })
+          .catch(() => {/* non-fatal */});
+      }
     } catch {
       setNearbyResources([]);
     } finally {
@@ -69,6 +87,27 @@ export const ResourcesPanel: FC = () => {
 
   const resourceRenderKey = (r: NearbyResource, index: number) =>
     `${r.sourceName}:${r.id}:${r.latitude ?? ''}:${r.longitude ?? ''}:${index}`;
+
+  // Returns the best available address string for display. Rules:
+  //  1. If the address field already looks complete (contains a 2-letter state
+  //     abbreviation), show it as-is.
+  //  2. If city/state fields are present, append them to the street.
+  //  3. Otherwise show the raw street address — never invent city/state.
+  const formatResourceAddress = (r: NearbyResource): string | null => {
+    const street = r.address?.trim();
+    if (!street) return null;
+
+    // Already complete: address contains ", ST" or ", ST " pattern
+    if (/,\s*[A-Z]{2}(\s|$|,)/.test(street)) return street;
+
+    // Build from separate fields if available
+    if (r.city && r.state) {
+      const zipPart = r.zip ? ` ${r.zip.split('-')[0]}` : '';
+      return `${street}, ${r.city}, ${r.state}${zipPart}`;
+    }
+
+    return street;
+  };
 
   const formatDist = (mi: number) =>
     mi < 0.1
@@ -417,7 +456,7 @@ export const ResourcesPanel: FC = () => {
                         >
                           {r.name}
                         </div>
-                        {r.address && (
+                        {formatResourceAddress(r) && (
                           <div
                             style={{
                               fontFamily: "'Poppins', sans-serif",
@@ -426,7 +465,7 @@ export const ResourcesPanel: FC = () => {
                               marginTop: '0.06rem',
                             }}
                           >
-                            {r.address}
+                            {formatResourceAddress(r)}
                           </div>
                         )}
                         {r.phone && (
@@ -511,6 +550,12 @@ export const ResourcesPanel: FC = () => {
                             · Call before visiting — information may change.
                           </span>
                         </div>
+                        {r.resource_key !== undefined && (
+                          <ResourceCardCommunityNotes
+                            resource={r}
+                            tips={communityTips[r.resource_key] ?? []}
+                          />
+                        )}
                       </div>
                       <div
                         style={{
