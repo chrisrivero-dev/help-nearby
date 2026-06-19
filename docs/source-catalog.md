@@ -27,6 +27,7 @@
 | live | HRA Benefits Access Centers | social_services | socrata | `9d9t-bmk7` | ✅ | SNAP/cash/Medicaid; ~29 |
 | live | DHS Drop-In Centers | shelter | socrata | `bmxf-3rd4` | ✅ | 24/7 |
 | live | HRA SNAP Centers | food | socrata | `tc6u-8rnp` | ✅ | food-access enrollment |
+| live | Soup Kitchens & Food Pantries (FacDB) | food | socrata | `67g2-p84d` (filtered) | ✅ | 618 distribution sites; text lat/lng → `cast` mode |
 | live | Health Centers (enrollment) | health | socrata | `gfej-by6h` | ✅ | city sites; complements HRSA |
 | live | Financial Empowerment Centers | social_services | socrata | `dt2z-amuf` | ✅ | free financial counseling |
 | live | Citywide Public Computer Centers | library | socrata | `sejx-2gn3` | ✅ | 362 in radius; digital access |
@@ -34,6 +35,9 @@
 | live | NYC Aging Senior Centers | social_services | socrata | `ygfr-ij6t` | ✅ | meals/activities for seniors |
 | live | DHS Homebase (homelessness prevention) | social_services | socrata | `ntcm-2w4k` | ✅ | eviction prevention |
 | live | Family Justice Centers | social_services | socrata | `xggi-kgx9` | ✅ | DV/GBV survivor services |
+| live | NYCEM Cooling Centers | cooling | **arcgis-rest** | `CoolingCenters_PROD_view/0` | ✅ | **NYC on ArcGIS** — proves the platform mix; seasonal |
+| live | NYC Parks Recreation Centers | recreation | arcgis-rest | `NYC_Parks_Recreation_Center/0` | ✅ | 36 centers; name + map pin (no street addr) |
+| live | NYC Community Board Offices | government | socrata | `dy27-rrad` | ✅ | 59 local-government access points |
 | candidate | NYC Aging Providers (all sites) | social_services | socrata | `u7wp-np5k` | ✅ | overlaps senior centers (good dedup test) |
 | candidate | Child Care Programs (DOHMH) | social_services | socrata | `gy3q-4tzp` | ✅ | 2,592 rows — large; childcare |
 | candidate | Workforce1 Career Centers | social_services | socrata | `6smc-7mk6` | ⚠️ | employment; `number`+`street` split address |
@@ -42,16 +46,16 @@
 | candidate | DOHMH HIV Service Directory | health | socrata | `pwts-g83w` | ❓ | needs field check |
 | candidate | Women's Resource Network | social_services | socrata | `pqg4-dm6b` | ⚠️ | boolean category cols; address1/city only, no lat/lng |
 | candidate | HS Alternatives referral centers | social_services | socrata | `w8dz-xpjh` | ✅ | ~4 sites |
-| skip | NYC Aging contracted programs | — | socrata | `cqc8-am9x` | ⚠️ | lat/lng stored as text → SoQL type mismatch |
-| skip | Older Adult Center Activities | — | socrata | `fzy4-e84j` | ⚠️ | lat/lng stored as text |
-| skip | Mayor's Office End DV/GBV | — | socrata | `5ziv-wcy4` | ⚠️ | lat/lng stored as text |
+| candidate | NYC Aging contracted programs | social_services | socrata | `cqc8-am9x` | ⚠️ | text lat/lng — now wireable via latlng `cast` mode |
+| candidate | Older Adult Center Activities | social_services | socrata | `fzy4-e84j` | ⚠️ | text lat/lng — wireable via `cast` mode |
+| candidate | Mayor's Office End DV/GBV | social_services | socrata | `5ziv-wcy4` | ⚠️ | text lat/lng — wireable via `cast` mode |
 | skip | Community Food Connection (pantries) | food | socrata | `mpqk-skis` | ❌ | no geo columns (quarterly report) |
 | skip | NYCHA Facilities & Service Centers | — | socrata | `d4iy-9uh7` | ❌ | no lat/lng columns |
 
-**NYC categories covered (live):** social_services, shelter, food, health, library.
-**Gaps to fill:** cooling/warming centers, government, recreation, dedicated food
-pantries. **Also available on ArcGIS** (not yet wired): NYC DCP Facilities Database
-(FacDB) and NYCHA layers publish `arcgis-rest` endpoints that register identically.
+**NYC categories covered (live):** social_services, shelter, food (×2 — SNAP +
+pantries), health, library, cooling, recreation, government — **all 8 of 9
+non-`other` categories**. **Platform mix:** `socrata` (12) + `arcgis-rest` (cooling
++ recreation) under `place:3651000`. **No remaining gaps.**
 
 ---
 
@@ -65,14 +69,17 @@ pantries. **Also available on ArcGIS** (not yet wired): NYC DCP Facilities Datab
 | live | CalOES food banks | food | arcgis-rest | `Food_Banks/0` (state:06) | ✅ | umbrella orgs, coarse |
 | live | LA City Rec & Parks | recreation | arcgis-rest | `…/MapServer/4` (place:0644000) | ✅ | double as cooling/warming |
 | live | HRSA health centers | health | arcgis-rest | `PrimaryHealthCareFacilities_FS/0` (`us`) | ✅ | national, server-side spatial |
-| candidate | LA Homeless Interim Housing | shelter | arcgis-rest | `Homeless_Interim_Housing/0` | ❓ | LA County current interim housing |
-| candidate | LA County Points of Interest | other | arcgis-rest | `Points_of_Interest/0` | ❓ | broad; needs category mapping |
-| candidate | LA County / City libraries | library | arcgis-rest | _find endpoint_ | ❓ | fills LA library gap |
-| candidate | LA County DPSS offices | social_services | arcgis-rest | _find endpoint_ | ❓ | fills LA social_services gap |
+| live | LA County DPSS offices | social_services | arcgis-rest | `DPSS_Offices/FeatureServer/1` | ✅ | CalFresh/CalWORKs/Medi-Cal intake; 42 offices |
+| live | LA Public Library branches | library | **socrata** | `a4nt-4gca` (data.lacity.org) | ✅ | **LA on Socrata** — nested `location` point col |
+| live | LA Homeless Interim Housing | shelter | arcgis-rest | `Homeless_Interim_Housing/0` | ✅ | 347 sites; name+coords, addr via reconcile w/ 211 |
+| candidate | LA County Points of Interest | other | arcgis-rest | `Points_of_Interest/0` | ❓ | broad; cat1/cat2 taxonomy, no `Librar` rows |
 | candidate | LA County WIC sites | food | arcgis-rest | _find endpoint_ | ❓ | nutrition for women/children |
 
-**LA categories covered (live):** cooling, shelter, food, recreation, health.
-**Gaps to fill:** library, social_services, government.
+**LA categories covered (live):** cooling, shelter (×2), food, recreation, health,
+social_services, library. **Platform mix proven:** LA uses both `arcgis-rest`
+(8 sources) and `socrata` (LAPL libraries). **Gap:** government — no clean point
+source found (LA POI is arts/rec only; ArcGIS surfaces boundary layers, not offices).
+Candidate: LA City "neighborhood city halls" if a geocoded feed surfaces.
 
 ---
 

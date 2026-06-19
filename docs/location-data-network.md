@@ -444,6 +444,11 @@ reconciliation/dedup tests (§7).
 
 Fallbacks for NYC points: (future NYS state feeds →) HRSA national.
 
+### NYC also has an ArcGIS source — `place:3651000`
+| Source | Category | sourceType | Notes |
+|--------|----------|------------|-------|
+| NYCEM Cooling Centers | cooling | **arcgis-rest** | proves NYC isn't Socrata-only; seasonal feed |
+
 ### LA — `place:0644000` / `county:06037` / `state:06` (live)
 | Source | Category | sourceType | jurisdictionId | Notes |
 |--------|----------|------------|----------------|-------|
@@ -451,7 +456,9 @@ Fallbacks for NYC points: (future NYS state feeds →) HRSA national.
 | LA County 211 homeless shelters | shelter | arcgis-rest | county:06037 | spatial-filtered 211 directory |
 | LA County farmers' markets | food | arcgis-rest | county:06037 | many accept SNAP/EBT |
 | CalOES food banks | food | arcgis-rest | state:06 | umbrella orgs, coarse |
+| LA County DPSS offices | social_services | arcgis-rest | county:06037 | CalFresh/CalWORKs/Medi-Cal intake |
 | LA City Rec & Parks | recreation | arcgis-rest | place:0644000 | double as cooling/warming centers |
+| LA Public Library branches | library | **socrata** | place:0644000 | proves LA isn't ArcGIS-only; nested `location` col |
 | HRSA health centers | health | arcgis-rest | `us` | server-side spatial filter |
 
 ---
@@ -523,6 +530,22 @@ it works there it works in LA by construction.
 
 ## Changelog
 
+- **2026-06-19** — NYC food gap closed: NYC Soup Kitchens & Food Pantries (FacDB,
+  618 sites). Added a latlng `cast` mode to the Socrata adapter (`::number`) for
+  text-typed lat/lng columns — also un-skips cqc8/fzy4/5ziv. Registry now 23
+  sources; NYC covers all 8 non-`other` categories. Only LA `government` remains
+  (no clean source found). Build + all gates green.
+- **2026-06-19** — More LA/NYC sources: NYC Parks recreation centers (recreation,
+  arcgis) + NYC Community Boards (government, socrata) → NYC now 8/9 categories;
+  LA interim housing (2nd shelter, arcgis — addr-less, reconciles against the 211
+  feed). Registry now 22 sources. Build + all gates green.
+- **2026-06-19** — Closed LA gaps + proved platform mix both ways. Added LA County
+  DPSS offices (social_services, arcgis) and LA Public Library branches (library,
+  **socrata** on data.lacity.org), and NYC Cooling Centers (cooling, **arcgis** —
+  NYC's first non-Socrata source). Enhanced the Socrata adapter to support the
+  nested `location` point-column type (within_circle + `human_address` extraction),
+  unlocking that common dataset class. Registry now 19 sources; NYC 6 categories,
+  LA 7. Build + all gates green.
 - **2026-06-19** — Added [`source-catalog.md`](./source-catalog.md) living inventory
   (live/candidate/skip + vetting status). Wired 5 more NYC sources: public computer
   centers + Queens library (**new `library` category**), senior centers, Homebase,

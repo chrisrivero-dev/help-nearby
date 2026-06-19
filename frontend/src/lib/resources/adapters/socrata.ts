@@ -28,7 +28,14 @@ export interface SocrataFieldMap {
 
 export type SocrataGeo =
   | { kind: 'point'; field: string }
-  | { kind: 'latlng'; latField: string; lngField: string };
+  | {
+      kind: 'latlng';
+      latField: string;
+      lngField: string;
+      /** Set when lat/lng are stored as text — appends `::number` so SoQL can
+       *  compare them numerically (e.g. NYC FacDB). */
+      cast?: boolean;
+    };
 
 export interface SocrataAdapterConfig {
   /** Resource URL, e.g. https://data.cityofnewyork.us/resource/9d9t-bmk7.json */
@@ -127,10 +134,12 @@ function buildWhere(cfg: SocrataAdapterConfig, q: NearbyQuery): string {
     spatial = `within_circle(${cfg.geo.field}, ${q.latitude}, ${q.longitude}, ${meters})`;
   } else {
     const b = radiusBBox(q.latitude, q.longitude, q.radiusMiles);
-    const { latField, lngField } = cfg.geo;
+    const cast = cfg.geo.cast ? '::number' : '';
+    const lat = `${cfg.geo.latField}${cast}`;
+    const lng = `${cfg.geo.lngField}${cast}`;
     spatial =
-      `${latField} > ${b.minLat} AND ${latField} < ${b.maxLat} AND ` +
-      `${lngField} > ${b.minLng} AND ${lngField} < ${b.maxLng}`;
+      `${lat} > ${b.minLat} AND ${lat} < ${b.maxLat} AND ` +
+      `${lng} > ${b.minLng} AND ${lng} < ${b.maxLng}`;
   }
   return cfg.where ? `(${cfg.where}) AND (${spatial})` : spatial;
 }
@@ -173,12 +182,18 @@ export async function querySocrata(
     const name = pickStr(row, cfg.fieldMap.name);
     if (!name) continue;
 
+    // Coords + embedded address come from flat columns when present, else from a
+    // nested Socrata `location` point object (point-geo sources).
+    const loc =
+      cfg.geo.kind === 'point'
+        ? parseLocationObject(row[cfg.geo.field])
+        : ({} as ParsedLocation);
     const latField =
       cfg.geo.kind === 'latlng' ? cfg.geo.latField : cfg.fieldMap.latitude;
     const lngField =
       cfg.geo.kind === 'latlng' ? cfg.geo.lngField : cfg.fieldMap.longitude;
-    const lat = pickNum(row, latField);
-    const lng = pickNum(row, lngField);
+    const lat = pickNum(row, latField) ?? loc.lat;
+    const lng = pickNum(row, lngField) ?? loc.lng;
 
     const rawId = pickStr(row, cfg.fieldMap.id);
     const id = rawId
@@ -189,10 +204,10 @@ export async function querySocrata(
       id,
       name,
       category: source.category,
-      address: pickStr(row, cfg.fieldMap.address),
-      city: pickStr(row, cfg.fieldMap.city),
-      state: pickStr(row, cfg.fieldMap.state),
-      zip: pickStr(row, cfg.fieldMap.zip),
+      address: pickStr(row, cfg.fieldMap.address) ?? loc.address,
+      city: pickStr(row, cfg.fieldMap.city) ?? loc.city,
+      state: pickStr(row, cfg.fieldMap.state) ?? loc.state,
+      zip: pickStr(row, cfg.fieldMap.zip) ?? loc.zip,
       phone: pickStr(row, cfg.fieldMap.phone),
       website: pickStr(row, cfg.fieldMap.website),
       latitude: lat,

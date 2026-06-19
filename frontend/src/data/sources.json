@@ -412,5 +412,168 @@
         "longitude": "longitude"
       }
     }
+  },
+  {
+    "id": "nyc-cooling-centers",
+    "name": "NYC Emergency Management Cooling Centers",
+    "url": "https://maps.nyc.gov/cooling-center/",
+    "sourceType": "arcgis-rest",
+    "category": "cooling",
+    "jurisdictionId": "place:3651000",
+    "trust": 85,
+    "refresh": "event-driven — activated by NYCEM during heat emergencies",
+    "ttlSeconds": 3600,
+    "enabled": true,
+    "notes": "Official NYCEM cooling-center feed. NYC source on ArcGIS (not Socrata) — proves the platform mix within one city. Seasonal: sparse/empty outside heat events by design.",
+    "adapter": {
+      "kind": "arcgis-rest",
+      "layerUrl": "https://services6.arcgis.com/yG5s3afENB5iO9fj/arcgis/rest/services/CoolingCenters_PROD_view/FeatureServer/0/query",
+      "fieldMap": {
+        "name": "Facility_name",
+        "address": "Address",
+        "city": "Borough_name",
+        "zip": "ZIP_code",
+        "phone": "Phone"
+      }
+    }
+  },
+  {
+    "id": "la-county-dpss-offices",
+    "name": "LA County Dept. of Public Social Services Offices",
+    "url": "https://dpss.lacounty.gov/",
+    "sourceType": "arcgis-rest",
+    "category": "social_services",
+    "jurisdictionId": "county:06037",
+    "trust": 80,
+    "refresh": "updated by LA County DPSS as offices change",
+    "ttlSeconds": 86400,
+    "enabled": true,
+    "notes": "LA County DPSS offices — CalFresh (SNAP), CalWORKs, General Relief, Medi-Cal, IHSS intake. Fills LA social_services gap. 42 offices county-wide.",
+    "adapter": {
+      "kind": "arcgis-rest",
+      "layerUrl": "https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/DPSS_Offices/FeatureServer/1/query",
+      "fieldMap": {
+        "name": "OFFICE",
+        "address": "STREET_ADDRESS",
+        "city": "CITY",
+        "zip": "ZIP",
+        "phone": "PHONE"
+      }
+    }
+  },
+  {
+    "id": "la-public-library-branches",
+    "name": "Los Angeles Public Library Branches",
+    "url": "https://data.lacity.org/A-Well-Run-City/Library-Branches/a4nt-4gca",
+    "sourceType": "socrata",
+    "category": "library",
+    "jurisdictionId": "place:0644000",
+    "trust": 80,
+    "refresh": "updated by LAPL as branches change",
+    "ttlSeconds": 86400,
+    "enabled": true,
+    "notes": "LAPL branches via LA City Socrata (data.lacity.org). Demonstrates LA using Socrata; uses the nested `location` point column (within_circle + human_address extraction).",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.lacity.org/resource/a4nt-4gca.json",
+      "geo": { "kind": "point", "field": "location" },
+      "fieldMap": {
+        "name": "branch_name",
+        "phone": "phone_number"
+      }
+    }
+  },
+  {
+    "id": "nyc-parks-recreation-centers",
+    "name": "NYC Parks Recreation Centers",
+    "url": "https://www.nycgovparks.org/facilities/recreationcenters",
+    "sourceType": "arcgis-rest",
+    "category": "recreation",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "updated by NYC Parks as facilities change",
+    "ttlSeconds": 86400,
+    "enabled": true,
+    "notes": "NYC Parks recreation centers (gyms, pools, programs). Fills NYC recreation gap. Point geometry; no street address in feed (name + map pin).",
+    "adapter": {
+      "kind": "arcgis-rest",
+      "layerUrl": "https://services6.arcgis.com/yG5s3afENB5iO9fj/arcgis/rest/services/NYC_Parks_Recreation_Center/FeatureServer/0/query",
+      "fieldMap": {
+        "name": "descriptio"
+      }
+    }
+  },
+  {
+    "id": "nyc-community-boards",
+    "name": "NYC Community Board Offices",
+    "url": "https://data.cityofnewyork.us/City-Government/Community-Board-Contact-List/dy27-rrad",
+    "sourceType": "socrata",
+    "category": "government",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "updated by NYC as boards change",
+    "ttlSeconds": 86400,
+    "enabled": true,
+    "notes": "NYC Community Board offices — local government access points for constituents. Fills NYC government gap. 59 boards.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/dy27-rrad.json",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "fieldMap": {
+        "name": "board_number",
+        "address": "address",
+        "zip": "postcode",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
+  },
+  {
+    "id": "la-county-interim-housing",
+    "name": "LA County Homeless Interim Housing",
+    "url": "https://www.lahsa.org/",
+    "sourceType": "arcgis-rest",
+    "category": "shelter",
+    "jurisdictionId": "county:06037",
+    "trust": 75,
+    "refresh": "updated by LA County as interim housing changes",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "LA County interim/bridge housing sites (347 county-wide). Name + coords, no street address in feed — a reconciliation test against the 211 shelter feed, which supplies the address on merge. Server-side spatial filter.",
+    "adapter": {
+      "kind": "arcgis-rest",
+      "layerUrl": "https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/Homeless_Interim_Housing/FeatureServer/0/query",
+      "useSpatialQuery": true,
+      "fieldMap": {
+        "name": "DBA"
+      }
+    }
+  },
+  {
+    "id": "nyc-food-pantries",
+    "name": "NYC Soup Kitchens & Food Pantries (FacDB)",
+    "url": "https://data.cityofnewyork.us/City-Government/Facilities-Database/ji82-xba5",
+    "sourceType": "socrata",
+    "category": "food",
+    "jurisdictionId": "place:3651000",
+    "trust": 75,
+    "refresh": "updated via NYC DCP Facilities Database (FacDB)",
+    "ttlSeconds": 86400,
+    "enabled": true,
+    "notes": "Food-distribution pantries + soup kitchens (618 citywide) from NYC DCP FacDB. Fills the NYC food-distribution gap (SNAP centers cover enrollment). FacDB stores lat/lng as text — uses the latlng `cast` mode.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/67g2-p84d.json",
+      "where": "facsubgrp='SOUP KITCHENS AND FOOD PANTRIES'",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude", "cast": true },
+      "fieldMap": {
+        "name": "facname",
+        "address": "address",
+        "city": "city",
+        "zip": "zipcode",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
   }
 ]

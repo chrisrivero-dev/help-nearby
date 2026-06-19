@@ -59,16 +59,20 @@ const select = (lat, lng) => {
 
 // ── socrata SoQL (mirror of socrata.ts buildWhere) ──────────────────────────
 function socrataWhere(adapter, lat, lng, radiusMiles) {
+  let spatial;
   if (adapter.geo.kind === 'point') {
-    return `within_circle(${adapter.geo.field}, ${lat}, ${lng}, ${radiusMiles * 1609.34})`;
+    spatial = `within_circle(${adapter.geo.field}, ${lat}, ${lng}, ${radiusMiles * 1609.34})`;
+  } else {
+    const dLat = radiusMiles / 69;
+    const dLng = radiusMiles / (69 * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
+    const cast = adapter.geo.cast ? '::number' : '';
+    const latF = `${adapter.geo.latField}${cast}`;
+    const lngF = `${adapter.geo.lngField}${cast}`;
+    spatial =
+      `${latF} > ${lat - dLat} AND ${latF} < ${lat + dLat} AND ` +
+      `${lngF} > ${lng - dLng} AND ${lngF} < ${lng + dLng}`;
   }
-  const dLat = radiusMiles / 69;
-  const dLng = radiusMiles / (69 * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
-  const { latField, lngField } = adapter.geo;
-  return (
-    `${latField} > ${lat - dLat} AND ${latField} < ${lat + dLat} AND ` +
-    `${lngField} > ${lng - dLng} AND ${lngField} < ${lng + dLng}`
-  );
+  return adapter.where ? `(${adapter.where}) AND (${spatial})` : spatial;
 }
 
 async function fetchSocrata(s, lat, lng, radiusMiles) {
