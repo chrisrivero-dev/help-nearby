@@ -69,6 +69,44 @@ function pickNum(row: Record<string, unknown>, key?: string): number | undefined
   return Number.isFinite(n) ? n : undefined;
 }
 
+interface ParsedLocation {
+  lat?: number;
+  lng?: number;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+}
+
+/**
+ * Socrata's nested `location` point-column type:
+ *   { latitude, longitude, human_address: '{"address":..,"city":..,"state":..,"zip":..}' }
+ * Extracts coords + the embedded postal address. Very common across Socrata, so
+ * point-geo sources get address fields for free when the row lacks flat columns.
+ */
+function parseLocationObject(value: unknown): ParsedLocation {
+  if (!value || typeof value !== 'object') return {};
+  const obj = value as Record<string, unknown>;
+  const out: ParsedLocation = {};
+  const lat = Number(obj.latitude);
+  const lng = Number(obj.longitude);
+  if (Number.isFinite(lat)) out.lat = lat;
+  if (Number.isFinite(lng)) out.lng = lng;
+  const ha = obj.human_address;
+  if (typeof ha === 'string') {
+    try {
+      const parsed = JSON.parse(ha) as Record<string, string>;
+      out.address = parsed.address?.trim() || undefined;
+      out.city = parsed.city?.trim() || undefined;
+      out.state = parsed.state?.trim() || undefined;
+      out.zip = parsed.zip?.trim() || undefined;
+    } catch {
+      /* leave address fields undefined */
+    }
+  }
+  return out;
+}
+
 /** Bounding box (in degrees) that encloses the query radius. */
 function radiusBBox(lat: number, lng: number, radiusMiles: number) {
   const latDelta = radiusMiles / MILES_PER_DEG_LAT;

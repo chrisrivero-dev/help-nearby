@@ -146,5 +146,271 @@
         "phone": "SITE_PHONE_NUM"
       }
     }
+  },
+  {
+    "id": "nyc-snap-centers",
+    "name": "NYC HRA SNAP Centers",
+    "url": "https://data.cityofnewyork.us/Social-Services/Directory-of-SNAP-Centers/tc6u-8rnp",
+    "sourceType": "socrata",
+    "category": "food",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "updated by NYC HRA as centers change",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "Official NYC HRA SNAP (food stamp) enrollment centers — food-access category.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/tc6u-8rnp.json",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "fieldMap": {
+        "name": "facility_name",
+        "address": "street_address",
+        "city": "city",
+        "state": "state",
+        "zip": "zip_code",
+        "phone": "phone_number_s_",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
+  },
+  {
+    "id": "nyc-health-coverage-centers",
+    "name": "NYC Health Centers (Insurance Enrollment)",
+    "url": "https://data.cityofnewyork.us/Health/Equitable-Health-Systems-Health-Insurance-Enrollment/gfej-by6h",
+    "sourceType": "socrata",
+    "category": "health",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "updated by NYC as sites change",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "NYC health centers offering walk-in health insurance enrollment help. Complements the national HRSA feed with city-specific sites.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/gfej-by6h.json",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "fieldMap": {
+        "name": "health_center",
+        "address": "street_address",
+        "zip": "zip_code",
+        "phone": "telephone_number",
+        "website": "website",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
+  },
+  {
+    "id": "nyc-financial-empowerment-centers",
+    "name": "NYC Financial Empowerment Centers",
+    "url": "https://data.cityofnewyork.us/Business/Financial-Empowerment-Centers/dt2z-amuf",
+    "sourceType": "socrata",
+    "category": "social_services",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "updated by NYC DCWP as centers change",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "Free one-on-one financial counseling (NYC DCWP). Second NYC social_services source; overlaps with benefits centers are merged by entity reconciliation.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/dt2z-amuf.json",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "fieldMap": {
+        "name": "provider",
+        "address": "site_location_address",
+        "city": "city",
+        "zip": "zip_code",
+        "phone": "telephone",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
+  },
+  {
+    "id": "la-county-homeless-shelters",
+    "name": "LA County 211 Homeless Shelters & Services",
+    "url": "https://public.gis.lacounty.gov/",
+    "sourceType": "arcgis-rest",
+    "category": "shelter",
+    "jurisdictionId": "county:06037",
+    "trust": 70,
+    "refresh": "maintained via LA County 211 referral data",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "LA County 211 directory of homeless shelters and services. County-wide dataset; server-side spatial filter returns only nearby rows.",
+    "adapter": {
+      "kind": "arcgis-rest",
+      "layerUrl": "https://public.gis.lacounty.gov/public/rest/services/LACounty_Dynamic/LMS_Data_Public/MapServer/158/query",
+      "useSpatialQuery": true,
+      "fieldMap": {
+        "name": "name",
+        "address": "addrln1",
+        "city": "city",
+        "state": "state",
+        "phone": "phones"
+      }
+    }
+  },
+  {
+    "id": "la-county-farmers-markets",
+    "name": "LA County Certified Farmers' Markets",
+    "url": "https://data.lacounty.gov/",
+    "sourceType": "arcgis-rest",
+    "category": "food",
+    "jurisdictionId": "county:06037",
+    "trust": 70,
+    "refresh": "updated by LA County as markets change",
+    "ttlSeconds": 86400,
+    "enabled": true,
+    "notes": "LA County certified farmers' markets (many accept SNAP/EBT). Food-access category for LA.",
+    "adapter": {
+      "kind": "arcgis-rest",
+      "layerUrl": "https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/Farmers_Markets_chp/FeatureServer/0/query",
+      "fieldMap": {
+        "name": "farm_market_name",
+        "address": "farm_market_address",
+        "city": "farm_market_city",
+        "zip": "farm_market_zipcode",
+        "latitude": "farm_market_latitude",
+        "longitude": "farm_market_longitude"
+      }
+    }
+  },
+  {
+    "id": "nyc-public-computer-centers",
+    "name": "NYC Citywide Public Computer Centers",
+    "url": "https://data.cityofnewyork.us/City-Government/Citywide-Public-Computer-Centers/sejx-2gn3",
+    "sourceType": "socrata",
+    "category": "library",
+    "jurisdictionId": "place:3651000",
+    "trust": 75,
+    "refresh": "updated by NYC as centers change",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "Free public computer + internet access sites (libraries, NYCHA, community orgs). Library/digital-access category.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/sejx-2gn3.json",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "fieldMap": {
+        "name": "location_name",
+        "address": "address_street",
+        "zip": "zipcode",
+        "phone": "full_location_phone_number",
+        "website": "url",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
+  },
+  {
+    "id": "nyc-queens-library-branches",
+    "name": "Queens Public Library Branches",
+    "url": "https://data.cityofnewyork.us/Education/Queens-Library-Branches/kh3d-xhq7",
+    "sourceType": "socrata",
+    "category": "library",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "updated by Queens Public Library",
+    "ttlSeconds": 86400,
+    "enabled": true,
+    "notes": "Queens Public Library branches. Borough-scoped within NYC place; selected for any NYC point (refine to a Queens sub-jurisdiction when borough coverage lands).",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/kh3d-xhq7.json",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "fieldMap": {
+        "name": "name",
+        "address": "address",
+        "city": "city",
+        "zip": "postcode",
+        "phone": "phone",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
+  },
+  {
+    "id": "nyc-senior-centers",
+    "name": "NYC Aging Senior Centers",
+    "url": "https://data.cityofnewyork.us/Social-Services/Department-for-the-Aging-NYC-Aging-Senior-Centers/ygfr-ij6t",
+    "sourceType": "socrata",
+    "category": "social_services",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "updated by NYC Aging",
+    "ttlSeconds": 86400,
+    "enabled": true,
+    "notes": "NYC Aging (DFTA) senior centers — meals, activities, services for older adults. Overlaps the aging-providers feed; merged by reconciliation.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/ygfr-ij6t.json",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "fieldMap": {
+        "name": "provider_name",
+        "address": "address1",
+        "city": "city",
+        "zip": "postcode",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
+  },
+  {
+    "id": "nyc-homebase-locations",
+    "name": "NYC DHS Homebase (Homelessness Prevention)",
+    "url": "https://data.cityofnewyork.us/Social-Services/Directory-Of-Homebase-Locations/ntcm-2w4k",
+    "sourceType": "socrata",
+    "category": "social_services",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "updated by NYC DHS as offices change",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "NYC DHS Homebase offices — eviction prevention and housing-stability assistance.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/ntcm-2w4k.json",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "fieldMap": {
+        "name": "homebase_office",
+        "address": "address",
+        "zip": "postcode",
+        "phone": "phone_number",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
+  },
+  {
+    "id": "nyc-family-justice-centers",
+    "name": "NYC Family Justice Centers",
+    "url": "https://data.cityofnewyork.us/Social-Services/Directory-of-Family-Justice-Centers/xggi-kgx9",
+    "sourceType": "socrata",
+    "category": "social_services",
+    "jurisdictionId": "place:3651000",
+    "trust": 85,
+    "refresh": "updated by NYC ENDGBV",
+    "ttlSeconds": 86400,
+    "enabled": true,
+    "notes": "NYC Family Justice Centers — domestic and gender-based violence survivor services. Safety/social_services.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/xggi-kgx9.json",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "fieldMap": {
+        "name": "facility_name",
+        "address": "street_address",
+        "city": "city",
+        "state": "state",
+        "zip": "zip_code",
+        "phone": "telephone_number",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
   }
 ]

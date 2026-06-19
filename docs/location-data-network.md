@@ -392,9 +392,13 @@ by both registries before `fanOut`:
   opens for 60s and the source is skipped with `CircuitOpenError` → marked down +
   `degraded` instantly instead of timing out every request. Half-opens after
   cooldown and recovers on success. Breakers are isolated per source.
-- ⏳ **Health surface** — `CheckedSource { ok, fetchedAt }` is emitted per fan-out
-  already; persisting last-ok across requests + an admin view is the remaining
-  piece.
+- ✅ **Health surface** — [`health.ts`](../frontend/src/lib/registry/health.ts)
+  auto-records every fan-out's `CheckedSource`s (last ok/checked, consecutive +
+  total failures, failure rate) and merges live circuit state. Exposed via the
+  admin-gated [`/api/admin/source-health`](../frontend/src/app/api/admin/source-health/route.ts)
+  and the [`/admin/source-health`](../frontend/src/app/admin/source-health/page.tsx)
+  dashboard (worst sources first, auto-refresh). Per-instance until the shared
+  store lands.
 
 State is module-level (per serverless instance, reset on cold start); a shared
 store (Redis) is the multi-instance upgrade. Verified `npm run validate:reliability`
@@ -419,26 +423,36 @@ reconciliation/dedup tests (§7).
 
 ## 10. Source inventory
 
-> Fill in as sources are vetted. Keep `jurisdictionId`, `sourceType`, geography,
-> and overlaps explicit so the dedup design stays grounded in real data.
+> The full running inventory (live + candidate + skipped, with vetting status)
+> lives in [`source-catalog.md`](./source-catalog.md). The summary below is the
+> live set; keep `jurisdictionId`, `sourceType`, geography, and overlaps explicit
+> so the dedup design stays grounded in real data.
 
-### NYC (Socrata / NYC Open Data — to inventory)
-| Source | Category | sourceType | jurisdictionId | Geography | Notes |
-|--------|----------|------------|----------------|-----------|-------|
-| _TBD: food pantries_ | food | socrata | place:3651000 | ? | |
-| _TBD: shelters_ | shelter | socrata | place:3651000 | ? | |
-| _TBD: cooling centers_ | cooling | socrata | place:3651000 | ? | |
-| _TBD: NYC Well / health_ | health | socrata | place:3651000 | MODZCTA | |
+> **Platform note:** `sourceType` (the adapter) is independent of city — NYC can
+> use `arcgis-rest` and LA can use `socrata`. Each dataset's platform is just
+> wherever it's published. NYC leans Socrata because NYC Open Data is Socrata-hosted,
+> but NYC also publishes ArcGIS feature services (DCP/ITS) that register identically.
 
-Fallbacks for NYC points: NYS state feeds → HRSA national.
+### NYC — `place:3651000` (live)
+| Source | Category | sourceType | id | Notes |
+|--------|----------|------------|----|-------|
+| HRA Benefits Access Centers | social_services | socrata | `nyc-benefits-access-centers` | SNAP/cash/Medicaid |
+| DHS Drop-In Centers | shelter | socrata | `nyc-homeless-drop-in-centers` | 24/7 |
+| HRA SNAP Centers | food | socrata | `nyc-snap-centers` | food-access enrollment |
+| Health Centers (enrollment) | health | socrata | `nyc-health-coverage-centers` | city sites + national HRSA |
+| Financial Empowerment Centers | social_services | socrata | `nyc-financial-empowerment-centers` | 2nd social_services → reconciled |
 
-### LA (already integrated — ArcGIS)
+Fallbacks for NYC points: (future NYS state feeds →) HRSA national.
+
+### LA — `place:0644000` / `county:06037` / `state:06` (live)
 | Source | Category | sourceType | jurisdictionId | Notes |
 |--------|----------|------------|----------------|-------|
-| LA County EOC cooling centers | cooling | arcgis-rest | county:06037 | event-driven; empty outside heat events by design |
-| CalOES food banks | food | arcgis-rest | state:06 | umbrella orgs, coarse but authoritative |
-| LA City Rec & Parks | recreation | arcgis-rest | place:0644000 | many double as cooling/warming centers |
-| HRSA health centers | health | arcgis-rest | national (`us`) | server-side spatial filter |
+| LA County EOC cooling centers | cooling | arcgis-rest | county:06037 | event-driven; empty outside heat events |
+| LA County 211 homeless shelters | shelter | arcgis-rest | county:06037 | spatial-filtered 211 directory |
+| LA County farmers' markets | food | arcgis-rest | county:06037 | many accept SNAP/EBT |
+| CalOES food banks | food | arcgis-rest | state:06 | umbrella orgs, coarse |
+| LA City Rec & Parks | recreation | arcgis-rest | place:0644000 | double as cooling/warming centers |
+| HRSA health centers | health | arcgis-rest | `us` | server-side spatial filter |
 
 ---
 
@@ -509,6 +523,17 @@ it works there it works in LA by construction.
 
 ## Changelog
 
+- **2026-06-19** — Added [`source-catalog.md`](./source-catalog.md) living inventory
+  (live/candidate/skip + vetting status). Wired 5 more NYC sources: public computer
+  centers + Queens library (**new `library` category**), senior centers, Homebase,
+  family justice centers. NYC now 11 sources across 5 categories (social_services,
+  shelter, food, health, library); registry totals 16. All live-verified.
+- **2026-06-19** — Health surface: `lib/registry/health.ts` (auto-recorded by
+  `fanOut`) + `breakerSnapshot()` + admin-gated `/api/admin/source-health` +
+  `/admin/source-health` dashboard. Expanded sources (LA/NYC focus): NYC SNAP
+  (food), NYC health centers (health), NYC financial empowerment (social_services);
+  LA County 211 shelters (shelter), LA farmers' markets (food). All vetted live.
+  NYC now covers 4 categories (6 sources), LA covers 5 (6 sources). Build + gates green.
 - **2026-06-19** — Build order step 4 done: shared reliability wrap
   (`lib/registry/reliability.ts`) — per-source in-memory cache (TTL from
   `ttlSeconds`) + circuit breaker (3 fails → 60s open → half-open) composed via

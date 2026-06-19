@@ -135,6 +135,26 @@ export function reliableRun<T extends { id: string }, TOut>(
   };
 }
 
+export interface BreakerSnapshot {
+  open: boolean;
+  openUntil: number;
+  failures: number;
+}
+
+/** Current circuit state per source id (for the health surface). */
+export function breakerSnapshot(): Map<string, BreakerSnapshot> {
+  const now = Date.now();
+  const out = new Map<string, BreakerSnapshot>();
+  for (const [id, s] of breakerStore) {
+    out.set(id, {
+      open: now < s.openUntil,
+      openUntil: s.openUntil,
+      failures: s.failures,
+    });
+  }
+  return out;
+}
+
 /** Test/diagnostic helper — clears cache + breaker state. */
 export function _resetReliability(): void {
   cacheStore.clear();

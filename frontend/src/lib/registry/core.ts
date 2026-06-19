@@ -7,6 +7,7 @@
  * See docs/location-data-network.md §5b.
  */
 import { resolveJurisdictions } from '@/lib/location/fipsResolver';
+import { recordChecks } from './health';
 
 /** Fields every registry row shares, regardless of domain/output shape. */
 export interface BaseSourceRow {
@@ -108,5 +109,6 @@ export async function fanOut<T extends SourceIdentity, TOut>(
     if (ok) items.push(...res.value);
     else degraded = true;
   });
+  recordChecks(checked);
   return { items, checked, degraded };
 }
