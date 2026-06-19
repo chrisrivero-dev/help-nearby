@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { haversineDistanceMiles } from '@/lib/location/distance';
 import {
-  liveSourcesFor,
-  type RegisteredSource,
-} from '@/lib/resources/sourceRegistry';
+  selectSources,
+  type SelectedSource,
+} from '@/lib/resources/registry';
 import type {
   NearbyResource,
   NearbyResponse,
@@ -11,6 +11,13 @@ import type {
   ResourceCategory,
 } from '@/lib/resources/schema';
 import { computeResourceKey } from '@/lib/community/resourceKey';
+import { reconcileResources } from '@/lib/resources/reconcile';
+import { fanOut } from '@/lib/registry/core';
+import { reliableRun } from '@/lib/registry/reliability';
+
+const RESOURCE_CACHE_TTL_SECONDS = 3600;
+/** Round coords to ~1km so nearby queries share cache entries. */
+const roundCoord = (n: number) => n.toFixed(2);
 
 const MAX_RESULTS = 25;
 const MAX_PER_SOURCE_DEFAULT = 8;
@@ -23,42 +30,32 @@ function parseFloatParam(value: string | null): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-async function runSources(
-  sources: RegisteredSource[],
+/**
+ * Fan out to the selected sources via the shared registry core, stamping each
+ * row with its source id + trust so reconciliation can resolve field conflicts
+ * and attribute provenance.
+ */
+function runSources(
+  sources: SelectedSource[],
   query: {
     latitude: number;
     longitude: number;
     radiusMiles: number;
     category?: ResourceCategory;
   },
-): Promise<{
-  resources: NearbyResource[];
-  metas: SourceMeta[];
-  anyFailed: boolean;
-}> {
-  const fetchedAt = new Date().toISOString();
-  const settled = await Promise.allSettled(sources.map((s) => s.fetch(query)));
-  const resources: NearbyResource[] = [];
-  const metas: SourceMeta[] = [];
-  let anyFailed = false;
-  settled.forEach((r, i) => {
-    const src = sources[i];
-    const ok = r.status === 'fulfilled';
-    metas.push({
-      id: src.id,
-      name: src.name,
-      url: src.url,
-      sourceType: src.sourceType,
-      fetchedAt,
-      ok,
-    });
-    if (ok) {
-      resources.push(...r.value);
-    } else {
-      anyFailed = true;
-    }
-  });
-  return { resources, metas, anyFailed };
+) {
+  const run = reliableRun(
+    async (src: SelectedSource) => {
+      const out = await src.fetch(query);
+      return out.map((res) => ({ ...res, sourceId: src.id, trust: src.trust }));
+    },
+    {
+      cacheKeyFor: (src) =>
+        `${src.id}:${roundCoord(query.latitude)},${roundCoord(query.longitude)}:${query.radiusMiles}:${query.category ?? ''}`,
+      ttlSecondsFor: (src) => src.ttlSeconds ?? RESOURCE_CACHE_TTL_SECONDS,
+    },
+  );
+  return fanOut(sources, run);
 }
 
 export async function GET(
@@ -92,7 +89,7 @@ export async function GET(
 
   const query = { latitude, longitude, radiusMiles, category };
 
-  const live = liveSourcesFor(latitude, longitude, category);
+  const live = await selectSources(latitude, longitude, category);
 
   // No registered live source covers this point — return empty, not demo data.
   if (live.length === 0) {
@@ -101,9 +98,17 @@ export async function GET(
 
   const liveRun = await runSources(live, query);
 
-  let resources = liveRun.resources;
-  let metas = liveRun.metas;
-  let degraded = false;
+  // Reconcile across sources: merge the same real-world entity reported by
+  // multiple feeds into one record (trust-ranked fields + per-field provenance)
+  // before ranking. See lib/resources/reconcile.ts.
+  const resources = reconcileResources(liveRun.items);
+  // CheckedSource widens sourceType to string for domain-agnosticism; these rows
+  // are real SourceTypes, so narrow back for the typed response.
+  const metas: SourceMeta[] = liveRun.checked.map((c) => ({
+    ...c,
+    sourceType: c.sourceType as SourceMeta['sourceType'],
+  }));
+  const degraded = liveRun.degraded;
 
   const sortedByDistance = resources
     .map((r) => {

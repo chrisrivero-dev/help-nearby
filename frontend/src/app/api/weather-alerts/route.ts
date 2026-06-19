@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { normalizeLocation } from '@/lib/location/normalizeLocation';
+import { fetchAlerts } from '@/lib/alerts/registry';
 
 function isValidZip(zip: string | null): zip is string {
   return Boolean(zip && /^\d{5}$/.test(zip));
@@ -15,40 +16,6 @@ function isValidCoordinates(lat: number, lng: number) {
     lng <= 180
   );
 }
-
-type NwsFeature = {
-  id?: string;
-  properties?: {
-    id?: string;
-    event?: string;
-    headline?: string;
-    description?: string;
-    instruction?: string;
-    severity?: string;
-    urgency?: string;
-    certainty?: string;
-    effective?: string;
-    expires?: string;
-    areaDesc?: string;
-    web?: string;
-    senderName?: string;
-  };
-};
-
-type WeatherAlert = {
-  id: string;
-  title: string;
-  headline: string;
-  description: string;
-  instruction: string;
-  severity: string;
-  urgency: string;
-  certainty: string;
-  effective: string | null;
-  expires: string | null;
-  area: string;
-  url: string;
-};
 
 function jsonResponse(body: unknown, status = 200) {
   return NextResponse.json(body, { status });
@@ -125,21 +92,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const nwsUrl = `https://api.weather.gov/alerts/active?point=${lat.toFixed(
-      4,
-    )},${lng.toFixed(4)}`;
-
-    const response = await fetch(nwsUrl, {
-      headers: {
-        'User-Agent': 'HelpNearby/1.0 (https://helpnearby.co)',
-        Accept: 'application/geo+json',
-      },
-      next: { revalidate: 300 },
-    });
-
+    // Scoped alert sources for this point (NWS today; city/state feeds later)
+    // via the shared registry core.
+    const { alerts, degraded } = await fetchAlerts(lat, lng);
     const fetchedAt = new Date().toISOString();
 
-    if (!response.ok) {
+    if (degraded && alerts.length === 0) {
       return jsonResponse(
         {
           alerts: [],
@@ -151,32 +109,6 @@ export async function GET(request: NextRequest) {
         502,
       );
     }
-
-    const data = await response.json();
-
-    const alerts: WeatherAlert[] = Array.isArray(data.features)
-      ? data.features.map((feature: NwsFeature, index: number) => {
-          const properties = feature.properties || {};
-
-          return {
-            id: properties.id || feature.id || `nws-alert-${index}`,
-            title: properties.event || 'Weather Alert',
-            headline:
-              properties.headline ||
-              properties.event ||
-              'Official weather alert',
-            description: properties.description || '',
-            instruction: properties.instruction || '',
-            severity: properties.severity || 'Unknown',
-            urgency: properties.urgency || 'Unknown',
-            certainty: properties.certainty || 'Unknown',
-            effective: properties.effective || null,
-            expires: properties.expires || null,
-            area: properties.areaDesc || '',
-            url: properties.web || 'https://www.weather.gov/',
-          };
-        })
-      : [];
 
     return jsonResponse({
       alerts,

@@ -1,0 +1,13 @@
+[
+  {
+    "id": "nws-weather-alerts",
+    "name": "National Weather Service",
+    "url": "https://www.weather.gov/",
+    "sourceType": "nws-weather",
+    "jurisdictionId": "us",
+    "trust": 70,
+    "refresh": "~5 min (active alerts)",
+    "enabled": true,
+    "notes": "Official NWS active weather/hazard alerts for the query point. National point-query feed; always selected. Future city/state alert feeds register here scoped to place:/state: ids."
+  }
+]

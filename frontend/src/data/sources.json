@@ -1,0 +1,150 @@
+[
+  {
+    "id": "nyc-benefits-access-centers",
+    "name": "NYC Human Resources Administration (HRA) Benefits Access Centers",
+    "url": "https://data.cityofnewyork.us/Social-Services/Directory-of-Benefits-Access-Centers/9d9t-bmk7",
+    "sourceType": "socrata",
+    "category": "social_services",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "updated by NYC HRA as centers change",
+    "enabled": true,
+    "notes": "Official NYC HRA centers for SNAP, cash assistance, Medicaid enrollment. ~29 citywide locations.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/9d9t-bmk7.json",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "fieldMap": {
+        "name": "facility_name",
+        "address": "street_address",
+        "city": "city",
+        "state": "state",
+        "zip": "zip_code",
+        "phone": "phone_number_s",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
+  },
+  {
+    "id": "nyc-homeless-drop-in-centers",
+    "name": "NYC Department of Homeless Services Drop-In Centers",
+    "url": "https://data.cityofnewyork.us/Social-Services/Directory-Of-Homeless-Drop-In-Centers/bmxf-3rd4",
+    "sourceType": "socrata",
+    "category": "shelter",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "updated by NYC DHS as centers change",
+    "enabled": true,
+    "notes": "Official NYC DHS 24/7 drop-in centers offering shelter, meals, and services to people experiencing homelessness.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/bmxf-3rd4.json",
+      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "fieldMap": {
+        "name": "center_name",
+        "address": "address",
+        "zip": "postcode",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      }
+    }
+  },
+  {
+    "id": "la-county-cooling-centers",
+    "name": "LA County Office of Emergency Management",
+    "url": "https://ready.lacounty.gov/heat/",
+    "sourceType": "arcgis-rest",
+    "category": "cooling",
+    "jurisdictionId": "county:06037",
+    "trust": 70,
+    "refresh": "event-driven — populated by LA County EOC during active heat events",
+    "enabled": true,
+    "notes": "Authoritative LA County cooling-center feed published by the County EOC. Returns 0 features outside an active heat event by design; do NOT synthesize rows when empty.",
+    "adapter": {
+      "kind": "arcgis-rest",
+      "layerUrl": "https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/Public_Emergency_Map_Cooling_Center_View/FeatureServer/0/query",
+      "fieldMap": {
+        "name": "LocatName",
+        "address": "FullAddress",
+        "website": "URL",
+        "updatedAt": "last_edited_date"
+      }
+    }
+  },
+  {
+    "id": "caloes-food-banks",
+    "name": "California Office of Emergency Services",
+    "url": "https://www.caloes.ca.gov/",
+    "sourceType": "arcgis-rest",
+    "category": "food",
+    "jurisdictionId": "state:06",
+    "trust": 60,
+    "refresh": "infrequent (dataset published Jan 2019)",
+    "enabled": true,
+    "notes": "Regional food banks statewide. Lists umbrella organizations rather than every individual distribution pantry; coarse but authoritative coverage.",
+    "adapter": {
+      "kind": "arcgis-rest",
+      "layerUrl": "https://services.arcgis.com/BLN4oKB0N1YSgvY8/arcgis/rest/services/Food_Banks/FeatureServer/0/query",
+      "fieldMap": {
+        "name": "Name",
+        "address": "Address",
+        "city": "City",
+        "state": "State",
+        "zip": "Zip",
+        "phone": "Phone",
+        "website": "Webpage"
+      }
+    }
+  },
+  {
+    "id": "la-city-rec-parks-facilities",
+    "name": "City of Los Angeles Department of Recreation and Parks",
+    "url": "https://www.laparks.org/",
+    "sourceType": "arcgis-rest",
+    "category": "recreation",
+    "jurisdictionId": "place:0644000",
+    "trust": 80,
+    "refresh": "updated by LA City as facilities change",
+    "enabled": true,
+    "notes": "Recreation centers, pools, senior centers and community facilities. Many of these double as cooling/warming centers in extreme weather.",
+    "adapter": {
+      "kind": "arcgis-rest",
+      "layerUrl": "https://maps.lacity.org/lahub/rest/services/Recreation_and_Parks_Department/MapServer/4/query",
+      "fieldMap": {
+        "name": "LocationName",
+        "address": "Address",
+        "phone": "Phone",
+        "website": "Website",
+        "latitude": "GeoLat",
+        "longitude": "GeoLong"
+      }
+    }
+  },
+  {
+    "id": "hrsa-health-center-sites",
+    "name": "HRSA Health Care Service Delivery Sites",
+    "url": "https://data.hrsa.gov/topics/health-centers",
+    "sourceType": "arcgis-rest",
+    "category": "health",
+    "jurisdictionId": "us",
+    "trust": 50,
+    "refresh": "updated by HRSA on an ongoing basis as grantees report site changes",
+    "enabled": true,
+    "notes": "Federally funded community health centers (FQHCs, look-alikes, migrant, homeless, public-housing, school-based). National dataset; uses server-side spatial filter so only nearby rows return.",
+    "adapter": {
+      "kind": "arcgis-rest",
+      "layerUrl": "https://gisportal.hrsa.gov/server/rest/services/HealthCareFacilities/PrimaryHealthCareFacilities_FS/MapServer/0/query",
+      "useSpatialQuery": true,
+      "where": "HCC_STATUS_DESC='Active'",
+      "fieldMap": {
+        "name": "SITE_NM",
+        "address": "SITE_ADDRESS",
+        "city": "SITE_CITY",
+        "state": "SITE_STATE_ABBR",
+        "zip": "SITE_ZIP_CD",
+        "phone": "SITE_PHONE_NUM"
+      }
+    }
+  }
+]

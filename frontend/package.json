@@ -9,6 +9,10 @@
     "lint": "eslint",
     "test": "jest",
     "verify:real-demo": "node scripts/verify-real-demo.mjs",
+    "validate:resolver": "node scripts/validate-resolver.mjs",
+    "validate:sources": "node scripts/validate-sources.mjs",
+    "validate:reconcile": "node scripts/validate-reconcile.mjs",
+    "validate:reliability": "node scripts/validate-reliability.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {

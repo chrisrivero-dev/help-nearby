@@ -4,7 +4,12 @@
  * fallback) emits this shape so the UI and the map can share one source
  * of truth.
  */
-export type SourceType = 'arcgis-rest' | 'open-data' | 'api' | 'manual-fallback';
+export type SourceType =
+  | 'arcgis-rest'
+  | 'socrata'
+  | 'open-data'
+  | 'api'
+  | 'manual-fallback';
 
 export type ResourceCategory =
   | 'health'
@@ -34,9 +39,26 @@ export interface NearbyResource {
   sourceName: string;
   sourceUrl: string;
   sourceType: SourceType;
+  /** Registry id of the (primary) source — set when known; used by reconciliation. */
+  sourceId?: string;
+  /** Source trust tier (higher wins field conflicts). Set during selection. */
+  trust?: number;
   lastChecked?: string;
   updatedAt?: string;
   isLive: boolean;
+
+  // ─── Reconciliation output (present on merged records) ───────────────────
+  /** Names of every source that reported this entity, highest-trust first. */
+  contributingSources?: string[];
+  /** Per-field origin: which source supplied each value, and when. */
+  fieldProvenance?: Record<string, FieldProvenance>;
+}
+
+export interface FieldProvenance {
+  sourceName: string;
+  trust: number;
+  /** ISO timestamp this source was last fetched/checked. */
+  fetchedAt?: string;
 }
 
 export interface SourceMeta {
