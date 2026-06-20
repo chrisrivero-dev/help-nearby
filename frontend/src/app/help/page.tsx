@@ -8,7 +8,6 @@ import {
   LocationProvider,
   useLocationContext,
 } from '@/components/help/LocationContext';
-import { HeroSection } from '@/components/help/HeroSection';
 import { NewsTicker } from '@/components/help/NewsTicker';
 import { PanelLayout } from '@/components/help/PanelLayout';
 import { AlertPanel } from '@/components/help/AlertPanel';
@@ -35,7 +34,8 @@ const HelpDashboard: FC = () => {
   const navVariant = 'help' as const;
   const navTitle = 'HELP! NEARBY.' as const;
 
-  const paddingTop = isMobile ? '140px' : '110px';
+  // Clear the taller fixed NavBar (title row + location row) with a margin.
+  const paddingTop = isMobile ? '190px' : '160px';
 
   return (
     <motion.main
@@ -63,11 +63,6 @@ const HelpDashboard: FC = () => {
 
       {/* Ticker Strip */}
       <NewsTicker />
-
-      {/* Hero Section */}
-      <HeroSection />
-
-      {/* HeroNetwork is now part of HeroSection */}
 
       {/* Dashboard Grid - Masonry layout in PanelLayout */}
       <PanelLayout>

@@ -31,9 +31,8 @@ export const ReportListingIssueModal: FC<Props> = ({ resource, onClose }) => {
   const [formState, setFormState] = useState<FormState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const bg = isDark ? '#0d0d0d' : '#ffffff';
-  const overlay = 'rgba(0,0,0,0.55)';
-  const border = isDark ? '#2a2a2a' : '#e0e0e0';
+  const bg = isDark ? '#0d0d0d' : '#f9f9f9';
+  const border = isDark ? '#252525' : '#e0e0e0';
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#666' : '#888';
 
@@ -75,52 +74,14 @@ export const ReportListingIssueModal: FC<Props> = ({ resource, onClose }) => {
   return (
     <div
       style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        background: overlay,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
+        background: bg,
+        border: `1px solid ${border}`,
+        padding: '0.75rem 1rem',
+        marginTop: '0.5rem',
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      role="group"
+      aria-labelledby="report-title"
     >
-      <div
-        style={{
-          background: bg,
-          border: `1px solid ${border}`,
-          width: '100%',
-          maxWidth: 420,
-          padding: '1.5rem',
-          position: 'relative',
-        }}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="report-title"
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          style={{
-            position: 'absolute',
-            top: '0.75rem',
-            right: '1rem',
-            fontFamily: "'Poppins', sans-serif",
-            fontSize: '1rem',
-            color: mutedText,
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            lineHeight: 1,
-          }}
-        >
-          ×
-        </button>
-
         <h2
           id="report-title"
           style={{
@@ -278,7 +239,6 @@ export const ReportListingIssueModal: FC<Props> = ({ resource, onClose }) => {
             </div>
           </form>
         )}
-      </div>
     </div>
   );
 };

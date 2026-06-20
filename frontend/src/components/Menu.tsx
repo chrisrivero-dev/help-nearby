@@ -109,25 +109,32 @@ const Menu: FC<MenuProps> = () => {
     color: isDark ? '#dedede' : '#111111',
   };
 
-  // Menu button style (for MENU button at top right)
-  const menuButtonStyle: React.CSSProperties = {
-    fontFamily: "'Poppins', sans-serif",
-    fontSize: '0.75rem',
-    fontWeight: 600,
-    letterSpacing: '0.1em',
-    textTransform: 'uppercase',
+  // Hamburger button style (toggles the drawer)
+  const hamburgerButtonStyle: React.CSSProperties = {
     display: 'inline-flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    height: '36px',
-    padding: '0 6px',
-    background: isDark ? '#121212' : '#ffffff',
-    border: `1px solid ${isDark ? panelBorderDark : panelBorderLight}`,
+    gap: '4px',
+    width: '24px',
+    height: '24px',
+    padding: 0,
+    background: 'transparent',
+    border: 'none',
     color: isDark ? '#dedede' : '#111111',
     cursor: 'pointer',
-    transition: 'background 0.2s ease, color 0.2s ease',
-    position: 'relative',
     boxSizing: 'border-box',
+    position: 'relative',
+    zIndex: 1004,
+  };
+
+  // Single hamburger line
+  const lineStyle: React.CSSProperties = {
+    display: 'block',
+    width: '18px',
+    height: '2px',
+    background: isDark ? '#dedede' : '#111111',
+    transformOrigin: 'center',
   };
 
   // Button hover effect
@@ -142,7 +149,8 @@ const Menu: FC<MenuProps> = () => {
   const menuButtonContainerStyle: React.CSSProperties = {
     position: 'relative',
     zIndex: 1002,
-    display: 'inline-block',
+    display: 'inline-flex',
+    alignItems: 'center',
     width: 'fit-content',
   };
 
@@ -281,7 +289,7 @@ const Menu: FC<MenuProps> = () => {
 
   return (
     <>
-      {/* MENU button container with overlay inside */}
+      {/* Hamburger button - morphs from lines to an X when open */}
       <div
         data-menu-button
         style={menuButtonContainerStyle}
@@ -290,7 +298,28 @@ const Menu: FC<MenuProps> = () => {
           setMenuOpen(!menuOpen);
         }}
       >
-        <motion.div style={menuButtonStyle}>MENU</motion.div>
+        <motion.button
+          type="button"
+          aria-label="Menu"
+          aria-expanded={menuOpen}
+          style={hamburgerButtonStyle}
+        >
+          <motion.span
+            style={lineStyle}
+            animate={menuOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+          />
+          <motion.span
+            style={lineStyle}
+            animate={menuOpen ? { opacity: 0 } : { opacity: 1 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+          />
+          <motion.span
+            style={lineStyle}
+            animate={menuOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+          />
+        </motion.button>
 
         {/* Menu overlay - positioned below button */}
         <div

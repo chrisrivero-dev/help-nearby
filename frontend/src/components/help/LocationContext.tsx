@@ -36,6 +36,10 @@ export const useLocationContext = () => {
   return ctx;
 };
 
+// Non-throwing variant for components (e.g. the Clock) that may render outside
+// a LocationProvider. Returns undefined when no provider is present.
+export const useOptionalLocationContext = () => useContext(LocationContext);
+
 interface LocationProviderProps {
   children: ReactNode;
   defaultZip?: string;
@@ -53,12 +57,13 @@ export const LocationProvider: FC<LocationProviderProps> = ({
   const [isValid, setIsValid] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  // Normalize location - validates ZIP and gets coordinates
-  const normalizeLocation = useCallback(async (zipCode: string) => {
-    const cleanZip = zipCode.replace(/\D/g, '').slice(0, 5);
+  // Normalize location - accepts a ZIP code or a "City, ST" query and
+  // resolves it to coordinates.
+  const normalizeLocation = useCallback(async (query: string) => {
+    const raw = query.trim();
 
     const fallback = {
-      zipCode: cleanZip,
+      zipCode: '',
       city: 'Unknown',
       stateCode: 'US',
       latitude: 0,
@@ -66,15 +71,8 @@ export const LocationProvider: FC<LocationProviderProps> = ({
       isValid: false,
     };
 
-    if (cleanZip.length !== 5) return fallback;
-
-    try {
-      const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
-      if (!res.ok) return fallback;
-
-      const data = await res.json();
-      const place = data?.places?.[0];
-      if (!place) return fallback;
+    const buildResult = (place: Record<string, string> | undefined) => {
+      if (!place) return null;
 
       const lat = parseFloat(place['latitude']);
       const lng = parseFloat(place['longitude']);
@@ -87,17 +85,63 @@ export const LocationProvider: FC<LocationProviderProps> = ({
         lng < -180 ||
         lng > 180
       ) {
-        return fallback;
+        return null;
       }
 
       return {
-        zipCode: cleanZip,
+        zipCode: place['post code'] ?? '',
         city: place['place name'] ?? 'Unknown',
         stateCode: place['state abbreviation'] ?? 'US',
         latitude: lat,
         longitude: lng,
         isValid: true,
       };
+    };
+
+    try {
+      // City search: anything containing letters, e.g. "Brooklyn, NY".
+      if (/[a-zA-Z]/.test(raw)) {
+        const parts = raw.split(',').map((p) => p.trim());
+        let cityName = parts[0];
+        let stateCode = parts[1];
+
+        // Support "City ST" without a comma by peeling off a trailing
+        // two-letter state token.
+        if (!stateCode) {
+          const tokens = cityName.split(/\s+/);
+          const last = tokens[tokens.length - 1];
+          if (tokens.length > 1 && /^[a-zA-Z]{2}$/.test(last)) {
+            stateCode = last;
+            cityName = tokens.slice(0, -1).join(' ');
+          }
+        }
+
+        if (!cityName || !stateCode || !/^[a-zA-Z]{2}$/.test(stateCode)) {
+          return fallback;
+        }
+
+        const res = await fetch(
+          `https://api.zippopotam.us/us/${stateCode.toLowerCase()}/${encodeURIComponent(
+            cityName.toLowerCase(),
+          )}`,
+        );
+        if (!res.ok) return fallback;
+
+        const data = await res.json();
+        return buildResult(data?.places?.[0]) ?? fallback;
+      }
+
+      // ZIP search.
+      const cleanZip = raw.replace(/\D/g, '').slice(0, 5);
+      if (cleanZip.length !== 5) return fallback;
+
+      const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
+      if (!res.ok) return fallback;
+
+      const data = await res.json();
+      const place = data?.places?.[0];
+      // The ZIP endpoint omits "post code" on each place, so backfill it.
+      return buildResult(place ? { ...place, 'post code': cleanZip } : undefined) ?? fallback;
     } catch (error) {
       console.error('Error normalizing location:', error);
       return fallback;

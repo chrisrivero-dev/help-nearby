@@ -6,8 +6,9 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from './useTheme';
 import { useI18n } from '@/lib/i18n';
-import { MapPin } from 'lucide-react';
 import { useLocationContext } from './help/LocationContext';
+import FeatureBar from './FeatureBar';
+import Menu from './Menu';
 
 interface TitleProps {
   title?: string;
@@ -16,6 +17,7 @@ interface TitleProps {
   variant?: 'help' | 'resources' | 'about';
   radarRef?: React.RefObject<HTMLDivElement | null>;
   showLocation?: boolean;
+  hideThemeToggle?: boolean;
 }
 
 const titleContainerStyle: React.CSSProperties = {
@@ -24,13 +26,6 @@ const titleContainerStyle: React.CSSProperties = {
   gap: '10px',
   position: 'relative',
   overflow: 'visible',
-};
-
-const titleWrapperStyle: React.CSSProperties = {
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
 };
 
 const titleStyle: React.CSSProperties = {
@@ -74,6 +69,7 @@ const TitleBase: FC<TitleProps> = ({
   variant = 'about',
   radarRef: externalRadarRef,
   showLocation,
+  hideThemeToggle,
 }) => {
   const t = useI18n();
   // Use external ref if provided, otherwise create internal ref
@@ -119,16 +115,30 @@ const TitleBase: FC<TitleProps> = ({
   const [isClicked, setIsClicked] = useState(false);
   const [isTitleHovered, setIsTitleHovered] = useState(false);
   const [isNearbyHovered, setIsNearbyHovered] = useState(false);
+  const [isEditingLocation, setIsEditingLocation] = useState(false);
+  const [locationInput, setLocationInput] = useState('');
+  const [isLocationHovered, setIsLocationHovered] = useState(false);
 
-  // Format location string for display
-  const locationDisplay =
-    zip && isValid
-      ? `${city || ''}${state ? ', ' + state : ''}`
-      : zip
-        ? `ZIP: ${zip}`
-        : latitude && longitude && isValid
-          ? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-          : '';
+  // Location for display, split across two lines: "City, State" then zip.
+  const cityStateLine =
+    isValid && (city || state)
+      ? [city, state].filter(Boolean).join(', ')
+      : latitude && longitude && isValid
+        ? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+        : '';
+  const zipLine = zip || '';
+  const hasLocation = Boolean(cityStateLine || zipLine);
+
+  const beginEditingLocation = () => {
+    setLocationInput(zip || '');
+    setIsEditingLocation(true);
+  };
+
+  const commitLocation = () => {
+    const value = locationInput.trim();
+    if (value) setLocation(value);
+    setIsEditingLocation(false);
+  };
 
   // Get colors based on variant
   const colors = variantColors[variant] || variantColors['about'];
@@ -220,95 +230,187 @@ const TitleBase: FC<TitleProps> = ({
 
   return (
     <motion.div
-      style={titleContainerStyle}
+      style={{
+        width: '100%',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'stretch',
+        gap: '8px',
+      }}
       initial={{ opacity: 0, y: -100 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, ease: 'easeOut' }}
     >
-      <div style={{ ...titleWrapperStyle }}>
-        <div style={titleContainerStyle}>
-          <div style={{ ...titleStyle, color: colors.normalColor }}>
-            <span
-              onMouseEnter={() => setIsTitleHovered(true)}
-              onMouseLeave={() => setIsTitleHovered(false)}
-            >
-              <span style={titleHighlightStyle}>{highlightedWord}</span>
-            </span>{' '}
-            <span
-              onMouseEnter={() => setIsNearbyHovered(true)}
-              onMouseLeave={() => setIsNearbyHovered(false)}
-              onClick={handleNearbyClick}
-              style={titleNearbyStyle}
-            >
-              {remainingTitle}
-            </span>
-          </div>
-        </div>
-        {showRadar && (
-          <motion.div
-            ref={radarRef}
-            data-radar="source"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            onClick={handleRadarClick}
-            style={{ cursor: 'pointer', flexShrink: 0, position: 'relative' }}
-          >
-            {/* Pulsing radar animation */}
-            <svg width={60} height={60} viewBox="0 0 60 60" fill="none">
-              {/* Solid center dot — gold fill with dark border */}
-              <circle
-                cx={30}
-                cy={30}
-                r={6}
-                fill="#fbbf24"
-                stroke={isDark ? '#1e1e1e' : '#000000'}
-                strokeWidth={2}
-              />
-              {/* Single radiating radar circle — classic radar sweep that fades as it expands */}
-              <motion.circle
-                key="radar-ring"
-                cx={30}
-                cy={30}
-                r={6}
-                stroke={isDark ? 'rgba(251,191,36,0.5)' : 'rgba(0,0,0,0.2)'}
-                strokeWidth={1.5}
-                fill="none"
-                style={{ transformOrigin: '30px 30px' }}
-                animate={{
-                  opacity: [0.8, 0],
-                  scale: [0.9, 3.8],
-                }}
-                transition={{
-                  duration: 2.8,
-                  ease: 'linear',
-                  repeat: Infinity,
-                }}
-              />
-            </svg>
-          </motion.div>
-        )}
+      <>
+        {/* Top row: title left-aligned, toggles then menu pinned to the right end */}
+        <div
+          style={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            width: '100%',
+          }}
+        >
+          <div style={titleContainerStyle}>
+            <div style={{ ...titleStyle, color: colors.normalColor }}>
+              <span
+                onMouseEnter={() => setIsTitleHovered(true)}
+                onMouseLeave={() => setIsTitleHovered(false)}
+              >
+                <span style={titleHighlightStyle}>{highlightedWord}</span>
+              </span>{' '}
+              <span
+                onMouseEnter={() => setIsNearbyHovered(true)}
+                onMouseLeave={() => setIsNearbyHovered(false)}
+                onClick={handleNearbyClick}
+                style={titleNearbyStyle}
+              >
+                {remainingTitle}
+              </span>
+            </div>
 
-        {/* Location indicator after radar - only show when showLocation is true */}
-        {showLocationValue && locationDisplay && isValid && (
+            {/* Radar sits right next to NEARBY in the title */}
+            {showRadar && (
+              <motion.div
+                ref={radarRef}
+                data-radar="source"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                onClick={handleRadarClick}
+                style={{
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                {/* Pulsing radar animation */}
+                <svg width={60} height={60} viewBox="0 0 60 60" fill="none">
+                  {/* Solid center dot — gold fill with dark border */}
+                  <circle
+                    cx={30}
+                    cy={30}
+                    r={6}
+                    fill="#fbbf24"
+                    stroke={isDark ? '#1e1e1e' : '#000000'}
+                    strokeWidth={2}
+                  />
+                  {/* Single radiating radar circle — classic radar sweep that fades as it expands.
+                      CSS keyframe (radarPulse) runs on the compositor for smooth, jank-free animation. */}
+                  <circle
+                    cx={30}
+                    cy={30}
+                    r={6}
+                    stroke={isDark ? 'rgba(251,191,36,0.5)' : 'rgba(0,0,0,0.2)'}
+                    strokeWidth={1.5}
+                    fill="none"
+                    style={{
+                      transformBox: 'fill-box',
+                      transformOrigin: 'center',
+                      animation: 'radarPulse 2.8s linear infinite',
+                      willChange: 'transform, opacity',
+                    }}
+                  />
+                </svg>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Toggles then menu, anchored to the right end */}
           <div
             style={{
-              display: 'inline-flex',
+              position: 'absolute',
+              right: 0,
+              display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '2px 6px',
-              background: isDark ? '#1a1a1a' : '#f5f5f5',
-              border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
-              borderRadius: '3px',
+              gap: '16px',
             }}
           >
-            <MapPin size={12} style={{ color: textColor, flexShrink: 0 }} />
-            <span style={{ fontSize: '0.95rem', fontWeight: 700 }}>
-              {locationDisplay}
-            </span>
+            <FeatureBar hideThemeToggle={hideThemeToggle} />
+            <Menu />
+          </div>
+        </div>
+
+        {/* Second row: location left-aligned, inline "City, State  Zip",
+            smaller than the title; click to edit. */}
+        {showLocationValue && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-start',
+              width: '100%',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {isEditingLocation ? (
+              <input
+                autoFocus
+                type="text"
+                value={locationInput}
+                placeholder="ZIP or City, ST"
+                onChange={(e) => setLocationInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitLocation();
+                  if (e.key === 'Escape') setIsEditingLocation(false);
+                }}
+                onBlur={commitLocation}
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: '1.2rem',
+                  fontWeight: 700,
+                  width: '16ch',
+                  textAlign: 'center',
+                  color: textColor,
+                  background: isDark ? '#07080b' : '#ffffff',
+                  border: `1.5px solid ${isDark ? '#252a36' : '#d0d4dc'}`,
+                  borderRadius: '3px',
+                  padding: '3px 6px',
+                  outline: 'none',
+                }}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={beginEditingLocation}
+                onMouseEnter={() => setIsLocationHovered(true)}
+                onMouseLeave={() => setIsLocationHovered(false)}
+                title="Edit location"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'baseline',
+                  gap: '10px',
+                  fontFamily: "'Poppins', sans-serif",
+                  fontWeight: 700,
+                  fontSize: '1.4rem',
+                  color: hasLocation ? textColor : '#fbbf24',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  lineHeight: 1.2,
+                  padding: '2px 4px',
+                  borderBottom: `1.5px solid ${
+                    isLocationHovered ? '#fbbf24' : 'transparent'
+                  }`,
+                  transition: 'border-color 0.15s ease',
+                }}
+              >
+                <span>{cityStateLine || 'Set location'}</span>
+                {zipLine && (
+                  <span style={{ fontSize: '1.15rem', opacity: 0.7 }}>
+                    {zipLine}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
         )}
-      </div>
+      </>
     </motion.div>
   );
 };

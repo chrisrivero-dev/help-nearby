@@ -4,7 +4,89 @@ import type { FC } from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTheme } from './useTheme';
+import { useOptionalLocationContext } from './help/LocationContext';
 import { Clock as ClockIcon } from 'lucide-react';
+
+const FONT_FAMILY = "'Poppins', sans-serif";
+const ACCENT = '#fbbf24'; // gold accent, matching TitleBase
+
+// ─── Theme tokens, mirrored from the help panels ────────────────────────────
+const tokens = (isDark: boolean) => ({
+  containerBg: isDark ? '#121212' : '#ffffff',
+  containerBorder: isDark ? '#252525' : '#e4e4e4',
+  tileBg: isDark ? '#1e1e1e' : '#f4f5f7',
+  tileText: isDark ? '#dedede' : '#111111',
+  mutedText: isDark ? '#555' : '#aaa',
+});
+
+// ─── Location → IANA timezone ────────────────────────────────────────────────
+// Majority timezone per US state. Good enough for a wall clock; the few
+// counties that straddle a zone boundary are an acceptable approximation.
+const STATE_TIMEZONES: Record<string, string> = {
+  AL: 'America/Chicago',
+  AK: 'America/Anchorage',
+  AZ: 'America/Phoenix',
+  AR: 'America/Chicago',
+  CA: 'America/Los_Angeles',
+  CO: 'America/Denver',
+  CT: 'America/New_York',
+  DE: 'America/New_York',
+  DC: 'America/New_York',
+  FL: 'America/New_York',
+  GA: 'America/New_York',
+  HI: 'Pacific/Honolulu',
+  ID: 'America/Boise',
+  IL: 'America/Chicago',
+  IN: 'America/Indiana/Indianapolis',
+  IA: 'America/Chicago',
+  KS: 'America/Chicago',
+  KY: 'America/New_York',
+  LA: 'America/Chicago',
+  ME: 'America/New_York',
+  MD: 'America/New_York',
+  MA: 'America/New_York',
+  MI: 'America/Detroit',
+  MN: 'America/Chicago',
+  MS: 'America/Chicago',
+  MO: 'America/Chicago',
+  MT: 'America/Denver',
+  NE: 'America/Chicago',
+  NV: 'America/Los_Angeles',
+  NH: 'America/New_York',
+  NJ: 'America/New_York',
+  NM: 'America/Denver',
+  NY: 'America/New_York',
+  NC: 'America/New_York',
+  ND: 'America/Chicago',
+  OH: 'America/New_York',
+  OK: 'America/Chicago',
+  OR: 'America/Los_Angeles',
+  PA: 'America/New_York',
+  RI: 'America/New_York',
+  SC: 'America/New_York',
+  SD: 'America/Chicago',
+  TN: 'America/Chicago',
+  TX: 'America/Chicago',
+  UT: 'America/Denver',
+  VT: 'America/New_York',
+  VA: 'America/New_York',
+  WA: 'America/Los_Angeles',
+  WV: 'America/New_York',
+  WI: 'America/Chicago',
+  WY: 'America/Denver',
+};
+
+// Resolve the timezone for the active location, falling back to the browser's
+// local zone when no valid location has been selected.
+const resolveTimeZone = (stateCode: string, isValid: boolean): string => {
+  const zone = isValid ? STATE_TIMEZONES[stateCode?.toUpperCase()] : undefined;
+  if (zone) return zone;
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    return 'America/Los_Angeles';
+  }
+};
 
 interface FlipDigitProps {
   currentValue: string;
@@ -21,9 +103,7 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const reduceMotion = useReducedMotion();
-
-  const textColor = isDark ? '#e8e8e8' : '#111111';
-  const panelColor = isDark ? '#333' : '#f0f0f0';
+  const t = tokens(isDark);
 
   const [shouldFlip, setShouldFlip] = useState(false);
 
@@ -50,10 +130,11 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: panelColor,
-          color: textColor,
+          backgroundColor: t.tileBg,
+          color: t.tileText,
+          fontFamily: FONT_FAMILY,
           fontWeight: 700,
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          border: `1px solid ${t.containerBorder}`,
         }}
       >
         {currentValue}
@@ -68,6 +149,7 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
         position: 'relative',
         perspective: '1000px',
         overflow: 'hidden',
+        border: `1px solid ${t.containerBorder}`,
       }}
     >
       {/* Top half - shows current digit */}
@@ -78,14 +160,14 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
           left: 0,
           width: '100%',
           height: '50%',
-          backgroundColor: panelColor,
-          color: textColor,
+          backgroundColor: t.tileBg,
+          color: t.tileText,
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
           fontSize: digitSize.fontSize,
+          fontFamily: FONT_FAMILY,
           fontWeight: 700,
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
         }}
       >
         {currentValue}
@@ -99,14 +181,14 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
           left: 0,
           width: '100%',
           height: '50%',
-          backgroundColor: panelColor,
-          color: textColor,
+          backgroundColor: t.tileBg,
+          color: t.tileText,
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'center',
           fontSize: digitSize.fontSize,
+          fontFamily: FONT_FAMILY,
           fontWeight: 700,
-          boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
           transformOrigin: '50% 0%',
           transformStyle: 'preserve-3d',
         }}
@@ -123,19 +205,69 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
   );
 };
 
+// Stacked AM / PM indicator. The cell matching the current period is
+// highlighted with the panels' gold accent.
+function MeridiemColumn({
+  period,
+  isDark,
+}: {
+  period: 'AM' | 'PM';
+  isDark: boolean;
+}) {
+  const t = tokens(isDark);
+
+  const cell = (label: 'AM' | 'PM') => {
+    const active = period === label;
+    return (
+      <div
+        style={{
+          width: 'min(40px, 9vw)',
+          height: 'calc(min(50px, 10vh) / 2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: active ? ACCENT : t.tileBg,
+          color: active ? '#111111' : t.mutedText,
+          fontFamily: FONT_FAMILY,
+          fontWeight: 700,
+          fontSize: 'min(13px, 3vw)',
+          letterSpacing: '0.05em',
+        }}
+      >
+        {label}
+      </div>
+    );
+  };
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        border: `1px solid ${t.containerBorder}`,
+      }}
+    >
+      {cell('AM')}
+      {cell('PM')}
+    </div>
+  );
+}
+
 // Digits display component - opens at bottom center of viewport
 function ClockDigits({
   isOpen,
   isDark,
+  timeZone,
   onClose,
 }: {
   isOpen: boolean;
   isDark: boolean;
+  timeZone: string;
   onClose: () => void;
 }) {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [nextTime, setNextTime] = useState<string>('');
-  const reduceMotion = useReducedMotion();
+  const [period, setPeriod] = useState<'AM' | 'PM'>('AM');
   const [isClient, setIsClient] = useState(false);
 
   const latestTimeRef = useRef('');
@@ -147,18 +279,23 @@ function ClockDigits({
   useEffect(() => {
     if (!isClient) return;
 
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+
     const updateTime = () => {
       const now = new Date();
+      const parts = formatter.formatToParts(now);
+      const hour = parts.find((p) => p.type === 'hour')?.value ?? '12';
+      const minute = parts.find((p) => p.type === 'minute')?.value ?? '00';
+      const dayPeriod = parts.find((p) => p.type === 'dayPeriod')?.value ?? 'AM';
 
-      const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Los_Angeles',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-
-      const timeString = formatter.format(now);
+      const timeString = `${hour}:${minute}`;
       latestTimeRef.current = timeString;
+      setPeriod(dayPeriod.toUpperCase().startsWith('P') ? 'PM' : 'AM');
 
       if (currentTime !== timeString) {
         setNextTime(timeString);
@@ -171,7 +308,7 @@ function ClockDigits({
     const intervalId = setInterval(updateTime, 1000);
 
     return () => clearInterval(intervalId);
-  }, [currentTime, isClient]);
+  }, [currentTime, isClient, timeZone]);
 
   if (!isClient) {
     return null;
@@ -180,7 +317,8 @@ function ClockDigits({
   // Calculate positions - use top with calculated values to position at bottom
   // Window height - element height - 20px padding from bottom
   const elementHeight = 80; // approximate height of clock element
-  const bottomOffset = 20;
+  // Clear the fixed 42px NewsTicker pinned to the bottom, plus a small gap.
+  const bottomOffset = 42 + 16;
   const openTop = window.innerHeight - elementHeight - bottomOffset;
   const closedTop = window.innerHeight + 50; // fully below viewport
 
@@ -200,7 +338,7 @@ function ClockDigits({
   const nextMinuteDigit1 = nextMinutes[0];
   const nextMinuteDigit2 = nextMinutes[1];
 
-  const colonPanelColor = isDark ? '#333' : '#f0f0f0';
+  const t = tokens(isDark);
 
   return (
     <motion.div
@@ -217,8 +355,11 @@ function ClockDigits({
         justifyContent: 'center',
         gap: '0.5rem',
         padding: '1rem',
-        backgroundColor: isDark ? '#333' : '#f0f0f0',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        backgroundColor: t.containerBg,
+        border: `1px solid ${t.containerBorder}`,
+        boxShadow: isDark
+          ? '0 8px 24px rgba(0, 0, 0, 0.5)'
+          : '0 8px 24px rgba(0, 0, 0, 0.12)',
         width: 'fit-content',
         whiteSpace: 'nowrap',
       }}
@@ -240,11 +381,12 @@ function ClockDigits({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: isDark ? '#e8e8e8' : '#111111',
-          backgroundColor: colonPanelColor,
+          color: t.tileText,
+          backgroundColor: t.tileBg,
+          fontFamily: FONT_FAMILY,
           fontSize: 'min(48px, 5vw)',
           fontWeight: 700,
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          border: `1px solid ${t.containerBorder}`,
         }}
       >
         :
@@ -257,6 +399,7 @@ function ClockDigits({
         currentValue={currentMinuteDigit2}
         nextValue={nextMinuteDigit2}
       />
+      <MeridiemColumn period={period} isDark={isDark} />
     </motion.div>
   );
 }
@@ -266,14 +409,22 @@ const Clock: FC = () => {
   const isDark = theme === 'dark';
   const [isOpen, setIsOpen] = useState(false);
 
+  // Location-aware timezone. Safe outside a LocationProvider (falls back to the
+  // browser's local timezone).
+  const location = useOptionalLocationContext();
+  const timeZone = resolveTimeZone(
+    location?.state ?? '',
+    location?.isValid ?? false,
+  );
+
   return (
     <>
       <ClockIcon
         style={{
           cursor: 'pointer',
           color: isDark ? '#e8e8e8' : '#111111',
-          width: '12px',
-          height: '12px',
+          width: '24px',
+          height: '24px',
           margin: 0,
           padding: 0,
         }}
@@ -285,6 +436,7 @@ const Clock: FC = () => {
       <ClockDigits
         isOpen={isOpen}
         isDark={isDark}
+        timeZone={timeZone}
         onClose={() => setIsOpen(false)}
       />
     </>

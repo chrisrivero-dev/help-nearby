@@ -9,17 +9,20 @@ import LanguageToggle from './LanguageToggle';
 interface FeatureBarProps {
   hideThemeToggle?: boolean;
   bgColor?: string;
+  vertical?: boolean;
 }
 
 const FeatureBar: FC<FeatureBarProps> = ({
   hideThemeToggle = false,
   bgColor = '',
+  vertical = false,
 }) => {
   const containerStyle: React.CSSProperties = {
     display: 'flex',
+    flexDirection: vertical ? 'column' : 'row',
     alignItems: 'center',
-    gap: '16px',
-    padding: '4px 8px',
+    gap: vertical ? '12px' : '16px',
+    padding: vertical ? '0' : '4px 8px',
     borderRadius: '4px',
     backgroundColor: bgColor,
   };

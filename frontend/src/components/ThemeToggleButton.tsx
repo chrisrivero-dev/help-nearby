@@ -23,8 +23,8 @@ export function ThemeToggleButton() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '12px',
-        height: '12px',
+        width: '24px',
+        height: '24px',
         borderRadius: '4px',
         cursor: 'pointer',
         border: 'none',
@@ -38,7 +38,7 @@ export function ThemeToggleButton() {
           animate={{ opacity: 1, rotate: 0, scale: 1 }}
           exit={{ opacity: 0, rotate: 90, scale: 0.6 }}
           transition={{ duration: 0.2, ease: 'easeInOut' }}
-          style={{ position: 'absolute', fontSize: '10px', lineHeight: '1' }}
+          style={{ position: 'absolute', fontSize: '20px', lineHeight: '1' }}
         >
           {isDark ? <SunIcon /> : <MoonIcon />}
         </motion.span>
@@ -51,8 +51,8 @@ export function ThemeToggleButton() {
 function SunIcon() {
   return (
     <svg
-      width="12"
-      height="12"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke="#D4AF37"
@@ -72,8 +72,8 @@ function MoonIcon() {
 
   return (
     <svg
-      width="12"
-      height="12"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke={isDark ? '#e8e8e8' : '#111111'}

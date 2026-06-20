@@ -107,12 +107,16 @@ export const NewsTicker: FC = () => {
   return (
     <div
       style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1001,
         display: 'flex',
         alignItems: 'center',
         height: 42,
-        marginBottom: '1rem',
         background: tickerBg,
-        border: `1px solid ${tickerBorder}`,
+        borderTop: `1px solid ${tickerBorder}`,
         boxShadow: tickerShadow,
         flexShrink: 0,
         whiteSpace: 'nowrap',
@@ -187,14 +191,41 @@ export const NewsTicker: FC = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
               style={{
+                display: 'flex',
+                alignItems: 'center',
+                height: '100%',
                 fontFamily: "'Poppins', sans-serif",
                 fontSize: '0.72rem',
-                color: isDark ? '#333' : '#ccc',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                color: isDark ? '#555' : '#999',
                 paddingLeft: '1rem',
                 whiteSpace: 'nowrap',
               }}
             >
-              Loading latest community alerts...
+              NEWS FEEDING
+              <span
+                style={{
+                  display: 'inline-flex',
+                  marginLeft: '0.5rem',
+                  gap: '0.3rem',
+                }}
+              >
+                {[0, 1, 2].map((i) => (
+                  <motion.span
+                    key={i}
+                    animate={{ opacity: [0.15, 1, 0.15] }}
+                    transition={{
+                      duration: 1.2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                      delay: i * 0.2,
+                    }}
+                  >
+                    .
+                  </motion.span>
+                ))}
+              </span>
             </motion.div>
           ) : error ? (
             <motion.div

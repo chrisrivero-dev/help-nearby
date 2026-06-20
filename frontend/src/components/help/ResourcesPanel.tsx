@@ -1,18 +1,341 @@
 'use client';
 
 import type { FC } from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ExternalLink, Info } from 'lucide-react';
+import { ExternalLink, Info, Search, X, RefreshCw } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
 import type {
   NearbyResource,
   NearbyResponse,
   SourceMeta,
+  ResourceCategory,
 } from '@/lib/resources/schema';
 import type { CommunityTip } from '@/lib/community/types';
 import { ResourceCardCommunityNotes } from './ResourceCardCommunityNotes';
+import { SubmitTipForm } from './SubmitTipForm';
+import { ReportListingIssueModal } from './ReportListingIssueModal';
+
+// ─── Client-side cache for the (heavy) nearby-resources aggregation ──────────
+// Reloading the page within the TTL reuses the last response for the same
+// rounded location instead of re-hitting every upstream source. A manual
+// refresh bypasses this.
+const NEARBY_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+interface NearbyCacheEntry {
+  resources: NearbyResource[];
+  sources: SourceMeta[];
+  degraded: boolean;
+  ts: number;
+}
+
+const nearbyCacheKey = (lat: number, lng: number) =>
+  `hn:nearby:${lat.toFixed(3)},${lng.toFixed(3)}`;
+
+const readNearbyCache = (key: string): NearbyCacheEntry | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const entry = JSON.parse(raw) as NearbyCacheEntry;
+    if (!entry?.ts || Date.now() - entry.ts > NEARBY_CACHE_TTL_MS) {
+      window.localStorage.removeItem(key);
+      return null;
+    }
+    return entry;
+  } catch {
+    return null;
+  }
+};
+
+const writeNearbyCache = (
+  key: string,
+  data: Omit<NearbyCacheEntry, 'ts'>,
+): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(
+      key,
+      JSON.stringify({ ...data, ts: Date.now() }),
+    );
+  } catch {
+    /* storage full or disabled — non-fatal */
+  }
+};
+
+const CATEGORY_LABELS: Record<ResourceCategory, string> = {
+  health: 'Health',
+  social_services: 'Social Services',
+  library: 'Library',
+  government: 'Government',
+  cooling: 'Cooling',
+  shelter: 'Shelter',
+  food: 'Food',
+  recreation: 'Recreation',
+  other: 'Other',
+};
+
+// Returns the best available address string for display. Rules:
+//  1. If the address field already looks complete (contains a 2-letter state
+//     abbreviation), show it as-is.
+//  2. If city/state fields are present, append them to the street.
+//  3. Otherwise show the raw street address — never invent city/state.
+const formatResourceAddress = (r: NearbyResource): string | null => {
+  const street = r.address?.trim();
+  if (!street) return null;
+
+  // Already complete: address contains ", ST" or ", ST " pattern
+  if (/,\s*[A-Z]{2}(\s|$|,)/.test(street)) return street;
+
+  // Build from separate fields if available
+  if (r.city && r.state) {
+    const zipPart = r.zip ? ` ${r.zip.split('-')[0]}` : '';
+    return `${street}, ${r.city}, ${r.state}${zipPart}`;
+  }
+
+  return street;
+};
+
+const formatDist = (mi: number) =>
+  mi < 0.1 ? '< 0.1 mi' : mi < 10 ? `${mi.toFixed(1)} mi` : `${Math.round(mi)} mi`;
+
+const formatChecked = (iso?: string) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+};
+
+interface ResourceCardProps {
+  r: NearbyResource;
+  isLast: boolean;
+  isDark: boolean;
+  originLat: number;
+  originLng: number;
+  tips: CommunityTip[];
+}
+
+const ResourceCard: FC<ResourceCardProps> = ({
+  r,
+  isLast,
+  isDark,
+  originLat,
+  originLng,
+  tips,
+}) => {
+  const [showTipForm, setShowTipForm] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+
+  const cardText = isDark ? '#dedede' : '#111111';
+  const detailText = isDark ? '#bdbdbd' : '#444444';
+  const mutedText = isDark ? '#7a7a7a' : '#888';
+  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const linkColor = isDark ? '#93c5fd' : '#1d4ed8';
+
+  const address = formatResourceAddress(r);
+  const hasCommunity = r.resource_key !== undefined;
+  const hasDirections =
+    typeof r.latitude === 'number' &&
+    typeof r.longitude === 'number' &&
+    Number.isFinite(originLat) &&
+    Number.isFinite(originLng);
+
+  const actionButtonStyle = {
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '0.62rem',
+    color: mutedText,
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: 0,
+    textDecoration: 'underline',
+    whiteSpace: 'nowrap' as const,
+  };
+
+  return (
+    <div
+      style={{
+        padding: '0.9rem 1.4rem',
+        borderBottom: isLast ? undefined : `1px solid ${divider}`,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.9rem' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 700,
+              fontSize: '0.82rem',
+              color: cardText,
+            }}
+          >
+            {r.name}
+          </div>
+          {(address || hasDirections) && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: '0.6rem',
+                flexWrap: 'wrap',
+                marginTop: '0.14rem',
+              }}
+            >
+              {address && (
+                <span
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.7rem',
+                    color: detailText,
+                  }}
+                >
+                  {address}
+                </span>
+              )}
+              {hasDirections && (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&origin=${originLat},${originLng}&destination=${r.latitude},${r.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Open directions to ${r.name} in Google Maps`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.2rem',
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.62rem',
+                    fontWeight: 700,
+                    color: linkColor,
+                    textDecoration: 'underline',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <ExternalLink size={9} /> Directions
+                </a>
+              )}
+            </div>
+          )}
+          {r.phone && (
+            <div
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: '0.7rem',
+                color: detailText,
+                marginTop: '0.1rem',
+              }}
+            >
+              {r.phone}
+            </div>
+          )}
+          {hasCommunity && <ResourceCardCommunityNotes tips={tips} />}
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: '0.3rem',
+            flexShrink: 0,
+            paddingTop: '0.1rem',
+          }}
+        >
+          {typeof r.distanceMiles === 'number' && (
+            <span
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.74rem',
+                color: detailText,
+              }}
+            >
+              {formatDist(r.distanceMiles)}
+            </span>
+          )}
+          {hasCommunity && (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowTipForm((v) => !v)}
+                style={actionButtonStyle}
+              >
+                {showTipForm
+                  ? 'Cancel tip'
+                  : tips.length === 0
+                    ? 'Share a tip'
+                    : 'Add a tip'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowReport((v) => !v)}
+                style={actionButtonStyle}
+              >
+                {showReport ? 'Cancel report' : 'Report issue'}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {showTipForm && (
+        <SubmitTipForm resource={r} onClose={() => setShowTipForm(false)} />
+      )}
+      {showReport && (
+        <ReportListingIssueModal
+          resource={r}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+
+      {/* Footer: source above the last-checked timestamp */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.16rem',
+          marginTop: '0.7rem',
+          paddingTop: '0.6rem',
+          borderTop: `1px solid ${divider}`,
+        }}
+      >
+        <a
+          href={r.website ?? r.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.2rem',
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: '0.62rem',
+            color: mutedText,
+            textDecoration: 'underline',
+            width: 'fit-content',
+          }}
+        >
+          <ExternalLink size={9} /> Source: {r.sourceName}
+        </a>
+        {r.lastChecked && (
+          <span
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: '0.62rem',
+              color: mutedText,
+            }}
+          >
+            Last checked {formatChecked(r.lastChecked)}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const ResourcesPanel: FC = () => {
   const { theme } = useTheme();
@@ -28,47 +351,90 @@ export const ResourcesPanel: FC = () => {
   const [sources, setSources] = useState<SourceMeta[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
   const [communityTips, setCommunityTips] = useState<Record<string, CommunityTip[]>>({});
+  const [query, setQuery] = useState('');
+  const [activeCategories, setActiveCategories] = useState<ResourceCategory[]>(
+    [],
+  );
 
-  const fetchNearbyResources = useCallback(async (lat: number, lng: number) => {
-    setNearbyLoading(true);
-    setNearbyResources(null);
-    setNearbyDegraded(false);
-    setCommunityTips({});
-    try {
-      const params = new URLSearchParams({
-        lat: lat.toString(),
-        lng: lng.toString(),
-        radiusMiles: '10',
-      });
-      const res = await fetch(`/api/nearby-resources?${params.toString()}`);
-      if (!res.ok) {
-        setNearbyResources([]);
-        return;
-      }
-      const data = (await res.json()) as NearbyResponse;
-      const resources = data.resources ?? [];
-      setNearbyResources(resources);
-      setNearbyDegraded(Boolean(data.degraded));
-      setSources(data.sources ?? []);
-
-      // Batch-fetch community tips for all loaded resources
-      const keys = resources
-        .map((r) => r.resource_key)
-        .filter((k): k is string => Boolean(k));
-      if (keys.length > 0) {
-        fetch(`/api/community-tips?resourceKeys=${keys.join(',')}`)
-          .then((r) => r.json())
-          .then((d: { tips: Record<string, CommunityTip[]> }) => {
-            setCommunityTips(d.tips ?? {});
-          })
-          .catch(() => {/* non-fatal */});
-      }
-    } catch {
-      setNearbyResources([]);
-    } finally {
-      setNearbyLoading(false);
+  // Batch-fetch community tips for the loaded resources.
+  const loadTips = useCallback((resources: NearbyResource[]) => {
+    const keys = resources
+      .map((r) => r.resource_key)
+      .filter((k): k is string => Boolean(k));
+    if (keys.length === 0) {
+      setCommunityTips({});
+      return;
     }
+    fetch(`/api/community-tips?resourceKeys=${keys.join(',')}`)
+      .then((r) => r.json())
+      .then((d: { tips: Record<string, CommunityTip[]> }) => {
+        setCommunityTips(d.tips ?? {});
+      })
+      .catch(() => {/* non-fatal */});
   }, []);
+
+  const fetchNearbyResources = useCallback(
+    async (lat: number, lng: number, opts?: { force?: boolean }) => {
+      setQuery('');
+      setActiveCategories([]);
+
+      const key = nearbyCacheKey(lat, lng);
+
+      // Serve from cache on normal loads/reloads — skip the heavy aggregation.
+      if (!opts?.force) {
+        const cached = readNearbyCache(key);
+        if (cached) {
+          setNearbyResources(cached.resources);
+          setNearbyDegraded(cached.degraded);
+          setSources(cached.sources);
+          setNearbyLoading(false);
+          loadTips(cached.resources);
+          return;
+        }
+      }
+
+      setNearbyLoading(true);
+      setNearbyResources(null);
+      setNearbyDegraded(false);
+      setCommunityTips({});
+      try {
+        const params = new URLSearchParams({
+          lat: lat.toString(),
+          lng: lng.toString(),
+          radiusMiles: '10',
+        });
+        const res = await fetch(`/api/nearby-resources?${params.toString()}`);
+        if (!res.ok) {
+          setNearbyResources([]);
+          return;
+        }
+        const data = (await res.json()) as NearbyResponse;
+        const resources = data.resources ?? [];
+        const sourceMeta = data.sources ?? [];
+        const degraded = Boolean(data.degraded);
+        setNearbyResources(resources);
+        setNearbyDegraded(degraded);
+        setSources(sourceMeta);
+        writeNearbyCache(key, { resources, sources: sourceMeta, degraded });
+        loadTips(resources);
+      } catch {
+        setNearbyResources([]);
+      } finally {
+        setNearbyLoading(false);
+      }
+    },
+    [loadTips],
+  );
+
+  const handleRefresh = useCallback(() => {
+    if (
+      isValid &&
+      Number.isFinite(latitude) &&
+      Number.isFinite(longitude)
+    ) {
+      fetchNearbyResources(latitude, longitude, { force: true });
+    }
+  }, [isValid, latitude, longitude, fetchNearbyResources]);
 
   useEffect(() => {
     if (!zip) {
@@ -88,49 +454,50 @@ export const ResourcesPanel: FC = () => {
   const resourceRenderKey = (r: NearbyResource, index: number) =>
     `${r.sourceName}:${r.id}:${r.latitude ?? ''}:${r.longitude ?? ''}:${index}`;
 
-  // Returns the best available address string for display. Rules:
-  //  1. If the address field already looks complete (contains a 2-letter state
-  //     abbreviation), show it as-is.
-  //  2. If city/state fields are present, append them to the street.
-  //  3. Otherwise show the raw street address — never invent city/state.
-  const formatResourceAddress = (r: NearbyResource): string | null => {
-    const street = r.address?.trim();
-    if (!street) return null;
+  // Categories actually present in the current results, in canonical order.
+  const availableCategories = useMemo<ResourceCategory[]>(() => {
+    if (!nearbyResources) return [];
+    const present = new Set(nearbyResources.map((r) => r.category));
+    return (Object.keys(CATEGORY_LABELS) as ResourceCategory[]).filter((c) =>
+      present.has(c),
+    );
+  }, [nearbyResources]);
 
-    // Already complete: address contains ", ST" or ", ST " pattern
-    if (/,\s*[A-Z]{2}(\s|$|,)/.test(street)) return street;
-
-    // Build from separate fields if available
-    if (r.city && r.state) {
-      const zipPart = r.zip ? ` ${r.zip.split('-')[0]}` : '';
-      return `${street}, ${r.city}, ${r.state}${zipPart}`;
-    }
-
-    return street;
-  };
-
-  const formatDist = (mi: number) =>
-    mi < 0.1
-      ? '< 0.1 mi'
-      : mi < 10
-        ? `${mi.toFixed(1)} mi`
-        : `${Math.round(mi)} mi`;
-
-  const formatChecked = (iso?: string) => {
-    if (!iso) return '';
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return iso;
-    return d.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+  // Apply the keyword + category filters client-side.
+  const filteredResources = useMemo(() => {
+    if (!nearbyResources) return nearbyResources;
+    const q = query.trim().toLowerCase();
+    return nearbyResources.filter((r) => {
+      if (activeCategories.length > 0 && !activeCategories.includes(r.category))
+        return false;
+      if (!q) return true;
+      const haystack = [
+        r.name,
+        r.address,
+        r.city,
+        r.state,
+        r.zip,
+        r.phone,
+        r.sourceName,
+        CATEGORY_LABELS[r.category],
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
     });
-  };
+  }, [nearbyResources, query, activeCategories]);
+
+  const toggleCategory = (c: ResourceCategory) =>
+    setActiveCategories((prev) =>
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
+    );
+
+  const filtersActive = query.trim().length > 0 || activeCategories.length > 0;
 
   const cardText = isDark ? '#dedede' : '#111111';
-  const mutedText = isDark ? '#555' : '#999';
+  const mutedText = isDark ? '#7a7a7a' : '#888';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
-  const gold = '#f59e0b';
 
   // Locked panel
   const LockedPanel = ({ minH = 100 }: { minH?: number }) => (
@@ -215,20 +582,60 @@ export const ResourcesPanel: FC = () => {
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            {/* Status indicator - moved left of title, flat bright square */}
-            {sources.length > 0 && (
-              <div
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 0,
-                  background: !sources.some((s) => s.ok)
-                    ? '#ef4444'
-                    : '#22c55e',
-                  flexShrink: 0,
-                }}
-              />
-            )}
+            {/* Status indicator - left of title. While loading it is an empty
+                bordered square that rotates in place like a gear, then smoothly
+                fills green or red once the status is known. */}
+            {(nearbyLoading || sources.length > 0) &&
+              (() => {
+                const statusColor = !sources.some((s) => s.ok)
+                  ? '#ef4444'
+                  : '#22c55e';
+                return (
+                  <motion.div
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: 0,
+                      flexShrink: 0,
+                      border: '2px solid',
+                      transformOrigin: '50% 50%',
+                    }}
+                    animate={
+                      nearbyLoading
+                        ? {
+                            rotate: [0, 90, 90, 180, 180, 270, 270, 360, 360],
+                            backgroundColor: 'rgba(0,0,0,0)',
+                            borderColor: cardText,
+                          }
+                        : {
+                            rotate: 0,
+                            backgroundColor: statusColor,
+                            borderColor: statusColor,
+                          }
+                    }
+                    transition={
+                      nearbyLoading
+                        ? {
+                            rotate: {
+                              duration: 4,
+                              ease: 'easeInOut',
+                              times: [
+                                0, 0.075, 0.25, 0.325, 0.5, 0.575, 0.75, 0.825,
+                                1,
+                              ],
+                              repeat: Infinity,
+                            },
+                            backgroundColor: { duration: 0.3 },
+                          }
+                        : {
+                            rotate: { duration: 0.3 },
+                            backgroundColor: { duration: 0.5 },
+                            borderColor: { duration: 0.5 },
+                          }
+                    }
+                  />
+                );
+              })()}
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -242,6 +649,40 @@ export const ResourcesPanel: FC = () => {
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            {/* Manual refresh — bypasses the cache. Left of the info icon. */}
+            {zip && isValid && (
+              <motion.button
+                type="button"
+                aria-label="Refresh resources"
+                title="Refresh resources"
+                disabled={nearbyLoading}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRefresh();
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 18,
+                  height: 18,
+                  padding: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: nearbyLoading ? 'default' : 'pointer',
+                  color: mutedText,
+                  lineHeight: 0,
+                }}
+                animate={nearbyLoading ? { rotate: 360 } : { rotate: 0 }}
+                transition={
+                  nearbyLoading
+                    ? { duration: 1, ease: 'linear', repeat: Infinity }
+                    : { duration: 0.2 }
+                }
+              >
+                <RefreshCw size={13} />
+              </motion.button>
+            )}
             {/* Info tooltip */}
             <div
               style={{ position: 'relative' }}
@@ -416,6 +857,112 @@ export const ResourcesPanel: FC = () => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
+                  {/* Filter bar — keyword search + category toggles */}
+                  <div
+                    style={{
+                      padding: '0.8rem 1.4rem',
+                      borderBottom: `1px solid ${divider}`,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.6rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
+                        background: isDark ? '#0a0a0a' : '#fafafa',
+                        padding: '0.4rem 0.6rem',
+                      }}
+                    >
+                      <Search size={13} color={mutedText} />
+                      <input
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Filter by name, street, ZIP, or source…"
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '0.72rem',
+                          color: cardText,
+                          background: 'transparent',
+                          border: 'none',
+                          outline: 'none',
+                        }}
+                      />
+                      {filtersActive && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setQuery('');
+                            setActiveCategories([]);
+                          }}
+                          aria-label="Clear filters"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: 0,
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: mutedText,
+                            lineHeight: 0,
+                          }}
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
+                    {availableCategories.length > 1 && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '0.35rem',
+                        }}
+                      >
+                        {availableCategories.map((c) => {
+                          const active = activeCategories.includes(c);
+                          return (
+                            <button
+                              key={c}
+                              type="button"
+                              onClick={() => toggleCategory(c)}
+                              aria-pressed={active}
+                              style={{
+                                fontFamily: "'Poppins', sans-serif",
+                                fontSize: '0.62rem',
+                                fontWeight: 700,
+                                letterSpacing: '0.04em',
+                                padding: '0.22rem 0.55rem',
+                                cursor: 'pointer',
+                                border: `1px solid ${
+                                  active
+                                    ? '#f59e0b'
+                                    : isDark
+                                      ? '#2a2a2a'
+                                      : '#e0e0e0'
+                                }`,
+                                background: active
+                                  ? '#f59e0b'
+                                  : 'transparent',
+                                color: active
+                                  ? '#000'
+                                  : mutedText,
+                              }}
+                            >
+                              {CATEGORY_LABELS[c]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                   {nearbyDegraded && (
                     <div
                       style={{
@@ -431,157 +978,36 @@ export const ResourcesPanel: FC = () => {
                       LIVE DATA UNAVAILABLE — SHOWING LAST-KNOWN INFORMATION
                     </div>
                   )}
-                  {nearbyResources.map((r, i) => (
-                    <div
-                      key={resourceRenderKey(r, i)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '0.9rem',
-                        padding: '0.9rem 1.4rem',
-                        borderBottom:
-                          i < nearbyResources.length - 1
-                            ? `1px solid ${divider}`
-                            : undefined,
-                      }}
-                    >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontWeight: 700,
-                            fontSize: '0.82rem',
-                            color: cardText,
-                          }}
-                        >
-                          {r.name}
-                        </div>
-                        {formatResourceAddress(r) && (
-                          <div
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.7rem',
-                              color: mutedText,
-                              marginTop: '0.06rem',
-                            }}
-                          >
-                            {formatResourceAddress(r)}
-                          </div>
-                        )}
-                        {r.phone && (
-                          <div
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.7rem',
-                              color: mutedText,
-                              marginTop: '0.06rem',
-                            }}
-                          >
-                            {r.phone}
-                          </div>
-                        )}
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                            marginTop: '0.38rem',
-                            flexWrap: 'wrap',
-                          }}
-                        >
-                          <a
-                            href={r.website ?? r.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.2rem',
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.62rem',
-                              color: mutedText,
-                              textDecoration: 'underline',
-                            }}
-                          >
-                            <ExternalLink size={9} /> Source: {r.sourceName}
-                          </a>
-                          {typeof r.latitude === 'number' &&
-                            typeof r.longitude === 'number' &&
-                            Number.isFinite(latitude) &&
-                            Number.isFinite(longitude) && (
-                              <a
-                                href={`https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${r.latitude},${r.longitude}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={`Open directions to ${r.name} in Google Maps`}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '0.2rem',
-                                  fontFamily: "'Poppins', sans-serif",
-                                  fontSize: '0.62rem',
-                                  fontWeight: 700,
-                                  color: isDark ? '#93c5fd' : '#1d4ed8',
-                                  textDecoration: 'underline',
-                                }}
-                              >
-                                <ExternalLink size={9} /> Directions
-                              </a>
-                            )}
-                          {r.lastChecked && (
-                            <span
-                              style={{
-                                fontFamily: "'Poppins', sans-serif",
-                                fontSize: '0.62rem',
-                                color: mutedText,
-                              }}
-                            >
-                              · Last checked {formatChecked(r.lastChecked)}
-                            </span>
-                          )}
-                          <span
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.62rem',
-                              color: mutedText,
-                              fontStyle: 'italic',
-                            }}
-                          >
-                            · Call before visiting — information may change.
-                          </span>
-                        </div>
-                        {r.resource_key !== undefined && (
-                          <ResourceCardCommunityNotes
-                            resource={r}
-                            tips={communityTips[r.resource_key] ?? []}
-                          />
-                        )}
-                      </div>
-                      <div
+                  {(filteredResources ?? []).length === 0 ? (
+                    <div style={{ padding: '1.2rem 1.4rem' }}>
+                      <span
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.35rem',
-                          flexShrink: 0,
-                          paddingTop: '0.1rem',
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '0.78rem',
+                          color: mutedText,
+                          lineHeight: 1.5,
                         }}
                       >
-                        {typeof r.distanceMiles === 'number' && (
-                          <span
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontWeight: 700,
-                              fontSize: '0.74rem',
-                              color: mutedText,
-                            }}
-                          >
-                            {formatDist(r.distanceMiles)}
-                          </span>
-                        )}
-                        <ChevronRight size={12} color={mutedText} />
-                      </div>
+                        No results match your filters.
+                      </span>
                     </div>
-                  ))}
+                  ) : (
+                    (filteredResources ?? []).map((r, i, arr) => (
+                      <ResourceCard
+                        key={resourceRenderKey(r, i)}
+                        r={r}
+                        isLast={i === arr.length - 1}
+                        isDark={isDark}
+                        originLat={latitude}
+                        originLng={longitude}
+                        tips={
+                          r.resource_key !== undefined
+                            ? communityTips[r.resource_key] ?? []
+                            : []
+                        }
+                      />
+                    ))
+                  )}
                 </motion.div>
               ) : (
                 <motion.div
