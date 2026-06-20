@@ -4,28 +4,21 @@ import type { FC } from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Info, Search, X } from 'lucide-react';
+import { ExternalLink, Search, X } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
-import { PanelStatusSquare, PanelRefreshButton } from './PanelStatusControls';
+import {
+  PanelStatusSquare,
+  PanelRefreshButton,
+  PanelInfoPopover,
+} from './PanelStatusControls';
 import type { NearbyResource, ResourceCategory } from '@/lib/resources/schema';
+import { CATEGORY_LABELS } from '@/lib/resources/categories';
 import { useProgressiveNearbyResources } from '@/lib/resources/useNearbyResources';
 import type { CommunityTip } from '@/lib/community/types';
 import { ResourceCardCommunityNotes } from './ResourceCardCommunityNotes';
 import { SubmitTipForm } from './SubmitTipForm';
 import { ReportListingIssueModal } from './ReportListingIssueModal';
-
-const CATEGORY_LABELS: Record<ResourceCategory, string> = {
-  health: 'Health',
-  social_services: 'Social Services',
-  library: 'Library',
-  government: 'Government',
-  cooling: 'Cooling',
-  shelter: 'Shelter',
-  food: 'Food',
-  recreation: 'Recreation',
-  other: 'Other',
-};
 
 const RESOURCES_PAGE_SIZE = 10;
 
@@ -300,7 +293,6 @@ export const ResourcesPanel: FC = () => {
   const { latitude, longitude, isValid, isResolvingLocation } =
     useLocationContext();
 
-  const [sourcesOpen, setSourcesOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [query, setQuery] = useState('');
   const [activeCategories, setActiveCategories] = useState<ResourceCategory[]>(
@@ -615,89 +607,36 @@ export const ResourcesPanel: FC = () => {
                 label="Refresh resources"
               />
             )}
-            {/* Info tooltip */}
-            <div
-              style={{ position: 'relative' }}
-              onMouseEnter={() => setSourcesOpen(true)}
-              onMouseLeave={() => setSourcesOpen(false)}
+            {/* Info popover — live data sources */}
+            <PanelInfoPopover
+              isDark={isDark}
+              title="LIVE DATA SOURCES"
+              ariaLabel="Show live data sources"
             >
-              <button
-                type="button"
-                aria-label="Show live data sources"
-                aria-expanded={sourcesOpen}
-                onClick={() => setSourcesOpen((v) => !v)}
+              <ul
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 18,
-                  height: 18,
+                  listStyle: 'none',
                   padding: 0,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: mutedText,
-                  lineHeight: 0,
+                  margin: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.22rem',
                 }}
               >
-                <Info size={13} />
-              </button>
-              {sourcesOpen && (
-                <div
-                  role="tooltip"
-                  style={{
-                    position: 'absolute',
-                    bottom: 'calc(100% + 12px)',
-                    right: 0,
-                    zIndex: 99999,
-                    minWidth: 240,
-                    maxWidth: 280,
-                    padding: '0.65rem 0.8rem',
-                    background: isDark ? '#0a0a0a' : '#ffffff',
-                    border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
-                    boxShadow: isDark
-                      ? '0 4px 12px rgba(0,0,0,0.6)'
-                      : '0 4px 12px rgba(0,0,0,0.08)',
-                    fontFamily: "'Poppins', sans-serif",
-                  }}
-                >
-                  <div
+                {sources.map((s) => (
+                  <li
+                    key={s.id}
                     style={{
-                      fontWeight: 800,
-                      fontSize: '0.62rem',
-                      letterSpacing: '0.1em',
-                      color: cardText,
-                      marginBottom: '0.4rem',
+                      fontSize: '0.68rem',
+                      color: mutedText,
+                      lineHeight: 1.4,
                     }}
                   >
-                    LIVE DATA SOURCES
-                  </div>
-                  <ul
-                    style={{
-                      listStyle: 'none',
-                      padding: 0,
-                      margin: 0,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.22rem',
-                    }}
-                  >
-                    {sources.map((s) => (
-                      <li
-                        key={s.id}
-                        style={{
-                          fontSize: '0.68rem',
-                          color: mutedText,
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {s.name} {s.ok ? '' : '(failed)'}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+                    {s.name} {s.ok ? '' : '(failed)'}
+                  </li>
+                ))}
+              </ul>
+            </PanelInfoPopover>
             {/* Collapse indicator */}
             <motion.div
               style={{
@@ -875,12 +814,12 @@ export const ResourcesPanel: FC = () => {
                                 cursor: 'pointer',
                                 border: `1px solid ${
                                   active
-                                    ? '#f59e0b'
+                                    ? '#fbbf24'
                                     : isDark
                                       ? '#2a2a2a'
                                       : '#e0e0e0'
                                 }`,
-                                background: active ? '#f59e0b' : 'transparent',
+                                background: active ? '#fbbf24' : 'transparent',
                                 color: active ? '#000' : mutedText,
                               }}
                             >

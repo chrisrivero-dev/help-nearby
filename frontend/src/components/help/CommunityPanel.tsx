@@ -3,16 +3,16 @@
 import type { FC } from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Info } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
 import {
   PanelStatusSquare,
   PanelRefreshButton,
+  PanelInfoPopover,
 } from './PanelStatusControls';
 import type { CommunityOpportunity } from '@/lib/community/types';
 
-const GOLD_COLOR = '#f59e0b';
+const GOLD_COLOR = '#fbbf24';
 
 function formatWhen(o: CommunityOpportunity): string | undefined {
   if (!o.startAt) return undefined;
@@ -32,7 +32,6 @@ export const CommunityPanel: FC = () => {
   const { zip, latitude, longitude, isValid } = useLocationContext();
   const hasLocation = !!zip;
   const [isExpanded, setIsExpanded] = useState(false);
-  const [sourcesOpen, setSourcesOpen] = useState(false);
   const [items, setItems] = useState<CommunityOpportunity[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -173,86 +172,29 @@ export const CommunityPanel: FC = () => {
                 label="Refresh community"
               />
             )}
-            <div
-              style={{ position: 'relative' }}
-              onMouseEnter={() => setSourcesOpen(true)}
-              onMouseLeave={() => setSourcesOpen(false)}
-            >
-              <button
-                type="button"
-                aria-label="About this panel"
-                aria-expanded={sourcesOpen}
-                onClick={() => setSourcesOpen((v) => !v)}
+            <PanelInfoPopover isDark={isDark} title="VERIFIED OPPORTUNITIES">
+              <ul
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 18,
-                  height: 18,
+                  listStyle: 'none',
                   padding: 0,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: mutedText,
-                  lineHeight: 0,
+                  margin: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.22rem',
                 }}
               >
-                <Info size={13} />
-              </button>
-              {sourcesOpen && (
-                <div
-                  role="tooltip"
+                <li
                   style={{
-                    position: 'absolute',
-                    bottom: 'calc(100% + 12px)',
-                    right: 0,
-                    zIndex: 99999,
-                    minWidth: 240,
-                    maxWidth: 280,
-                    padding: '0.65rem 0.8rem',
-                    background: isDark ? '#0a0a0a' : '#ffffff',
-                    border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
-                    boxShadow: isDark
-                      ? '0 4px 12px rgba(0,0,0,0.6)'
-                      : '0 4px 12px rgba(0,0,0,0.08)',
-                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.68rem',
+                    color: mutedText,
+                    lineHeight: 1.4,
                   }}
                 >
-                  <div
-                    style={{
-                      fontWeight: 800,
-                      fontSize: '0.62rem',
-                      letterSpacing: '0.1em',
-                      color: cardText,
-                      marginBottom: '0.4rem',
-                    }}
-                  >
-                    VERIFIED OPPORTUNITIES
-                  </div>
-                  <ul
-                    style={{
-                      listStyle: 'none',
-                      padding: 0,
-                      margin: 0,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.22rem',
-                    }}
-                  >
-                    <li
-                      style={{
-                        fontSize: '0.68rem',
-                        color: mutedText,
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      Only admin-verified, non-expired community opportunities
-                      appear here. Nothing is shown until a record is approved.
-                    </li>
-                  </ul>
-                </div>
-              )}
-            </div>
+                  Only admin-verified, non-expired community opportunities appear
+                  here. Nothing is shown until a record is approved.
+                </li>
+              </ul>
+            </PanelInfoPopover>
             <motion.div
               style={{
                 width: 16,

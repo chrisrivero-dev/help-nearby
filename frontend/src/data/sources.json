@@ -575,5 +575,132 @@
         "longitude": "longitude"
       }
     }
+  },
+  {
+    "id": "chicago-public-library-branches",
+    "name": "Chicago Public Library Branches",
+    "url": "https://data.cityofchicago.org/Education/Libraries-Locations-Contact-Information-and-Usual-Ho/psqp-6rmg",
+    "sourceType": "socrata",
+    "category": "library",
+    "jurisdictionId": "place:1714000",
+    "trust": 80,
+    "refresh": "updated by Chicago Public Library as branch details change",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "Official Chicago Public Library locations, contact information, and usual hours. GeoJSON-style Socrata point column; current closures still require the CPL website.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofchicago.org/resource/psqp-6rmg.json",
+      "geo": { "kind": "point", "field": "location" },
+      "fieldMap": {
+        "name": "branch_",
+        "address": "address",
+        "city": "city",
+        "state": "state",
+        "zip": "zip",
+        "phone": "phone",
+        "website": "website"
+      }
+    }
+  },
+  {
+    "id": "chicago-cooling-centers",
+    "name": "Chicago Cooling Centers",
+    "url": "https://data.cityofchicago.org/Health-Human-Services/Cooling-Centers/msrk-w9ih",
+    "sourceType": "socrata",
+    "category": "cooling",
+    "jurisdictionId": "place:1714000",
+    "trust": 80,
+    "refresh": "updated seasonally by Chicago DFSS during summer heat response",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "Official Chicago cooling centers operated or published by DFSS. Seasonal heat-refuge feed; keep enabled even when facilities or hours shift by season.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofchicago.org/resource/msrk-w9ih.json",
+      "geo": { "kind": "point", "field": "location" },
+      "fieldMap": {
+        "name": "site_name",
+        "address": "address",
+        "city": "city",
+        "state": "state",
+        "zip": "zip",
+        "phone": "phone"
+      }
+    }
+  },
+  {
+    "id": "chicago-warming-centers",
+    "name": "Chicago Warming Centers",
+    "url": "https://data.cityofchicago.org/Health-Human-Services/Warming-Centers/h243-v2q5",
+    "sourceType": "socrata",
+    "category": "warming",
+    "jurisdictionId": "place:1714000",
+    "trust": 80,
+    "refresh": "updated seasonally by Chicago DFSS during winter cold response",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "Official Chicago warming centers for cold-weather refuge. First-class warming category, not folded into shelter. Seasonal feed; keep enabled even when facilities or hours shift by season.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofchicago.org/resource/h243-v2q5.json",
+      "geo": { "kind": "point", "field": "location" },
+      "fieldMap": {
+        "name": "site_name",
+        "address": "address",
+        "city": "city",
+        "state": "state",
+        "zip": "zip",
+        "phone": "phone"
+      }
+    }
+  },
+  {
+    "id": "chicago-community-service-centers",
+    "name": "Chicago Community Service Centers",
+    "url": "https://data.cityofchicago.org/Health-Human-Services/Community-Service-Centers/bspy-6mw8",
+    "sourceType": "socrata",
+    "category": "social_services",
+    "jurisdictionId": "place:1714000",
+    "trust": 80,
+    "refresh": "updated by Chicago DFSS as center details change",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "Official Chicago DFSS Community Service Centers for public benefits, emergency assistance, and support services.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofchicago.org/resource/bspy-6mw8.json",
+      "geo": { "kind": "point", "field": "location" },
+      "fieldMap": {
+        "name": "site",
+        "address": "address",
+        "city": "city",
+        "state": "state",
+        "zip": "zip",
+        "phone": "phone"
+      }
+    }
+  },
+  {
+    "id": "chicago-primary-care-health-centers",
+    "name": "Chicago Primary Care Community Health Centers",
+    "url": "https://data.cityofchicago.org/Health-Human-Services/Public-Health-Services-Chicago-Primary-Care-Community/cjg8-dbka",
+    "sourceType": "socrata",
+    "category": "health",
+    "jurisdictionId": "place:1714000",
+    "trust": 80,
+    "refresh": "updated by Chicago Department of Public Health as clinic details change",
+    "ttlSeconds": 21600,
+    "enabled": true,
+    "notes": "Official Chicago primary care community health clinics, including FQHCs and similar centers. Overlaps national HRSA health-center feed by design and exercises reconciliation.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.cityofchicago.org/resource/cjg8-dbka.json",
+      "geo": { "kind": "point", "field": "location_1" },
+      "fieldMap": {
+        "name": "facility",
+        "phone": "phone"
+      }
+    }
   }
 ]

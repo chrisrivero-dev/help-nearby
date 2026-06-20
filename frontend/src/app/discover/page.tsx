@@ -20,13 +20,17 @@ function DiscoverContent() {
     lat <= 90 &&
     lng >= -180 &&
     lng <= 180;
-  const { setLocation } = useLocationContext();
+  const { setLocation, isValid } = useLocationContext();
 
   useEffect(() => {
-    if (hasInitialCenter) {
+    // Only seed from the URL on a cold deep-link (no location resolved yet).
+    // When the shared context already holds a location, keep it so the precise
+    // ZIP isn't clobbered by a coordinate-based reverse geocode on the normal
+    // /help → Discover → /help round-trip.
+    if (hasInitialCenter && !isValid) {
       setLocation(`${lat},${lng}`);
     }
-  }, [hasInitialCenter, lat, lng, setLocation]);
+  }, [hasInitialCenter, isValid, lat, lng, setLocation]);
 
   return (
     <Discover

@@ -6,7 +6,11 @@ import {
   _clearResolverCache,
 } from '../fipsResolver';
 import { countyId, placeId, stateId } from '../jurisdiction';
-import { NYC_FIXTURES, LA_FIXTURES } from './resolver.fixtures';
+import {
+  NYC_FIXTURES,
+  LA_FIXTURES,
+  CHICAGO_FIXTURES,
+} from './resolver.fixtures';
 
 beforeEach(() => _clearResolverCache());
 
@@ -64,6 +68,24 @@ describe('resolveJurisdictions — LA (default hub)', () => {
         expect(ids.has(placeId(f.place))).toBe(true);
       } else {
         expect(ids.has(placeId('0644000'))).toBe(false);
+      }
+    },
+  );
+});
+
+describe('resolveJurisdictions — Chicago (expansion proof)', () => {
+  it.each(CHICAGO_FIXTURES.map((f) => [f.name, f] as const))(
+    '%s → Cook County, place only when inside City of Chicago',
+    async (_name, f) => {
+      const stack = await resolveJurisdictions(f.lat, f.lng);
+      const ids = idsOf(stack);
+      expect(ids.has(countyId(f.county))).toBe(true);
+      expect(ids.has(stateId('17'))).toBe(true);
+      expect(ids.has('us')).toBe(true);
+      if (f.place) {
+        expect(ids.has(placeId(f.place))).toBe(true);
+      } else {
+        expect(ids.has(placeId('1714000'))).toBe(false);
       }
     },
   );

@@ -2,15 +2,16 @@
  * Resolves a lat/lng to an ordered jurisdiction stack (most-specific first).
  *
  * Strategy — local bundle first, Census API as backup:
- *   1. Bundled high-fidelity polygons (NYC's 5 counties + LA County for counties;
- *      NYC city + LA city for places) → point-in-polygon, fully offline.
+ *   1. Bundled high-fidelity polygons (NYC's 5 counties + LA/Cook County for
+ *      counties; NYC + LA + Chicago city for places) → point-in-polygon, fully
+ *      offline.
  *   2. On a local county miss, fall back to the Census geographies API (exact,
  *      rare path). Never throws — worst case returns just [NATIONAL].
  *
  * The order returned IS the source-selection fallback order. See
  * docs/location-data-network.md §3–§4. The bundled coverage is hub-first by
- * design (NYC = accuracy gold standard, LA = default hub); the national county
- * bundle is a documented follow-up.
+ * design (NYC = accuracy gold standard, LA = default hub, Chicago = scale
+ * proof); the national county bundle is a documented follow-up.
  */
 import countiesData from '@/data/geo/counties.json';
 import placesData from '@/data/geo/places.json';
@@ -32,8 +33,8 @@ const counties = countiesData as unknown as FeatureCollection;
 const places = placesData as unknown as FeatureCollection;
 
 // ── Density-aware resolution cache ───────────────────────────────────────────
-// Repeated searches in the same area resolve for free. Dense hubs (NYC/LA) use a
-// finer key (~110m) so distinct neighborhoods don't collapse into one bucket;
+// Repeated searches in the same area resolve for free. Dense hubs use a finer
+// key (~110m) so distinct neighborhoods don't collapse into one bucket;
 // elsewhere ~1.1km is plenty. Same module-level Map pattern as locationLookup.ts.
 const _cache = new Map<string, Jurisdiction[]>();
 

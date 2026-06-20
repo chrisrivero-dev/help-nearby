@@ -19,6 +19,7 @@ import FeatureBar from './FeatureBar';
 import { useLocationContext } from './help/LocationContext';
 import { useProgressiveNearbyResources } from '@/lib/resources/useNearbyResources';
 import type { NearbyResource, ResourceCategory } from '@/lib/resources/schema';
+import { CATEGORY_LABELS, CATEGORY_COLORS } from '@/lib/resources/categories';
 
 import { useMap, useMapEvents } from 'react-leaflet';
 
@@ -45,30 +46,6 @@ interface DiscoverProps {
 }
 
 const DISCOVER_PAGE_SIZE = 25;
-
-const CATEGORY_LABELS: Record<ResourceCategory, string> = {
-  health: 'Health',
-  social_services: 'Social Services',
-  library: 'Library',
-  government: 'Government',
-  cooling: 'Cooling',
-  shelter: 'Shelter',
-  food: 'Food',
-  recreation: 'Recreation',
-  other: 'Other',
-};
-
-const CATEGORY_COLORS: Record<ResourceCategory, string> = {
-  health: '#ef4444',
-  social_services: '#f59e0b',
-  library: '#8b5cf6',
-  government: '#64748b',
-  cooling: '#06b6d4',
-  shelter: '#0ea5e9',
-  food: '#22c55e',
-  recreation: '#84cc16',
-  other: '#f97316',
-};
 
 const formatDist = (mi?: number) => {
   if (typeof mi !== 'number') return '';
@@ -967,12 +944,12 @@ const Discover: FC<DiscoverProps> = ({
                       cursor: 'pointer',
                       border: `1px solid ${
                         active
-                          ? '#f59e0b'
+                          ? '#fbbf24'
                           : theme === 'dark'
                             ? '#2a2a2a'
                             : '#e0e0e0'
                       }`,
-                      background: active ? '#f59e0b' : 'transparent',
+                      background: active ? '#fbbf24' : 'transparent',
                       color: active
                         ? '#000'
                         : theme === 'dark'

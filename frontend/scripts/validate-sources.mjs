@@ -93,6 +93,7 @@ async function main() {
   const points = [
     { label: 'NYC — Times Square', lat: 40.758, lng: -73.9855 },
     { label: 'LA — City Hall', lat: 34.0537, lng: -118.2427 },
+    { label: 'Chicago — City Hall', lat: 41.8837, lng: -87.6318 },
   ];
 
   let ok = true;
@@ -125,6 +126,7 @@ async function main() {
   // Assert the core promise: NYC taps NYC sources, LA taps LA sources.
   const nyc = select(40.758, -73.9855).map((s) => s.id);
   const la = select(34.0537, -118.2427).map((s) => s.id);
+  const chicago = select(41.8837, -87.6318).map((s) => s.id);
   const expect = (cond, msg) => {
     if (!cond) {
       console.error(`\n✗ ${msg}`);
@@ -136,6 +138,20 @@ async function main() {
   expect(nyc.includes('hrsa-health-center-sites'), 'NYC should still get national HRSA');
   expect(la.includes('la-city-rec-parks-facilities'), 'LA should select LA city rec/parks');
   expect(!la.some((id) => id.startsWith('nyc-')), 'LA must NOT select NYC sources');
+  expect(
+    chicago.includes('chicago-public-library-branches'),
+    'Chicago should select Chicago library branches',
+  );
+  expect(
+    chicago.includes('chicago-warming-centers'),
+    'Chicago should select Chicago warming centers',
+  );
+  expect(
+    chicago.includes('hrsa-health-center-sites'),
+    'Chicago should still get national HRSA',
+  );
+  expect(!chicago.some((id) => id.startsWith('nyc-')), 'Chicago must NOT select NYC sources');
+  expect(!chicago.some((id) => id.startsWith('la-')), 'Chicago must NOT select LA sources');
 
   console.log(ok ? '\n✓ registry selection + live Socrata fetch verified' : '\n✗ checks failed');
   process.exit(ok ? 0 : 1);

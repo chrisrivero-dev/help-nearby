@@ -1,8 +1,10 @@
 'use client';
 
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { RefreshCw } from 'lucide-react';
+import { Info, RefreshCw } from 'lucide-react';
 
 /**
  * Shared panel-header status square. While loading it is an empty bordered
@@ -107,5 +109,98 @@ export const PanelRefreshButton: FC<{
     >
       <RefreshCw size={13} />
     </motion.button>
+  );
+};
+
+/**
+ * Shared panel-header info popover. The info button opens a tooltip listing the
+ * panel's data sources. The tooltip renders in a `document.body` portal with
+ * fixed positioning so it paints above the fixed NavBar — a panel's own stacking
+ * context (framer-motion transforms) traps an in-tree popover beneath it.
+ * `title` is the popover heading; `children` is the body (e.g. the source list).
+ */
+export const PanelInfoPopover: FC<{
+  isDark: boolean;
+  title: string;
+  ariaLabel?: string;
+  children: ReactNode;
+}> = ({ isDark, title, ariaLabel = 'About this panel', children }) => {
+  const cardText = isDark ? '#dedede' : '#111111';
+  const mutedText = isDark ? '#7a7a7a' : '#888';
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef<HTMLDivElement | null>(null);
+  const [rect, setRect] = useState<DOMRect | null>(null);
+
+  const openPopover = useCallback(() => {
+    if (anchorRef.current) setRect(anchorRef.current.getBoundingClientRect());
+    setOpen(true);
+  }, []);
+
+  return (
+    <div
+      ref={anchorRef}
+      style={{ position: 'relative' }}
+      onMouseEnter={openPopover}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        aria-expanded={open}
+        onClick={() => (open ? setOpen(false) : openPopover())}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 18,
+          height: 18,
+          padding: 0,
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          color: mutedText,
+          lineHeight: 0,
+        }}
+      >
+        <Info size={13} />
+      </button>
+      {open &&
+        rect &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            role="tooltip"
+            style={{
+              position: 'fixed',
+              bottom: window.innerHeight - rect.top + 12,
+              right: window.innerWidth - rect.right,
+              zIndex: 100002,
+              minWidth: 240,
+              maxWidth: 280,
+              padding: '0.65rem 0.8rem',
+              background: isDark ? '#0a0a0a' : '#ffffff',
+              border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
+              boxShadow: isDark
+                ? '0 4px 12px rgba(0,0,0,0.6)'
+                : '0 4px 12px rgba(0,0,0,0.08)',
+              fontFamily: "'Poppins', sans-serif",
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 800,
+                fontSize: '0.62rem',
+                letterSpacing: '0.1em',
+                color: cardText,
+                marginBottom: '0.4rem',
+              }}
+            >
+              {title}
+            </div>
+            {children}
+          </div>,
+          document.body,
+        )}
+    </div>
   );
 };

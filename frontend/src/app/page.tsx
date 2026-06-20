@@ -690,7 +690,7 @@ const Landing: FC = () => {
               delay: 0.5,
             }}
           >
-            Find source-backed help nearby — food, health, shelter, cooling,
+            Find source-backed help nearby — food, health, shelter, cooling, warming,
             and emergency resources from official public sources, with
             directions, source attribution, and honest status indicators.
           </motion.p>
@@ -774,7 +774,7 @@ const Landing: FC = () => {
 const LIVE_NOW = [
   {
     title: 'Live resource search',
-    desc: 'Nearby food banks, health centers, cooling centers, and parks from public datasets, searched by ZIP or location.',
+    desc: 'Nearby food banks, health centers, cooling and warming centers, and parks from public datasets, searched by ZIP or location.',
   },
   {
     title: 'Source attribution',
@@ -801,7 +801,7 @@ const LIVE_NOW = [
 const BUILT_FOR = [
   {
     title: 'Residents',
-    desc: 'Find source-backed help nearby — food, health, shelter, and cooling resources from official public datasets, with directions and source links.',
+    desc: 'Find source-backed help nearby — food, health, shelter, cooling, and warming resources from official public datasets, with directions and source links.',
   },
   {
     title: 'Cities & counties',
@@ -978,7 +978,7 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
           organizations can add a source-backed local resource finder to their
           own website with a simple iframe. Visitors search by ZIP, filter by
           category, and get directions and source links for nearby food banks,
-          health centers, and cooling centers — directly on your page. No
+          health centers, cooling centers, and warming centers — directly on your page. No
           accounts or API keys required.
         </p>
         <p

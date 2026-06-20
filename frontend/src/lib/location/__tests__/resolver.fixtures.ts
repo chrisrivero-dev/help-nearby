@@ -69,3 +69,15 @@ export const LA_FIXTURES: LocationFixture[] = [
   { name: 'Malibu', lat: 34.0259, lng: -118.7798, county: '06037', place: null },
   { name: 'Lancaster', lat: 34.6868, lng: -118.1542, county: '06037', place: null },
 ];
+
+// Chicago — Cook County 17031. place is City of Chicago (1714000) or null.
+export const CHICAGO_FIXTURES: LocationFixture[] = [
+  // Inside City of Chicago
+  { name: 'Chicago City Hall', lat: 41.8837, lng: -87.6318, county: '17031', place: '1714000' },
+  { name: 'Harold Washington Library', lat: 41.8763, lng: -87.6282, county: '17031', place: '1714000' },
+  { name: 'Garfield Park Conservatory', lat: 41.8865, lng: -87.7173, county: '17031', place: '1714000' },
+  { name: "O'Hare Terminal 2", lat: 41.9769, lng: -87.9048, county: '17031', place: '1714000' },
+  // In Cook County but NOT City of Chicago
+  { name: 'Evanston', lat: 42.0451, lng: -87.6877, county: '17031', place: null },
+  { name: 'Oak Park', lat: 41.885, lng: -87.7845, county: '17031', place: null },
+];

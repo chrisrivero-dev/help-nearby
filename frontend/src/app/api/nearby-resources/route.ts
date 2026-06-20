@@ -59,7 +59,9 @@ export async function GET(
 
   const latitude = parseFloatParam(searchParams.get('lat'));
   const longitude = parseFloatParam(searchParams.get('lng'));
-  const radiusRaw = parseFloatParam(searchParams.get('radiusMiles'));
+  const radiusRaw =
+    parseFloatParam(searchParams.get('radiusMiles')) ??
+    parseFloatParam(searchParams.get('radius'));
   const radiusMiles = Math.min(
     MAX_RADIUS_MILES,
     Math.max(0.1, radiusRaw ?? DEFAULT_RADIUS_MILES),

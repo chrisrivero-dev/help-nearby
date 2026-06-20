@@ -64,6 +64,13 @@ function pickStr(row: Record<string, unknown>, key?: string): string | undefined
   if (!key) return undefined;
   const v = row[key];
   if (v === null || v === undefined) return undefined;
+  if (typeof v === 'object') {
+    const url = (v as Record<string, unknown>).url;
+    if (typeof url === 'string') {
+      const s = url.trim();
+      return s.length > 0 ? s : undefined;
+    }
+  }
   const s = String(v).trim();
   return s.length > 0 ? s : undefined;
 }
@@ -95,6 +102,15 @@ function parseLocationObject(value: unknown): ParsedLocation {
   if (!value || typeof value !== 'object') return {};
   const obj = value as Record<string, unknown>;
   const out: ParsedLocation = {};
+
+  if (Array.isArray(obj.coordinates)) {
+    const [lngRaw, latRaw] = obj.coordinates;
+    const lat = Number(latRaw);
+    const lng = Number(lngRaw);
+    if (Number.isFinite(lat)) out.lat = lat;
+    if (Number.isFinite(lng)) out.lng = lng;
+  }
+
   const lat = Number(obj.latitude);
   const lng = Number(obj.longitude);
   if (Number.isFinite(lat)) out.lat = lat;

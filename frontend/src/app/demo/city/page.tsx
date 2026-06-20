@@ -129,7 +129,7 @@ const DemoCityPage: FC = () => {
           }}
         >
           Residents can use the search tool below to find nearby food
-          assistance, health centers, and cooling centers. Listings come from
+          assistance, health centers, cooling centers, and warming centers. Listings come from
           public datasets where available and include directions and a link to
           the original source.
         </p>
@@ -189,7 +189,7 @@ const DemoCityPage: FC = () => {
               >
                 This resource finder is powered by Help Nearby, an independent
                 source-backed local aid discovery tool. It draws on public
-                datasets — health centers, food banks, cooling centers, and
+                datasets — health centers, food banks, cooling centers, warming centers, and
                 parks — and shows source attribution where available. It is
                 not an official government emergency alert system.
               </p>

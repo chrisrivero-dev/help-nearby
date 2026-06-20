@@ -17,6 +17,7 @@ export type ResourceCategory =
   | 'library'
   | 'government'
   | 'cooling'
+  | 'warming'
   | 'shelter'
   | 'food'
   | 'recreation'

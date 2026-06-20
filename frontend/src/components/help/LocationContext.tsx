@@ -157,6 +157,61 @@ const reverseGeocodeCoordinates = async (lat: number, lng: number) => {
   };
 };
 
+// Forward-geocode a "City, ST" query to the canonical city centroid. Uses
+// Nominatim's structured search so "Chicago, IL" resolves to Chicago itself
+// (city center + a representative ZIP) instead of a fringe ZIP from a loosely
+// matched neighboring place such as "North Chicago".
+const forwardGeocodeCity = async (cityName: string, stateCode: string) => {
+  const params = new URLSearchParams({
+    format: 'json',
+    addressdetails: '1',
+    countrycodes: 'us',
+    limit: '1',
+    city: cityName,
+    state: stateCode,
+  });
+
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?${params.toString()}`,
+  );
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  const top = Array.isArray(data) ? data[0] : null;
+  if (!top) return null;
+
+  const lat = Number(top.lat);
+  const lng = Number(top.lon);
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng) ||
+    lat < -90 ||
+    lat > 90 ||
+    lng < -180 ||
+    lng > 180
+  ) {
+    return null;
+  }
+
+  const address = top.address ?? {};
+  const resolvedCity =
+    address.city ||
+    address.town ||
+    address.village ||
+    address.hamlet ||
+    address.municipality ||
+    cityName;
+
+  return {
+    zipCode: address.postcode ?? '',
+    city: resolvedCity,
+    stateCode: toStateCode(address.state) || toStateCode(stateCode),
+    latitude: lat,
+    longitude: lng,
+    isValid: true,
+  };
+};
+
 export const LocationProvider: FC<LocationProviderProps> = ({
   children,
   defaultZip = '',
@@ -263,15 +318,7 @@ export const LocationProvider: FC<LocationProviderProps> = ({
           return fallback;
         }
 
-        const res = await fetch(
-          `https://api.zippopotam.us/us/${stateCode.toLowerCase()}/${encodeURIComponent(
-            cityName.toLowerCase(),
-          )}`,
-        );
-        if (!res.ok) return fallback;
-
-        const data = await res.json();
-        return buildResult(data?.places?.[0]) ?? fallback;
+        return (await forwardGeocodeCity(cityName, stateCode)) ?? fallback;
       }
 
       // ZIP search.

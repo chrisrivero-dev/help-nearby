@@ -340,16 +340,20 @@ const TitleBase: FC<TitleProps> = ({
                 onBlur={commitLocation}
                 style={{
                   fontFamily: "'Poppins', sans-serif",
-                  fontSize: '1.2rem',
+                  fontSize: '1.4rem',
                   fontWeight: 700,
+                  lineHeight: 1.2,
+                  height: '40px',
                   width: '16ch',
                   textAlign: 'center',
                   color: textColor,
                   background: isDark ? '#07080b' : '#ffffff',
-                  border: `1.5px solid ${isDark ? '#252a36' : '#d0d4dc'}`,
-                  borderRadius: '3px',
-                  padding: '3px 6px',
+                  border: '3px solid #fbbf24',
+                  borderRadius: 0,
+                  padding: '2px 6px',
                   outline: 'none',
+                  boxSizing: 'border-box',
+                  transition: 'border-color 0.15s ease',
                 }}
               />
             ) : (
@@ -362,21 +366,27 @@ const TitleBase: FC<TitleProps> = ({
                 style={{
                   display: 'flex',
                   flexDirection: 'row',
-                  alignItems: 'baseline',
+                  alignItems: 'center',
+                  height: '40px',
                   gap: '10px',
                   fontFamily: "'Poppins', sans-serif",
                   fontWeight: 700,
                   fontSize: '1.4rem',
                   color: hasLocation ? textColor : '#fbbf24',
                   background: 'none',
-                  border: 'none',
+                  border: `3px solid ${
+                    isLocationHovered
+                      ? '#fbbf24'
+                      : isDark
+                        ? '#252a36'
+                        : '#d0d4dc'
+                  }`,
+                  borderRadius: 0,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   lineHeight: 1.2,
-                  padding: '2px 4px',
-                  borderBottom: `1.5px solid ${
-                    isLocationHovered ? '#fbbf24' : 'transparent'
-                  }`,
+                  padding: '2px 6px',
+                  boxSizing: 'border-box',
                   transition: 'border-color 0.15s ease',
                 }}
               >

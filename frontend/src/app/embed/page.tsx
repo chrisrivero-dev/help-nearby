@@ -10,17 +10,9 @@ import type {
   NearbyResponse,
   ResourceCategory,
 } from '@/lib/resources/schema';
+import { EMBED_CATEGORIES } from '@/lib/resources/categories';
 
 const MAX_ROWS = 5;
-
-// Categories the widget can offer. Only categories with live registered
-// sources are listed so an embed never advertises an empty filter.
-const EMBED_CATEGORIES: { id: ResourceCategory; label: string }[] = [
-  { id: 'food', label: 'Food' },
-  { id: 'health', label: 'Health' },
-  { id: 'cooling', label: 'Cooling' },
-  { id: 'recreation', label: 'Parks & Community' },
-];
 
 const DEFAULT_ACCENT = '#f59e0b';
 

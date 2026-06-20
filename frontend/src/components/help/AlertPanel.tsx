@@ -3,10 +3,14 @@
 import type { FC } from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Info } from 'lucide-react';
+import { ExternalLink, Search, X } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
-import { PanelStatusSquare, PanelRefreshButton } from './PanelStatusControls';
+import {
+  PanelStatusSquare,
+  PanelRefreshButton,
+  PanelInfoPopover,
+} from './PanelStatusControls';
 
 interface WeatherAlert {
   id: string;
@@ -21,6 +25,8 @@ interface WeatherAlert {
   expires: string | null;
   area: string;
   url: string;
+  sourceName?: string;
+  sourceUrl?: string;
 }
 
 interface AlertSourceStatus {
@@ -29,12 +35,13 @@ interface AlertSourceStatus {
   ok: boolean;
 }
 
-const GOLD_COLOR = '#f59e0b';
+const GOLD_COLOR = '#fbbf24';
+const ALERTS_PAGE_SIZE = 10;
 
 export const AlertPanel: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { zip, latitude, longitude, isValid } = useLocationContext();
+  const { latitude, longitude, isValid } = useLocationContext();
 
   // HeroSection color scheme
   const heroBg = isDark
@@ -46,6 +53,8 @@ export const AlertPanel: FC = () => {
     : '4px 4px 0px rgba(0,0,0,0.05)';
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#555' : '#999';
+  // Detail/subtext tone matched to ResourcesPanel so alert headlines read clearly.
+  const detailText = isDark ? '#bdbdbd' : '#444444';
   const inputBg = isDark ? '#07080b' : '#ffffff';
   const inputBorder = isDark ? '#252a36' : '#d0d4dc';
   const errorColor = '#dc2626';
@@ -53,9 +62,9 @@ export const AlertPanel: FC = () => {
   const [weatherAlerts, setWeatherAlerts] = useState<WeatherAlert[] | null>(
     null,
   );
-  const [selectedAlertType, setSelectedAlertType] = useState<string | null>(
-    null,
-  );
+  const [activeTypes, setActiveTypes] = useState<string[]>([]);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
 
   // Extract unique event types from alerts for category badges
   const eventTypes = useMemo(() => {
@@ -65,13 +74,46 @@ export const AlertPanel: FC = () => {
   }, [weatherAlerts]);
   const filteredWeatherAlerts = useMemo(() => {
     if (!weatherAlerts) return null;
-    if (!selectedAlertType) return weatherAlerts;
-    return weatherAlerts.filter((alert) => alert.title === selectedAlertType);
-  }, [selectedAlertType, weatherAlerts]);
+    const q = query.trim().toLowerCase();
+    return weatherAlerts.filter((alert) => {
+      if (activeTypes.length > 0 && !activeTypes.includes(alert.title))
+        return false;
+      if (!q) return true;
+      const haystack = [
+        alert.title,
+        alert.headline,
+        alert.area,
+        alert.description,
+        alert.sourceName,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [activeTypes, query, weatherAlerts]);
+
+  const filteredTotal = filteredWeatherAlerts?.length ?? 0;
+  const totalPages =
+    filteredTotal === 0 ? 0 : Math.ceil(filteredTotal / ALERTS_PAGE_SIZE);
+  const shownTotalPages = Math.max(totalPages, 1);
+  const hasPreviousPage = page > 1;
+  const hasNextPage = page < totalPages;
+  const pagedAlerts = useMemo(() => {
+    if (!filteredWeatherAlerts) return filteredWeatherAlerts;
+    const offset = (page - 1) * ALERTS_PAGE_SIZE;
+    return filteredWeatherAlerts.slice(offset, offset + ALERTS_PAGE_SIZE);
+  }, [filteredWeatherAlerts, page]);
+  const filtersActive = query.trim().length > 0 || activeTypes.length > 0;
+
+  const toggleType = (t: string) =>
+    setActiveTypes((prev) =>
+      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
+    );
   const [weatherAlertsLoading, setWeatherAlertsLoading] = useState(false);
   const [weatherAlertsError, setWeatherAlertsError] = useState(false);
+  const [lastChecked, setLastChecked] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(true);
-  const [sourcesOpen, setSourcesOpen] = useState(false);
   const [sources, setSources] = useState<AlertSourceStatus[]>([
     { id: 'nws', name: 'National Weather Service', ok: true },
   ]);
@@ -80,7 +122,9 @@ export const AlertPanel: FC = () => {
     setWeatherAlertsLoading(true);
     setWeatherAlertsError(false);
     setWeatherAlerts(null);
-    setSelectedAlertType(null);
+    setActiveTypes([]);
+    setQuery('');
+    setPage(1);
 
     try {
       const params = new URLSearchParams({
@@ -93,6 +137,7 @@ export const AlertPanel: FC = () => {
         setWeatherAlertsError(true);
       } else {
         setWeatherAlerts(data.alerts ?? []);
+        setLastChecked(new Date().toISOString());
         if (Array.isArray(data.sources) && data.sources.length > 0) {
           setSources(data.sources);
         }
@@ -104,29 +149,35 @@ export const AlertPanel: FC = () => {
     }
   }, []);
 
+  // Drop any active type filters that no longer exist in the latest results.
   useEffect(() => {
-    if (
-      selectedAlertType &&
-      !eventTypes.some((eventType) => eventType === selectedAlertType)
-    ) {
-      setSelectedAlertType(null);
+    setActiveTypes((prev) => {
+      const next = prev.filter((t) => eventTypes.includes(t));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [eventTypes]);
+
+  // Reset to the first page whenever the filters change.
+  useEffect(() => {
+    setPage(1);
+  }, [activeTypes, query]);
+
+  // Keep the page in range as the filtered total shrinks.
+  useEffect(() => {
+    if (totalPages > 0 && page > totalPages) {
+      setPage(totalPages);
     }
-  }, [eventTypes, selectedAlertType]);
+  }, [page, totalPages]);
 
   useEffect(() => {
-    if (!zip) {
-      setWeatherAlerts(null);
-      setWeatherAlertsError(false);
-      return;
-    }
     if (isValid && Number.isFinite(latitude) && Number.isFinite(longitude)) {
       fetchWeatherAlerts(latitude, longitude);
     } else {
-      // ZIP entered but lookup failed — show empty/unavailable.
-      setWeatherAlerts([]);
+      // No resolved location yet (or lookup failed) — show nothing.
+      setWeatherAlerts(null);
       setWeatherAlertsError(false);
     }
-  }, [zip, isValid, latitude, longitude, fetchWeatherAlerts]);
+  }, [isValid, latitude, longitude, fetchWeatherAlerts]);
 
   const handleRefresh = useCallback(() => {
     if (isValid && Number.isFinite(latitude) && Number.isFinite(longitude)) {
@@ -134,11 +185,20 @@ export const AlertPanel: FC = () => {
     }
   }, [isValid, latitude, longitude, fetchWeatherAlerts]);
 
-  const formatCheckedTime = (iso: string) =>
-    new Date(iso).toLocaleTimeString([], {
+  const formatChecked = (iso: string) => {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
     });
+  };
+
+  const alertSourceName =
+    sources.find((source) => source.ok)?.name ?? 'National Weather Service';
 
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
   const accentColor = GOLD_COLOR;
@@ -216,7 +276,7 @@ export const AlertPanel: FC = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             {/* Manual refresh — left of the info icon */}
-            {zip && isValid && (
+            {isValid && (
               <PanelRefreshButton
                 loading={weatherAlertsLoading}
                 onRefresh={handleRefresh}
@@ -224,89 +284,36 @@ export const AlertPanel: FC = () => {
                 label="Refresh alerts"
               />
             )}
-            {/* Info tooltip */}
-            <div
-              style={{ position: 'relative' }}
-              onMouseEnter={() => setSourcesOpen(true)}
-              onMouseLeave={() => setSourcesOpen(false)}
+            {/* Info popover — live data sources */}
+            <PanelInfoPopover
+              isDark={isDark}
+              title="LIVE DATA SOURCES"
+              ariaLabel="Show live data sources"
             >
-              <button
-                type="button"
-                aria-label="Show live data sources"
-                aria-expanded={sourcesOpen}
-                onClick={() => setSourcesOpen((v) => !v)}
+              <ul
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 18,
-                  height: 18,
+                  listStyle: 'none',
                   padding: 0,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: mutedText,
-                  lineHeight: 0,
+                  margin: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.22rem',
                 }}
               >
-                <Info size={13} />
-              </button>
-              {sourcesOpen && (
-                <div
-                  role="tooltip"
-                  style={{
-                    position: 'absolute',
-                    bottom: 'calc(100% + 12px)',
-                    right: 0,
-                    zIndex: 99999,
-                    minWidth: 240,
-                    maxWidth: 280,
-                    padding: '0.65rem 0.8rem',
-                    background: isDark ? '#0a0a0a' : '#ffffff',
-                    border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
-                    boxShadow: isDark
-                      ? '0 4px 12px rgba(0,0,0,0.6)'
-                      : '0 4px 12px rgba(0,0,0,0.08)',
-                    fontFamily: "'Poppins', sans-serif",
-                  }}
-                >
-                  <div
+                {sources.map((s) => (
+                  <li
+                    key={s.id}
                     style={{
-                      fontWeight: 800,
-                      fontSize: '0.62rem',
-                      letterSpacing: '0.1em',
-                      color: cardText,
-                      marginBottom: '0.4rem',
+                      fontSize: '0.68rem',
+                      color: mutedText,
+                      lineHeight: 1.4,
                     }}
                   >
-                    LIVE DATA SOURCES
-                  </div>
-                  <ul
-                    style={{
-                      listStyle: 'none',
-                      padding: 0,
-                      margin: 0,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.22rem',
-                    }}
-                  >
-                    {sources.map((s) => (
-                      <li
-                        key={s.id}
-                        style={{
-                          fontSize: '0.68rem',
-                          color: mutedText,
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {s.name} {s.ok ? '' : '(failed)'}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+                    {s.name} {s.ok ? '' : '(failed)'}
+                  </li>
+                ))}
+              </ul>
+            </PanelInfoPopover>
             {/* Collapse indicator */}
             <motion.div
               style={{
@@ -338,60 +345,108 @@ export const AlertPanel: FC = () => {
         <AnimatePresence mode="wait">
           {isExpanded ? (
             <>
-              {/* Event type filter badges */}
-              {eventTypes.length > 0 && (
+              {/* Filter bar — keyword search + type toggles (multi-select) */}
+              {weatherAlerts !== null && weatherAlerts.length > 0 && (
                 <div
                   style={{
-                    padding: '0.75rem 1.4rem',
-                    display: 'flex',
-                    gap: '0.38rem',
-                    flexWrap: 'wrap',
+                    padding: '0.8rem 1.4rem',
                     borderBottom: `1px solid ${divider}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.6rem',
                   }}
                 >
-                  {eventTypes.map((eventType) => (
-                    <button
-                      type="button"
-                      key={eventType}
-                      aria-pressed={selectedAlertType === eventType}
-                      onClick={() =>
-                        setSelectedAlertType((current) =>
-                          current === eventType ? null : eventType,
-                        )
-                      }
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
+                      background: isDark ? '#0a0a0a' : '#fafafa',
+                      padding: '0.4rem 0.6rem',
+                    }}
+                  >
+                    <Search size={13} color={mutedText} />
+                    <input
+                      type="text"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Filter by type, area, or source…"
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.72rem',
+                        color: cardText,
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                      }}
+                    />
+                    {filtersActive && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQuery('');
+                          setActiveTypes([]);
+                        }}
+                        aria-label="Clear filters"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 0,
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: mutedText,
+                          lineHeight: 0,
+                        }}
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
+                  {eventTypes.length > 1 && (
+                    <div
                       style={{
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.28rem',
-                        padding: '0.2rem 0.48rem',
-                        border: `1px solid ${
-                          selectedAlertType === eventType
-                            ? accentColor
-                            : divider
-                        }`,
-                        backgroundColor:
-                          selectedAlertType === eventType
-                            ? isDark
-                              ? 'rgba(245, 158, 11, 0.14)'
-                              : 'rgba(245, 158, 11, 0.12)'
-                            : isDark
-                              ? '#1a1a1a'
-                              : '#f5f5f5',
-                        fontSize: '0.65rem',
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 600,
-                        color:
-                          selectedAlertType === eventType
-                            ? accentColor
-                            : mutedText,
-                        letterSpacing: '0.04em',
-                        cursor: 'pointer',
-                        lineHeight: 1.2,
+                        flexWrap: 'wrap',
+                        gap: '0.35rem',
                       }}
                     >
-                      {eventType}
-                    </button>
-                  ))}
+                      {eventTypes.map((eventType) => {
+                        const active = activeTypes.includes(eventType);
+                        return (
+                          <button
+                            key={eventType}
+                            type="button"
+                            onClick={() => toggleType(eventType)}
+                            aria-pressed={active}
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: '0.62rem',
+                              fontWeight: 700,
+                              letterSpacing: '0.04em',
+                              padding: '0.22rem 0.55rem',
+                              cursor: 'pointer',
+                              border: `1px solid ${
+                                active
+                                  ? '#fbbf24'
+                                  : isDark
+                                    ? '#2a2a2a'
+                                    : '#e0e0e0'
+                              }`,
+                              background: active ? '#fbbf24' : 'transparent',
+                              color: active ? '#000' : mutedText,
+                            }}
+                          >
+                            {eventType}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -488,7 +543,73 @@ export const AlertPanel: FC = () => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {filteredWeatherAlerts.length === 0 ? (
+                  {/* Pagination — 10 alerts per page */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '0.8rem',
+                      padding: '0.65rem 1.4rem',
+                      borderBottom: `1px solid ${divider}`,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.68rem',
+                        color: mutedText,
+                      }}
+                    >
+                      Page {Math.min(page, shownTotalPages)} of {shownTotalPages}
+                      {filteredTotal > 0 ? ` · ${filteredTotal} results` : ''}
+                    </span>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={!hasPreviousPage}
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '0.68rem',
+                          fontWeight: 800,
+                          padding: '0.25rem 0.55rem',
+                          cursor: !hasPreviousPage ? 'not-allowed' : 'pointer',
+                          border: `1px solid ${isDark ? '#2a2a2a' : '#e0e0e0'}`,
+                          background: 'transparent',
+                          color: !hasPreviousPage ? mutedText : cardText,
+                          opacity: !hasPreviousPage ? 0.45 : 1,
+                        }}
+                      >
+                        Prev
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPage((p) => p + 1)}
+                        disabled={!hasNextPage}
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '0.68rem',
+                          fontWeight: 800,
+                          padding: '0.25rem 0.55rem',
+                          cursor: !hasNextPage ? 'not-allowed' : 'pointer',
+                          border: `1px solid ${isDark ? '#2a2a2a' : '#e0e0e0'}`,
+                          background: 'transparent',
+                          color: !hasNextPage ? mutedText : cardText,
+                          opacity: !hasNextPage ? 0.45 : 1,
+                        }}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                  {(pagedAlerts ?? []).length === 0 ? (
                     <div
                       style={{
                         display: 'flex',
@@ -507,23 +628,27 @@ export const AlertPanel: FC = () => {
                           lineHeight: 1.6,
                         }}
                       >
-                        NO {selectedAlertType?.toUpperCase()} ALERTS
+                        No alerts match your filters.
                       </span>
                     </div>
                   ) : (
-                    filteredWeatherAlerts.map((alert) => (
-                      <div
-                        key={alert.id}
-                        style={{
-                          display: 'flex',
-                          gap: '0.75rem',
-                          alignItems: 'flex-start',
-                          padding: '0.85rem 1rem',
-                          borderLeft: `3px solid ${accentColor}`,
-                          background: isDark ? '#0d0d0d' : '#fafafa',
-                        }}
-                      >
-                        <div>
+                    (pagedAlerts ?? []).map((alert, index, arr) => {
+                      const isLast = index === arr.length - 1;
+                      const itemSourceName = alert.sourceName ?? alertSourceName;
+                      const sourceUrl =
+                        alert.sourceUrl ||
+                        alert.url ||
+                        'https://www.weather.gov/';
+                      return (
+                        <div
+                          key={alert.id}
+                          style={{
+                            padding: '0.9rem 1.4rem',
+                            borderBottom: isLast
+                              ? undefined
+                              : `1px solid ${divider}`,
+                          }}
+                        >
                           <div
                             style={{
                               fontFamily: "'Poppins', sans-serif",
@@ -540,7 +665,7 @@ export const AlertPanel: FC = () => {
                               style={{
                                 fontFamily: "'Poppins', sans-serif",
                                 fontSize: '0.77rem',
-                                color: mutedText,
+                                color: detailText,
                                 lineHeight: 1.5,
                                 marginBottom: '0.3rem',
                               }}
@@ -560,52 +685,49 @@ export const AlertPanel: FC = () => {
                               {alert.area}
                             </div>
                           )}
+                          {/* Footer: source above the last-checked timestamp */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '0.16rem',
+                              marginTop: '0.7rem',
+                              paddingTop: '0.6rem',
+                              borderTop: `1px solid ${divider}`,
+                            }}
+                          >
+                            <a
+                              href={sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.2rem',
+                                fontFamily: "'Poppins', sans-serif",
+                                fontSize: '0.62rem',
+                                color: mutedText,
+                                textDecoration: 'underline',
+                                width: 'fit-content',
+                              }}
+                            >
+                              <ExternalLink size={9} /> Source: {itemSourceName}
+                            </a>
+                            {lastChecked && (
+                              <span
+                                style={{
+                                  fontFamily: "'Poppins', sans-serif",
+                                  fontSize: '0.62rem',
+                                  color: mutedText,
+                                }}
+                              >
+                                Last checked {formatChecked(lastChecked)}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  )}
-                  {!weatherAlertsLoading && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '0.55rem 1.4rem',
-                        borderTop: `1px solid ${divider}`,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.62rem',
-                          color: mutedText,
-                          letterSpacing: '0.02em',
-                        }}
-                      >
-                        Sources:{' '}
-                        {sources
-                          .filter((source) => source.ok)
-                          .map((source) => source.name)
-                          .slice(0, 2)
-                          .join(', ') || 'Official alert sources'}
-                        {sources.filter((source) => source.ok).length > 2
-                          ? ' + more'
-                          : ''}
-                      </span>
-                      {weatherAlerts[0]?.effective && (
-                        <span
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.62rem',
-                            color: mutedText,
-                            letterSpacing: '0.02em',
-                          }}
-                        >
-                          Checked{' '}
-                          {formatCheckedTime(weatherAlerts[0].effective)}
-                        </span>
-                      )}
-                    </div>
+                      );
+                    })
                   )}
                 </motion.div>
               ) : null}

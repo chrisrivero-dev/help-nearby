@@ -6,8 +6,8 @@
  *   node scripts/build-coverage.mjs
  *
  * Hub-first by design (docs/location-data-network.md §3–§4):
- *   counties.json — NYC's 5 boroughs (NY state counties) + LA County
- *   places.json   — City of New York + City of Los Angeles
+ *   counties.json — NYC's 5 boroughs + LA County + Cook County
+ *   places.json   — City of New York + City of Los Angeles + City of Chicago
  *
  * The national county bundle is a documented follow-up: add the remaining states
  * here (or switch to the cartographic boundary files + mapshaper simplify) and
@@ -49,20 +49,22 @@ const norm = (features, level) => ({
 });
 
 async function main() {
-  // NYC's 5 counties + LA County.
+  // NYC's 5 counties + LA County + Cook County.
   const nycCounties = await fetchGeoJson(
     COUNTY_LAYER,
     "STATE='36' AND (COUNTY='061' OR COUNTY='047' OR COUNTY='081' OR COUNTY='005' OR COUNTY='085')",
   );
   const laCounty = await fetchGeoJson(COUNTY_LAYER, "STATE='06' AND COUNTY='037'");
+  const cookCounty = await fetchGeoJson(COUNTY_LAYER, "STATE='17' AND COUNTY='031'");
 
-  // City of NYC + City of LA.
+  // City of NYC + City of LA + City of Chicago.
   const nycPlace = await fetchGeoJson(PLACE_LAYER, "STATE='36' AND PLACE='51000'");
   const laPlace = await fetchGeoJson(PLACE_LAYER, "STATE='06' AND PLACE='44000'");
+  const chicagoPlace = await fetchGeoJson(PLACE_LAYER, "STATE='17' AND PLACE='14000'");
 
   fs.mkdirSync(OUT, { recursive: true });
-  const counties = norm([...nycCounties, ...laCounty], 'county');
-  const places = norm([...nycPlace, ...laPlace], 'place');
+  const counties = norm([...nycCounties, ...laCounty, ...cookCounty], 'county');
+  const places = norm([...nycPlace, ...laPlace, ...chicagoPlace], 'place');
   fs.writeFileSync(path.join(OUT, 'counties.json'), JSON.stringify(counties));
   fs.writeFileSync(path.join(OUT, 'places.json'), JSON.stringify(places));
 

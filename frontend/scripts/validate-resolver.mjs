@@ -54,6 +54,7 @@ const grab = (name) => {
 const sets = [
   ['NYC', grab('NYC_FIXTURES')],
   ['LA', grab('LA_FIXTURES')],
+  ['Chicago', grab('CHICAGO_FIXTURES')],
 ];
 
 let pass = 0;
@@ -78,4 +79,4 @@ if (failures.length) {
   for (const f of failures) console.error('  ' + f);
   process.exit(1);
 }
-console.log(`✓ ${pass}/${total} gold-standard fixtures passed (NYC + LA)`);
+console.log(`✓ ${pass}/${total} gold-standard fixtures passed (NYC + LA + Chicago)`);

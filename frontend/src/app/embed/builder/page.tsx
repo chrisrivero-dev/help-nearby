@@ -2,13 +2,7 @@
 
 import type { CSSProperties, FC } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-
-const CATEGORY_OPTIONS = [
-  { id: 'food', label: 'Food' },
-  { id: 'health', label: 'Health' },
-  { id: 'cooling', label: 'Cooling' },
-  { id: 'recreation', label: 'Parks & Community' },
-];
+import { EMBED_CATEGORIES } from '@/lib/resources/categories';
 
 const ACCENT_PRESETS = ['#f59e0b', '#1d4ed8', '#16a34a', '#dc2626'];
 
@@ -20,6 +14,7 @@ const BuilderPage: FC = () => {
     'food',
     'health',
     'cooling',
+    'warming',
   ]);
   const [radius, setRadius] = useState(10);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -170,7 +165,7 @@ const BuilderPage: FC = () => {
             <div style={fieldStyle}>
               <span style={labelStyle}>Categories shown</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                {CATEGORY_OPTIONS.map((c) => {
+                {EMBED_CATEGORIES.map((c) => {
                   const on = categories.includes(c.id);
                   return (
                     <button

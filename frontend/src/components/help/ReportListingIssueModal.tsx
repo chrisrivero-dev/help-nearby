@@ -171,7 +171,7 @@ export const ReportListingIssueModal: FC<Props> = ({ resource, onClose }) => {
                       value={it.value}
                       checked={issueType === it.value}
                       onChange={() => setIssueType(it.value)}
-                      style={{ accentColor: '#f59e0b' }}
+                      style={{ accentColor: '#fbbf24' }}
                     />
                     {it.label}
                   </label>
@@ -212,7 +212,7 @@ export const ReportListingIssueModal: FC<Props> = ({ resource, onClose }) => {
                   fontSize: '0.65rem',
                   letterSpacing: '0.08em',
                   color: '#000',
-                  background: '#f59e0b',
+                  background: '#fbbf24',
                   border: 'none',
                   padding: '0.35rem 0.8rem',
                   cursor: !issueType ? 'default' : 'pointer',
