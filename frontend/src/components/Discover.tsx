@@ -17,10 +17,10 @@ import { useTheme } from './useTheme';
 import { useRouter } from 'next/navigation';
 import FeatureBar from './FeatureBar';
 import { useLocationContext } from './help/LocationContext';
-import { useNearbyResources } from '@/lib/resources/useNearbyResources';
+import { useProgressiveNearbyResources } from '@/lib/resources/useNearbyResources';
 import type { NearbyResource, ResourceCategory } from '@/lib/resources/schema';
 
-import { useMap } from 'react-leaflet';
+import { useMap, useMapEvents } from 'react-leaflet';
 
 const MapContainer = dynamic(
   () => import('react-leaflet').then((mod) => mod.MapContainer),
@@ -85,6 +85,24 @@ const formatAddress = (r: NearbyResource) =>
 const resourceMarkerKey = (resource: NearbyResource) =>
   resource.resource_key ?? `${resource.sourceName}:${resource.id}`;
 
+const formatLocationDisplay = ({
+  zip,
+  city,
+  state,
+  isValid,
+}: {
+  zip: string;
+  city: string;
+  state: string;
+  isValid: boolean;
+}) => {
+  const place = [city, state].filter(Boolean).join(', ');
+  if (place && zip) return `${place} ${zip}`;
+  if (place) return place;
+  if (zip) return zip;
+  return isValid ? 'Map-selected area' : '';
+};
+
 const MapInstanceSetter: FC<{
   onMapReady: (map: import('leaflet').Map) => void;
 }> = ({ onMapReady }) => {
@@ -92,6 +110,20 @@ const MapInstanceSetter: FC<{
   useEffect(() => {
     onMapReady(map);
   }, [map, onMapReady]);
+  return null;
+};
+
+const MapLocationPicker: FC<{
+  onPick: (lat: number, lng: number) => void;
+}> = ({ onPick }) => {
+  useMapEvents({
+    dblclick: (event) => {
+      onPick(event.latlng.lat, event.latlng.lng);
+    },
+    contextmenu: (event) => {
+      onPick(event.latlng.lat, event.latlng.lng);
+    },
+  });
   return null;
 };
 
@@ -135,7 +167,7 @@ const Discover: FC<DiscoverProps> = ({
   const hasMapCenter = isValid || hasInitialCenter;
   const activeLat = isValid ? latitude : centerLat;
   const activeLng = isValid ? longitude : centerLng;
-  const nearby = useNearbyResources({
+  const nearby = useProgressiveNearbyResources({
     latitude,
     longitude,
     enabled: isValid,
@@ -200,10 +232,11 @@ const Discover: FC<DiscoverProps> = ({
       ),
     [pagedResources],
   );
-  const locationLabel =
-    isValid && (city || state)
-      ? [city, state].filter(Boolean).join(', ')
-      : zip || 'Current location';
+  const readableLocationLabel = useMemo(
+    () => formatLocationDisplay({ zip, city, state, isValid }),
+    [city, isValid, state, zip],
+  );
+  const locationLabel = readableLocationLabel || 'Current location';
 
   // Load leaflet module on client side
   useEffect(() => {
@@ -213,8 +246,21 @@ const Discover: FC<DiscoverProps> = ({
   }, []);
 
   useEffect(() => {
-    setLocationInput(zip);
-  }, [zip]);
+    if (isResolvingLocation && !zip && !city && !state) {
+      setLocationInput('Resolving map location...');
+      return;
+    }
+
+    setLocationInput(readableLocationLabel);
+  }, [
+    city,
+    isResolvingLocation,
+    latitude,
+    longitude,
+    readableLocationLabel,
+    state,
+    zip,
+  ]);
 
   useEffect(() => {
     setPage(1);
@@ -347,6 +393,12 @@ const Discover: FC<DiscoverProps> = ({
     }
   };
 
+  const handleMapLocationPick = (lat: number, lng: number) => {
+    setSearchError(null);
+    setLocationInput('Resolving map location...');
+    setLocation(`${lat.toFixed(6)},${lng.toFixed(6)}`);
+  };
+
   const toggleCategory = (category: ResourceCategory) => {
     setActiveCategories((prev) =>
       prev.includes(category)
@@ -419,7 +471,7 @@ const Discover: FC<DiscoverProps> = ({
             top: '12px',
             transform: 'translateX(-50%)',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             gap: '12px',
           }}
         >
@@ -449,65 +501,102 @@ const Discover: FC<DiscoverProps> = ({
           {/* Search bar */}
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '2px 4px',
-              borderRadius: '6px',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-              backgroundColor:
-                theme === 'dark'
-                  ? 'rgba(0, 0, 0, 0.3)'
-                  : 'rgba(255, 255, 255, 0.5)',
+              position: 'relative',
               width: '260px',
             }}
           >
-            <input
-              type="text"
-              value={locationInput}
-              onChange={(e) => setLocationInput(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Search for a Location"
-              disabled={isResolvingLocation}
+            <div
               style={{
-                width: '100%',
-                padding: '6px 8px',
-                borderRadius: '4px',
-                border: 'none',
-                fontSize: '14px',
-                outline: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 4px',
+                borderRadius: '6px',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
                 backgroundColor:
                   theme === 'dark'
-                    ? 'rgba(0, 0, 0, 0.4)'
+                    ? 'rgba(0, 0, 0, 0.3)'
                     : 'rgba(255, 255, 255, 0.5)',
-                color: 'var(--color-text)',
-                textAlign: 'center',
               }}
-            />
-            <button
-              onClick={handleLocate}
-              disabled={isResolvingLocation}
-              style={{
-                ...buttonStyle,
-                padding: '4px 8px',
-                width: 'auto',
-              }}
-              title="Use my location"
             >
-              <Crosshair size={14} fill="none" />
-            </button>
-            <button
-              onClick={handleSearch}
-              disabled={isResolvingLocation}
-              style={{
-                ...buttonStyle,
-                padding: '4px 8px',
-                width: 'auto',
-              }}
-              title="Search"
-            >
-              <Search size={14} fill="none" />
-            </button>
+              <input
+                type="text"
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Search for a Location"
+                disabled={isResolvingLocation}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  fontSize: '14px',
+                  outline: 'none',
+                  backgroundColor:
+                    theme === 'dark'
+                      ? 'rgba(0, 0, 0, 0.4)'
+                      : 'rgba(255, 255, 255, 0.5)',
+                  color: 'var(--color-text)',
+                  textAlign: 'center',
+                }}
+              />
+              <button
+                onClick={handleLocate}
+                disabled={isResolvingLocation}
+                style={{
+                  ...buttonStyle,
+                  padding: '4px 8px',
+                  width: 'auto',
+                }}
+                title="Use my location"
+              >
+                <Crosshair size={14} fill="none" />
+              </button>
+              <button
+                onClick={handleSearch}
+                disabled={isResolvingLocation}
+                style={{
+                  ...buttonStyle,
+                  padding: '4px 8px',
+                  width: 'auto',
+                }}
+                title="Search"
+              >
+                <Search size={14} fill="none" />
+              </button>
+            </div>
+            {searchError && (
+              <motion.div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  left: 0,
+                  right: 0,
+                  zIndex: 1002,
+                  backgroundColor:
+                    theme === 'dark'
+                      ? 'rgba(0, 0, 0, 0.82)'
+                      : 'rgba(255, 255, 255, 0.94)',
+                  color: 'var(--color-text)',
+                  padding: '0.55rem 0.7rem',
+                  borderRadius: '6px',
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: '0.72rem',
+                  lineHeight: 1.4,
+                  textAlign: 'center',
+                  border: `1px solid ${theme === 'dark' ? '#2a2a2a' : '#e0e0e0'}`,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.22)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                }}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {searchError}
+              </motion.div>
+            )}
           </div>
         </div>
       </motion.div>
@@ -531,8 +620,10 @@ const Discover: FC<DiscoverProps> = ({
             attributionControl={false}
             scrollWheelZoom={true}
             zoomControl={false}
+            doubleClickZoom={false}
           >
             <MapInstanceSetter onMapReady={setMapInstance} />
+            <MapLocationPicker onPick={handleMapLocationPick} />
             <TileLayer
               url={
                 theme === 'dark'
@@ -567,6 +658,7 @@ const Discover: FC<DiscoverProps> = ({
                   key={markerKey}
                   position={[resource.latitude, resource.longitude]}
                   icon={icon}
+                  opacity={nearby.isStaleWhileLoading ? 0.45 : 1}
                   ref={(marker) => {
                     if (marker) {
                       resourceMarkerRefs.current.set(markerKey, marker);
@@ -661,9 +753,14 @@ const Discover: FC<DiscoverProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {nearby.isLoading || nearby.isFetching
-          ? 'Loading resources...'
-          : `${resourcesWithCoords.length} resources mapped`}
+        {nearby.isInitialLoading
+          ? 'Loading nearest resources...'
+          : nearby.isStaleWhileLoading
+            ? 'Updating nearest resources...'
+            : `${resourcesWithCoords.length} resources mapped`}
+        {nearby.isExpanding && nearby.loadedRadiusMiles
+          ? ` - expanding to ${nearby.targetRadiusMiles} mi`
+          : ''}
         {nearby.degraded ? ' - last-known data' : ''}
       </motion.div>
 
@@ -764,18 +861,20 @@ const Discover: FC<DiscoverProps> = ({
             <button
               type="button"
               aria-label="Previous resources page"
-              disabled={!hasPreviousPage || nearby.isFetching}
+              disabled={!hasPreviousPage || nearby.isInitialLoading}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              style={pagerButtonStyle(!hasPreviousPage || nearby.isFetching)}
+              style={pagerButtonStyle(
+                !hasPreviousPage || nearby.isInitialLoading,
+              )}
             >
               <ChevronLeft size={15} />
             </button>
             <button
               type="button"
               aria-label="Next resources page"
-              disabled={!hasNextPage || nearby.isFetching}
+              disabled={!hasNextPage || nearby.isInitialLoading}
               onClick={() => setPage((p) => p + 1)}
-              style={pagerButtonStyle(!hasNextPage || nearby.isFetching)}
+              style={pagerButtonStyle(!hasNextPage || nearby.isInitialLoading)}
             >
               <ChevronRight size={15} />
             </button>
@@ -890,7 +989,7 @@ const Discover: FC<DiscoverProps> = ({
         </div>
 
         <div style={{ overflowY: 'auto', flex: 1 }}>
-          {nearby.isLoading || nearby.isFetching ? (
+          {nearby.isInitialLoading ? (
             <div
               style={{
                 padding: '1.2rem 1rem',
@@ -899,7 +998,7 @@ const Discover: FC<DiscoverProps> = ({
                 color: theme === 'dark' ? '#a3a3a3' : '#555',
               }}
             >
-              Loading resources...
+              Loading nearest resources...
             </div>
           ) : pagedResources.length === 0 ? (
             <div
@@ -911,118 +1010,118 @@ const Discover: FC<DiscoverProps> = ({
                 lineHeight: 1.5,
               }}
             >
-              No resources found for this page.
+              {nearby.isExpanding
+                ? 'Expanding the search area...'
+                : 'No resources found for this page.'}
             </div>
           ) : (
-            pagedResources.map((resource, index, arr) => {
-              const address = formatAddress(resource);
-              const hasCoords =
-                typeof resource.latitude === 'number' &&
-                typeof resource.longitude === 'number';
-              return (
-                <button
-                  key={`${resourceMarkerKey(resource)}:${index}`}
-                  type="button"
-                  onClick={() => focusResource(resource)}
-                  disabled={!hasCoords}
+            <>
+              {nearby.isExpanding && (
+                <div
                   style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '0.85rem 1rem',
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom:
-                      index === arr.length - 1
-                        ? 'none'
-                        : `1px solid ${theme === 'dark' ? '#242424' : '#ededed'}`,
-                    color: 'var(--color-text)',
-                    cursor: hasCoords ? 'pointer' : 'default',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '0.65rem',
+                    padding: '0.5rem 1rem',
+                    borderBottom: `1px solid ${theme === 'dark' ? '#242424' : '#ededed'}`,
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.66rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    color: theme === 'dark' ? '#fbbf24' : '#92400e',
+                    background:
+                      theme === 'dark'
+                        ? 'rgba(120, 53, 15, 0.22)'
+                        : 'rgba(255, 247, 237, 0.88)',
                   }}
                 >
-                  <MapPin
-                    size={15}
-                    color={CATEGORY_COLORS[resource.category]}
-                    style={{ flexShrink: 0, marginTop: 2 }}
-                  />
-                  <span style={{ minWidth: 0, flex: 1 }}>
-                    <span
-                      style={{
-                        display: 'block',
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 800,
-                        fontSize: '0.75rem',
-                        lineHeight: 1.35,
-                      }}
-                    >
-                      {resource.name}
-                    </span>
-                    <span
-                      style={{
-                        display: 'block',
-                        fontFamily: "'Poppins', sans-serif",
-                        fontSize: '0.66rem',
-                        color: theme === 'dark' ? '#a3a3a3' : '#555',
-                        marginTop: '0.16rem',
-                        lineHeight: 1.45,
-                      }}
-                    >
-                      {CATEGORY_LABELS[resource.category]}
-                      {resource.distanceMiles !== undefined
-                        ? ` · ${formatDist(resource.distanceMiles)}`
-                        : ''}
-                    </span>
-                    {address && (
+                  {nearby.isStaleWhileLoading
+                    ? 'UPDATING NEAREST RESOURCES'
+                    : 'EXPANDING SEARCH AREA'}
+                  {!nearby.isStaleWhileLoading && nearby.loadedRadiusMiles
+                    ? ` - ${nearby.loadedRadiusMiles} MI LOADED`
+                    : ''}
+                </div>
+              )}
+              {pagedResources.map((resource, index, arr) => {
+                const address = formatAddress(resource);
+                const hasCoords =
+                  typeof resource.latitude === 'number' &&
+                  typeof resource.longitude === 'number';
+                return (
+                  <button
+                    key={`${resourceMarkerKey(resource)}:${index}`}
+                    type="button"
+                    onClick={() => focusResource(resource)}
+                    disabled={!hasCoords}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '0.85rem 1rem',
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom:
+                        index === arr.length - 1
+                          ? 'none'
+                          : `1px solid ${theme === 'dark' ? '#242424' : '#ededed'}`,
+                      color: 'var(--color-text)',
+                      cursor: hasCoords ? 'pointer' : 'default',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.65rem',
+                    }}
+                  >
+                    <MapPin
+                      size={15}
+                      color={CATEGORY_COLORS[resource.category]}
+                      style={{ flexShrink: 0, marginTop: 2 }}
+                    />
+                    <span style={{ minWidth: 0, flex: 1 }}>
+                      <span
+                        style={{
+                          display: 'block',
+                          fontFamily: "'Poppins', sans-serif",
+                          fontWeight: 800,
+                          fontSize: '0.75rem',
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {resource.name}
+                      </span>
                       <span
                         style={{
                           display: 'block',
                           fontFamily: "'Poppins', sans-serif",
                           fontSize: '0.66rem',
-                          color: theme === 'dark' ? '#c7c7c7' : '#333',
-                          marginTop: '0.18rem',
+                          color: theme === 'dark' ? '#a3a3a3' : '#555',
+                          marginTop: '0.16rem',
                           lineHeight: 1.45,
                         }}
                       >
-                        {address}
+                        {CATEGORY_LABELS[resource.category]}
+                        {resource.distanceMiles !== undefined
+                          ? ` · ${formatDist(resource.distanceMiles)}`
+                          : ''}
                       </span>
-                    )}
-                  </span>
-                </button>
-              );
-            })
+                      {address && (
+                        <span
+                          style={{
+                            display: 'block',
+                            fontFamily: "'Poppins', sans-serif",
+                            fontSize: '0.66rem',
+                            color: theme === 'dark' ? '#c7c7c7' : '#333',
+                            marginTop: '0.18rem',
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          {address}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </>
           )}
         </div>
       </motion.aside>
-
-      {/* Search error banner */}
-      {searchError && (
-        <motion.div
-          style={{
-            position: 'absolute',
-            bottom: '100px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1000,
-            backgroundColor: 'var(--color-bg)',
-            color: 'var(--color-text)',
-            padding: '12px 16px',
-            borderRadius: '6px',
-            fontSize: '14px',
-            textAlign: 'center',
-            maxWidth: '400px',
-            border: '1px solid var(--color-border)',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-          }}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-        >
-          {searchError}
-        </motion.div>
-      )}
 
       {/* Zoom controls - Bottom Right */}
       <div

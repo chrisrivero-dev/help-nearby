@@ -9,7 +9,7 @@ import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
 import { PanelStatusSquare, PanelRefreshButton } from './PanelStatusControls';
 import type { NearbyResource, ResourceCategory } from '@/lib/resources/schema';
-import { useNearbyResources } from '@/lib/resources/useNearbyResources';
+import { useProgressiveNearbyResources } from '@/lib/resources/useNearbyResources';
 import type { CommunityTip } from '@/lib/community/types';
 import { ResourceCardCommunityNotes } from './ResourceCardCommunityNotes';
 import { SubmitTipForm } from './SubmitTipForm';
@@ -308,7 +308,7 @@ export const ResourcesPanel: FC = () => {
   );
   const [page, setPage] = useState(1);
 
-  const nearby = useNearbyResources({
+  const nearby = useProgressiveNearbyResources({
     latitude,
     longitude,
     enabled: isValid,
@@ -320,6 +320,7 @@ export const ResourcesPanel: FC = () => {
     nearby.isLoading ||
     (nearby.isFetching && nearbyResources === null);
   const nearbyRefreshing = nearby.isFetching;
+  const nearbyPageLocked = nearby.isInitialLoading;
   const nearbyDegraded = nearby.degraded;
   const sources = nearby.sources;
   const refreshNearby = nearby.refresh;
@@ -462,18 +463,18 @@ export const ResourcesPanel: FC = () => {
         <button
           type="button"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={!hasPreviousPage || nearbyRefreshing}
+          disabled={!hasPreviousPage || nearbyPageLocked}
           style={{
             fontFamily: "'Poppins', sans-serif",
             fontSize: '0.68rem',
             fontWeight: 800,
             padding: '0.25rem 0.55rem',
             cursor:
-              !hasPreviousPage || nearbyRefreshing ? 'not-allowed' : 'pointer',
+              !hasPreviousPage || nearbyPageLocked ? 'not-allowed' : 'pointer',
             border: `1px solid ${isDark ? '#2a2a2a' : '#e0e0e0'}`,
             background: 'transparent',
-            color: !hasPreviousPage || nearbyRefreshing ? mutedText : cardText,
-            opacity: !hasPreviousPage || nearbyRefreshing ? 0.45 : 1,
+            color: !hasPreviousPage || nearbyPageLocked ? mutedText : cardText,
+            opacity: !hasPreviousPage || nearbyPageLocked ? 0.45 : 1,
           }}
         >
           Prev
@@ -481,18 +482,18 @@ export const ResourcesPanel: FC = () => {
         <button
           type="button"
           onClick={() => setPage((p) => p + 1)}
-          disabled={!hasNextPage || nearbyRefreshing}
+          disabled={!hasNextPage || nearbyPageLocked}
           style={{
             fontFamily: "'Poppins', sans-serif",
             fontSize: '0.68rem',
             fontWeight: 800,
             padding: '0.25rem 0.55rem',
             cursor:
-              !hasNextPage || nearbyRefreshing ? 'not-allowed' : 'pointer',
+              !hasNextPage || nearbyPageLocked ? 'not-allowed' : 'pointer',
             border: `1px solid ${isDark ? '#2a2a2a' : '#e0e0e0'}`,
             background: 'transparent',
-            color: !hasNextPage || nearbyRefreshing ? mutedText : cardText,
-            opacity: !hasNextPage || nearbyRefreshing ? 0.45 : 1,
+            color: !hasNextPage || nearbyPageLocked ? mutedText : cardText,
+            opacity: !hasNextPage || nearbyPageLocked ? 0.45 : 1,
           }}
         >
           Next
@@ -758,7 +759,7 @@ export const ResourcesPanel: FC = () => {
                       color: mutedText,
                     }}
                   >
-                    Searching for nearby resources...
+                    Searching nearest resources...
                   </span>
                 </motion.div>
               ) : nearbyResources !== null && nearbyResources.length === 0 ? (
@@ -903,6 +904,27 @@ export const ResourcesPanel: FC = () => {
                       }}
                     >
                       LIVE DATA UNAVAILABLE — SHOWING LAST-KNOWN INFORMATION
+                    </div>
+                  )}
+                  {nearby.isExpanding && (
+                    <div
+                      style={{
+                        padding: '0.5rem 1.4rem',
+                        borderBottom: `1px solid ${divider}`,
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.66rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.06em',
+                        color: isDark ? '#fbbf24' : '#92400e',
+                        background: isDark ? '#1a120a' : '#fff7ed',
+                      }}
+                    >
+                      {nearby.isStaleWhileLoading
+                        ? 'UPDATING NEAREST RESOURCES'
+                        : 'EXPANDING SEARCH AREA'}
+                      {!nearby.isStaleWhileLoading && nearby.loadedRadiusMiles
+                        ? ` — ${nearby.loadedRadiusMiles} MI LOADED`
+                        : ''}
                     </div>
                   )}
                   <PaginationControls />

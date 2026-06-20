@@ -108,6 +108,55 @@ const toStateCode = (value?: string) => {
   return US_STATE_ABBREVIATIONS[trimmed] ?? trimmed;
 };
 
+const COORDINATE_QUERY_RE = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/;
+
+const parseCoordinateQuery = (query: string) => {
+  const match = query.match(COORDINATE_QUERY_RE);
+  if (!match) return null;
+
+  const lat = Number(match[1]);
+  const lng = Number(match[2]);
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng) ||
+    lat < -90 ||
+    lat > 90 ||
+    lng < -180 ||
+    lng > 180
+  ) {
+    return null;
+  }
+
+  return { lat, lng };
+};
+
+const reverseGeocodeCoordinates = async (lat: number, lng: number) => {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=10`,
+  );
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  const address = data?.address ?? {};
+  const resolvedCity =
+    address.city ||
+    address.town ||
+    address.village ||
+    address.hamlet ||
+    address.municipality ||
+    address.county ||
+    '';
+  const resolvedState = toStateCode(address.state);
+
+  if (!resolvedCity && !resolvedState && !address.postcode) return null;
+
+  return {
+    zipCode: address.postcode ?? '',
+    city: resolvedCity,
+    stateCode: resolvedState,
+  };
+};
+
 export const LocationProvider: FC<LocationProviderProps> = ({
   children,
   defaultZip = '',
@@ -165,62 +214,32 @@ export const LocationProvider: FC<LocationProviderProps> = ({
     };
 
     try {
-      const coordMatch = raw.match(
-        /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/,
-      );
-      if (coordMatch) {
-        const lat = Number(coordMatch[1]);
-        const lng = Number(coordMatch[2]);
-        if (
-          Number.isFinite(lat) &&
-          Number.isFinite(lng) &&
-          lat >= -90 &&
-          lat <= 90 &&
-          lng >= -180 &&
-          lng <= 180
-        ) {
-          try {
-            const res = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=10`,
-            );
-            if (res.ok) {
-              const data = await res.json();
-              const address = data?.address ?? {};
-              const resolvedCity =
-                address.city ||
-                address.town ||
-                address.village ||
-                address.hamlet ||
-                address.municipality ||
-                address.county ||
-                '';
-              const resolvedState = toStateCode(address.state);
-              if (resolvedCity || resolvedState) {
-                return {
-                  zipCode: address.postcode ?? '',
-                  city: resolvedCity || 'Unknown',
-                  stateCode: resolvedState,
-                  latitude: lat,
-                  longitude: lng,
-                  isValid: true,
-                };
-              }
-            }
-          } catch {
-            /* Coordinates remain usable even if reverse lookup fails. */
-          }
+      const coords = parseCoordinateQuery(raw);
+      if (coords) {
+        try {
+          const resolved = await reverseGeocodeCoordinates(
+            coords.lat,
+            coords.lng,
+          );
 
           return {
+            zipCode: resolved?.zipCode ?? '',
+            city: resolved?.city || 'Map-selected area',
+            stateCode: resolved?.stateCode ?? '',
+            latitude: coords.lat,
+            longitude: coords.lng,
+            isValid: true,
+          };
+        } catch {
+          return {
             zipCode: '',
-            city: 'Unknown',
+            city: 'Map-selected area',
             stateCode: '',
-            latitude: lat,
-            longitude: lng,
+            latitude: coords.lat,
+            longitude: coords.lng,
             isValid: true,
           };
         }
-
-        return fallback;
       }
 
       // City search: anything containing letters, e.g. "Brooklyn, NY".
@@ -294,6 +313,35 @@ export const LocationProvider: FC<LocationProviderProps> = ({
 
     setIsResolvingLocation(true);
     setLocationError(null);
+
+    const coords = parseCoordinateQuery(locationQuery);
+    if (coords) {
+      setZipState('');
+      setCity('');
+      setState('');
+      setLatitude(coords.lat);
+      setLongitude(coords.lng);
+      setIsValid(true);
+
+      reverseGeocodeCoordinates(coords.lat, coords.lng)
+        .then((resolved) => {
+          if (requestSeq.current !== seq) return;
+          setZipState(resolved?.zipCode ?? '');
+          setCity(resolved?.city || 'Map-selected area');
+          setState(resolved?.stateCode ?? '');
+          setIsResolvingLocation(false);
+          setLocationError(null);
+        })
+        .catch(() => {
+          if (requestSeq.current !== seq) return;
+          setZipState('');
+          setCity('Map-selected area');
+          setState('');
+          setIsResolvingLocation(false);
+          setLocationError(null);
+        });
+      return;
+    }
 
     normalizeLocation(locationQuery)
       .then((result) => {
