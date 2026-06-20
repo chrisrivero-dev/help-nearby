@@ -4,7 +4,6 @@ import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import NavBar from '@/components/NavBar';
-import { LocationProvider } from '@/components/help/LocationContext';
 import { NewsTicker } from '@/components/help/NewsTicker';
 import { PanelLayout } from '@/components/help/PanelLayout';
 import { AlertPanel } from '@/components/help/AlertPanel';
@@ -68,11 +67,7 @@ const HelpDashboard: FC = () => {
 };
 
 const HelpPage: FC = () => {
-  return (
-    <LocationProvider defaultZip="90012">
-      <HelpDashboard />
-    </LocationProvider>
-  );
+  return <HelpDashboard />;
 };
 
 export default HelpPage;

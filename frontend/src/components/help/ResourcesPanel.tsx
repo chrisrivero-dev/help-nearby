@@ -2,71 +2,18 @@
 
 import type { FC } from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Info, Search, X } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
-import {
-  PanelStatusSquare,
-  PanelRefreshButton,
-} from './PanelStatusControls';
-import type {
-  NearbyResource,
-  NearbyResponse,
-  SourceMeta,
-  ResourceCategory,
-} from '@/lib/resources/schema';
+import { PanelStatusSquare, PanelRefreshButton } from './PanelStatusControls';
+import type { NearbyResource, ResourceCategory } from '@/lib/resources/schema';
+import { useNearbyResources } from '@/lib/resources/useNearbyResources';
 import type { CommunityTip } from '@/lib/community/types';
 import { ResourceCardCommunityNotes } from './ResourceCardCommunityNotes';
 import { SubmitTipForm } from './SubmitTipForm';
 import { ReportListingIssueModal } from './ReportListingIssueModal';
-
-// ─── Client-side cache for the (heavy) nearby-resources aggregation ──────────
-// Reloading the page within the TTL reuses the last response for the same
-// rounded location instead of re-hitting every upstream source. A manual
-// refresh bypasses this.
-const NEARBY_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
-
-interface NearbyCacheEntry {
-  resources: NearbyResource[];
-  sources: SourceMeta[];
-  degraded: boolean;
-  ts: number;
-}
-
-const nearbyCacheKey = (lat: number, lng: number) =>
-  `hn:nearby:${lat.toFixed(3)},${lng.toFixed(3)}`;
-
-const readNearbyCache = (key: string): NearbyCacheEntry | null => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) return null;
-    const entry = JSON.parse(raw) as NearbyCacheEntry;
-    if (!entry?.ts || Date.now() - entry.ts > NEARBY_CACHE_TTL_MS) {
-      window.localStorage.removeItem(key);
-      return null;
-    }
-    return entry;
-  } catch {
-    return null;
-  }
-};
-
-const writeNearbyCache = (
-  key: string,
-  data: Omit<NearbyCacheEntry, 'ts'>,
-): void => {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(
-      key,
-      JSON.stringify({ ...data, ts: Date.now() }),
-    );
-  } catch {
-    /* storage full or disabled — non-fatal */
-  }
-};
 
 const CATEGORY_LABELS: Record<ResourceCategory, string> = {
   health: 'Health',
@@ -102,7 +49,11 @@ const formatResourceAddress = (r: NearbyResource): string | null => {
 };
 
 const formatDist = (mi: number) =>
-  mi < 0.1 ? '< 0.1 mi' : mi < 10 ? `${mi.toFixed(1)} mi` : `${Math.round(mi)} mi`;
+  mi < 0.1
+    ? '< 0.1 mi'
+    : mi < 10
+      ? `${mi.toFixed(1)} mi`
+      : `${Math.round(mi)} mi`;
 
 const formatChecked = (iso?: string) => {
   if (!iso) return '';
@@ -344,116 +295,72 @@ const ResourceCard: FC<ResourceCardProps> = ({
 export const ResourcesPanel: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { zip, latitude, longitude, isValid } = useLocationContext();
+  const { zip, latitude, longitude, isValid, isResolvingLocation } =
+    useLocationContext();
 
-  const [nearbyResources, setNearbyResources] = useState<
-    NearbyResource[] | null
-  >(null);
-  const [nearbyLoading, setNearbyLoading] = useState(false);
-  const [nearbyDegraded, setNearbyDegraded] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
-  const [sources, setSources] = useState<SourceMeta[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
-  const [communityTips, setCommunityTips] = useState<Record<string, CommunityTip[]>>({});
   const [query, setQuery] = useState('');
   const [activeCategories, setActiveCategories] = useState<ResourceCategory[]>(
     [],
   );
 
-  // Batch-fetch community tips for the loaded resources.
-  const loadTips = useCallback((resources: NearbyResource[]) => {
-    const keys = resources
-      .map((r) => r.resource_key)
-      .filter((k): k is string => Boolean(k));
-    if (keys.length === 0) {
-      setCommunityTips({});
-      return;
-    }
-    fetch(`/api/community-tips?resourceKeys=${keys.join(',')}`)
-      .then((r) => r.json())
-      .then((d: { tips: Record<string, CommunityTip[]> }) => {
-        setCommunityTips(d.tips ?? {});
-      })
-      .catch(() => {/* non-fatal */});
-  }, []);
-
-  const fetchNearbyResources = useCallback(
-    async (lat: number, lng: number, opts?: { force?: boolean }) => {
-      setQuery('');
-      setActiveCategories([]);
-
-      const key = nearbyCacheKey(lat, lng);
-
-      // Serve from cache on normal loads/reloads — skip the heavy aggregation.
-      if (!opts?.force) {
-        const cached = readNearbyCache(key);
-        if (cached) {
-          setNearbyResources(cached.resources);
-          setNearbyDegraded(cached.degraded);
-          setSources(cached.sources);
-          setNearbyLoading(false);
-          loadTips(cached.resources);
-          return;
-        }
-      }
-
-      setNearbyLoading(true);
-      setNearbyResources(null);
-      setNearbyDegraded(false);
-      setCommunityTips({});
-      try {
-        const params = new URLSearchParams({
-          lat: lat.toString(),
-          lng: lng.toString(),
-          radiusMiles: '10',
-        });
-        const res = await fetch(`/api/nearby-resources?${params.toString()}`);
-        if (!res.ok) {
-          setNearbyResources([]);
-          return;
-        }
-        const data = (await res.json()) as NearbyResponse;
-        const resources = data.resources ?? [];
-        const sourceMeta = data.sources ?? [];
-        const degraded = Boolean(data.degraded);
-        setNearbyResources(resources);
-        setNearbyDegraded(degraded);
-        setSources(sourceMeta);
-        writeNearbyCache(key, { resources, sources: sourceMeta, degraded });
-        loadTips(resources);
-      } catch {
-        setNearbyResources([]);
-      } finally {
-        setNearbyLoading(false);
-      }
-    },
-    [loadTips],
-  );
-
-  const handleRefresh = useCallback(() => {
-    if (
-      isValid &&
-      Number.isFinite(latitude) &&
-      Number.isFinite(longitude)
-    ) {
-      fetchNearbyResources(latitude, longitude, { force: true });
-    }
-  }, [isValid, latitude, longitude, fetchNearbyResources]);
+  const nearby = useNearbyResources({
+    latitude,
+    longitude,
+    enabled: isValid,
+  });
+  const nearbyResources =
+    !isValid && !isResolvingLocation ? [] : nearby.resources;
+  const nearbyLoading =
+    isResolvingLocation ||
+    nearby.isLoading ||
+    (nearby.isFetching && nearbyResources === null);
+  const nearbyRefreshing = nearby.isFetching;
+  const nearbyDegraded = nearby.degraded;
+  const sources = nearby.sources;
+  const refreshNearby = nearby.refresh;
+  const locationKey =
+    isValid && Number.isFinite(latitude) && Number.isFinite(longitude)
+      ? `${latitude.toFixed(3)},${longitude.toFixed(3)}`
+      : '';
 
   useEffect(() => {
-    if (!zip) {
-      setNearbyResources(null);
-      setNearbyDegraded(false);
-      return;
-    }
+    setQuery('');
+    setActiveCategories([]);
+  }, [locationKey]);
+
+  const resourceKeys = useMemo(
+    () =>
+      (nearbyResources ?? [])
+        .map((r) => r.resource_key)
+        .filter((k): k is string => Boolean(k)),
+    [nearbyResources],
+  );
+
+  const { data: communityTips = {} } = useQuery({
+    queryKey: ['community-tips', resourceKeys],
+    queryFn: async () => {
+      if (resourceKeys.length === 0) return {};
+      const params = new URLSearchParams({
+        resourceKeys: resourceKeys.join(','),
+      });
+      const res = await fetch(`/api/community-tips?${params.toString()}`);
+      if (!res.ok) return {};
+      const data = (await res.json()) as {
+        tips: Record<string, CommunityTip[]>;
+      };
+      return data.tips ?? {};
+    },
+    enabled: resourceKeys.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const handleRefresh = useCallback(() => {
     if (isValid && Number.isFinite(latitude) && Number.isFinite(longitude)) {
-      fetchNearbyResources(latitude, longitude);
-    } else {
-      // ZIP entered but lookup failed — show empty/unavailable, never demo.
-      setNearbyResources([]);
-      setNearbyDegraded(false);
+      refreshNearby();
     }
-  }, [zip, isValid, latitude, longitude, fetchNearbyResources]);
+  }, [isValid, latitude, longitude, refreshNearby]);
 
   const resourceRenderKey = (r: NearbyResource, index: number) =>
     `${r.sourceName}:${r.id}:${r.latitude ?? ''}:${r.longitude ?? ''}:${index}`;
@@ -589,7 +496,7 @@ export const ResourcesPanel: FC = () => {
             {/* Status indicator - left of title. */}
             {(nearbyLoading || sources.length > 0) && (
               <PanelStatusSquare
-                loading={nearbyLoading}
+                loading={nearbyRefreshing}
                 ok={sources.some((s) => s.ok)}
                 isDark={isDark}
               />
@@ -608,9 +515,9 @@ export const ResourcesPanel: FC = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             {/* Manual refresh — bypasses the cache. Left of the info icon. */}
-            {zip && isValid && (
+            {isValid && (
               <PanelRefreshButton
-                loading={nearbyLoading}
+                loading={nearbyRefreshing}
                 onRefresh={handleRefresh}
                 isDark={isDark}
                 label="Refresh resources"
@@ -730,7 +637,7 @@ export const ResourcesPanel: FC = () => {
           {isExpanded && (
             <>
               {/* Not yet activated */}
-              {!zip ? (
+              {!isValid && !isResolvingLocation ? (
                 <motion.div
                   key="help-locked"
                   initial={{ opacity: 0 }}
@@ -881,12 +788,8 @@ export const ResourcesPanel: FC = () => {
                                       ? '#2a2a2a'
                                       : '#e0e0e0'
                                 }`,
-                                background: active
-                                  ? '#f59e0b'
-                                  : 'transparent',
-                                color: active
-                                  ? '#000'
-                                  : mutedText,
+                                background: active ? '#f59e0b' : 'transparent',
+                                color: active ? '#000' : mutedText,
                               }}
                             >
                               {CATEGORY_LABELS[c]}
@@ -935,7 +838,7 @@ export const ResourcesPanel: FC = () => {
                         originLng={longitude}
                         tips={
                           r.resource_key !== undefined
-                            ? communityTips[r.resource_key] ?? []
+                            ? (communityTips[r.resource_key] ?? [])
                             : []
                         }
                       />

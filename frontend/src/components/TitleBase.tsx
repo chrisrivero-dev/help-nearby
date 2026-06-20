@@ -111,6 +111,7 @@ const TitleBase: FC<TitleProps> = ({
   const city = locationData?.city || '';
   const state = locationData?.state || '';
   const setLocation = locationData?.setLocation || (() => {});
+  const setLocationError = locationData?.setLocationError || (() => {});
 
   const [isClicked, setIsClicked] = useState(false);
   const [isTitleHovered, setIsTitleHovered] = useState(false);
@@ -121,16 +122,12 @@ const TitleBase: FC<TitleProps> = ({
 
   // Location for display, split across two lines: "City, State" then zip.
   const cityStateLine =
-    isValid && (city || state)
-      ? [city, state].filter(Boolean).join(', ')
-      : latitude && longitude && isValid
-        ? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-        : '';
+    isValid && (city || state) ? [city, state].filter(Boolean).join(', ') : '';
   const zipLine = zip || '';
   const hasLocation = Boolean(cityStateLine || zipLine);
 
   const beginEditingLocation = () => {
-    setLocationInput(zip || '');
+    setLocationInput(zip || cityStateLine || '');
     setIsEditingLocation(true);
   };
 
@@ -144,33 +141,18 @@ const TitleBase: FC<TitleProps> = ({
   const colors = variantColors[variant] || variantColors['about'];
   const textColor = isDark ? '#e8e8e8' : '#111111';
 
-  // Default location: Central Park, NYC
-  const DEFAULT_LAT = 40.7829;
-  const DEFAULT_LNG = -73.9654;
-
   const handleRadarClick = () => {
     setIsClicked(true);
     setTimeout(() => {
       setIsClicked(false);
     }, 300);
 
-    // Try to get user's current location, fall back to Central Park NYC
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          router.push(`/discover?lat=${latitude}&lng=${longitude}`);
-        },
-        () => {
-          // Geolocation failed or denied — use default Central Park location
-          router.push(`/discover?lat=${DEFAULT_LAT}&lng=${DEFAULT_LNG}`);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-      );
-    } else {
-      // Geolocation not supported — use default
-      router.push(`/discover?lat=${DEFAULT_LAT}&lng=${DEFAULT_LNG}`);
+    if (isValid && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      router.push(`/discover?lat=${latitude}&lng=${longitude}`);
+      return;
     }
+
+    router.push('/discover');
   };
 
   // Split title into word parts for highlighting
@@ -214,17 +196,15 @@ const TitleBase: FC<TitleProps> = ({
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
-          setLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          setLocation(`${latitude.toFixed(6)},${longitude.toFixed(6)}`);
         },
         () => {
-          // Geolocation failed or denied — use default Central Park location
-          setLocation(`40.7829, -73.9654`);
+          setLocationError('Could not access your current location.');
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
       );
     } else {
-      // Geolocation not supported — use default
-      setLocation(`40.7829, -73.9654`);
+      setLocationError('Geolocation is not supported in this browser.');
     }
   };
 
