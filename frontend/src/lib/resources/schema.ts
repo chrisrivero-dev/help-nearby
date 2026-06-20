@@ -9,7 +9,8 @@ export type SourceType =
   | 'socrata'
   | 'open-data'
   | 'api'
-  | 'manual-fallback';
+  | 'manual-fallback'
+  | 'custom';
 
 export type ResourceCategory =
   | 'health'
@@ -40,11 +41,14 @@ export interface NearbyResource {
   sourceName: string;
   sourceUrl: string;
   sourceType: SourceType;
+  isCustom?: boolean;
+  customCategoryLabel?: string;
   /** Registry id of the (primary) source — set when known; used by reconciliation. */
   sourceId?: string;
   /** Source trust tier (higher wins field conflicts). Set during selection. */
   trust?: number;
   lastChecked?: string;
+  createdAt?: string;
   updatedAt?: string;
   isLive: boolean;
 

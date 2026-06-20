@@ -1,0 +1,18 @@
+{
+  "sources": [
+    {
+      "id": "579307f3-2b13-4e89-94c8-4b4ec3c8018c",
+      "name": "The Continental",
+      "category": "shelter",
+      "address": "83 Apollo St",
+      "city": "Brooklyn",
+      "state": "NY",
+      "zip": "11222",
+      "website": "https://breakingground.org/",
+      "latitude": 40.7270638,
+      "longitude": -73.9383339,
+      "status": "active",
+      "createdAt": "2026-06-20T21:40:19.362Z"
+    }
+  ]
+}

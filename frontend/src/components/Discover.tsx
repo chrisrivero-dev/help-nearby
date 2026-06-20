@@ -56,8 +56,13 @@ const formatDist = (mi?: number) => {
       : `${Math.round(mi)} mi`;
 };
 
-const formatAddress = (r: NearbyResource) =>
-  [r.address, r.city, r.state].filter(Boolean).join(', ');
+const formatAddress = (r: NearbyResource) => {
+  const place = [r.city, r.state].filter(Boolean).join(', ');
+  const zip = r.zip?.split('-')[0];
+  return [r.address, [place, zip].filter(Boolean).join(' ') || undefined]
+    .filter(Boolean)
+    .join(', ');
+};
 
 const resourceMarkerKey = (resource: NearbyResource) =>
   resource.resource_key ?? `${resource.sourceName}:${resource.id}`;
@@ -170,6 +175,7 @@ const Discover: FC<DiscoverProps> = ({
         r.zip,
         r.phone,
         r.sourceName,
+        r.customCategoryLabel,
         CATEGORY_LABELS[r.category],
       ]
         .filter(Boolean)
@@ -282,13 +288,21 @@ const Discover: FC<DiscoverProps> = ({
     [leafletModule],
   );
 
-  const resourceIconFor = (category: ResourceCategory) =>
-    leafletModule?.divIcon({
-      html: `<div style="width: 18px; height: 18px; border-radius: 50%; background: ${CATEGORY_COLORS[category]}; border: 2px solid #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.35);"></div>`,
-      iconSize: [22, 22],
-      iconAnchor: [11, 11],
+  const resourceIconFor = (resource: NearbyResource) => {
+    const color = CATEGORY_COLORS[resource.category];
+    const customTriangle = encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><polygon points="12,22 2,3 22,3" fill="${color}" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/></svg>`,
+    );
+    return leafletModule?.divIcon({
+      html: resource.isCustom
+        ? `<img alt="" src="data:image/svg+xml,${customTriangle}" style="display:block;width:24px;height:24px;filter:drop-shadow(0 2px 7px rgba(0,0,0,0.35));" />`
+        : `<div style="width: 18px; height: 18px; border-radius: 50%; background: ${color}; border: 2px solid #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.35);"></div>`,
+      iconSize: resource.isCustom ? [24, 24] : [22, 22],
+      iconAnchor: resource.isCustom ? [12, 22] : [11, 11],
+      popupAnchor: resource.isCustom ? [0, -24] : [0, -11],
       className: '',
     });
+  };
 
   const buttonStyle: React.CSSProperties = {
     padding: '8px 16px',
@@ -621,7 +635,7 @@ const Discover: FC<DiscoverProps> = ({
               </Marker>
             )}
             {resourcesWithCoords.map((resource, index) => {
-              const icon = resourceIconFor(resource.category);
+              const icon = resourceIconFor(resource);
               if (
                 !icon ||
                 resource.latitude === undefined ||
@@ -664,6 +678,11 @@ const Discover: FC<DiscoverProps> = ({
                       {address && (
                         <div style={{ fontSize: 12, marginBottom: 4 }}>
                           {address}
+                        </div>
+                      )}
+                      {resource.phone && (
+                        <div style={{ fontSize: 12, marginBottom: 4 }}>
+                          {resource.phone}
                         </div>
                       )}
                       <div
@@ -1089,6 +1108,20 @@ const Discover: FC<DiscoverProps> = ({
                           }}
                         >
                           {address}
+                        </span>
+                      )}
+                      {resource.phone && (
+                        <span
+                          style={{
+                            display: 'block',
+                            fontFamily: "'Poppins', sans-serif",
+                            fontSize: '0.66rem',
+                            color: theme === 'dark' ? '#c7c7c7' : '#333',
+                            marginTop: '0.18rem',
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          {resource.phone}
                         </span>
                       )}
                     </span>

@@ -10,6 +10,10 @@ import { computeResourceKey } from '@/lib/community/resourceKey';
 import { reconcileResources } from '@/lib/resources/reconcile';
 import { fanOut } from '@/lib/registry/core';
 import { reliableRun } from '@/lib/registry/reliability';
+import {
+  customSourcesToNearbyResources,
+  readCustomSources,
+} from '@/lib/resources/customSources';
 
 const RESOURCE_CACHE_TTL_SECONDS = 3600;
 /** Round coords to ~1km so nearby queries share cache entries. */
@@ -86,9 +90,15 @@ export async function GET(
   const query = { latitude, longitude, radiusMiles, category };
 
   const live = await selectSources(latitude, longitude, category);
+  const customStore = await readCustomSources();
+  const customResources = customSourcesToNearbyResources(
+    customStore.sources,
+    query,
+  ).filter((r) => !category || r.category === category);
 
-  // No registered live source covers this point — return empty, not demo data.
-  if (live.length === 0) {
+  // No registered live or custom source covers this point — return empty, not
+  // demo data.
+  if (live.length === 0 && customResources.length === 0) {
     return NextResponse.json({
       resources: [],
       sources: [],
@@ -97,18 +107,34 @@ export async function GET(
     });
   }
 
-  const liveRun = await runSources(live, query);
+  const liveRun =
+    live.length > 0
+      ? await runSources(live, query)
+      : { items: [], checked: [], degraded: false };
 
   // Reconcile across sources: merge the same real-world entity reported by
   // multiple feeds into one record (trust-ranked fields + per-field provenance)
   // before ranking. See lib/resources/reconcile.ts.
-  const resources = reconcileResources(liveRun.items);
+  const resources = reconcileResources([...liveRun.items, ...customResources]);
   // CheckedSource widens sourceType to string for domain-agnosticism; these rows
   // are real SourceTypes, so narrow back for the typed response.
   const metas: SourceMeta[] = liveRun.checked.map((c) => ({
     ...c,
     sourceType: c.sourceType as SourceMeta['sourceType'],
   }));
+  const customMeta: SourceMeta[] =
+    customResources.length > 0
+      ? [
+          {
+            id: 'custom-sources',
+            name: 'Custom community sources',
+            url: 'custom.sources.json',
+            sourceType: 'custom',
+            fetchedAt: new Date().toISOString(),
+            ok: true,
+          },
+        ]
+      : [];
   const degraded = liveRun.degraded;
 
   const sortedByDistance = resources
@@ -141,7 +167,7 @@ export async function GET(
 
   return NextResponse.json({
     resources: withKeys,
-    sources: metas,
+    sources: [...metas, ...customMeta],
     degraded,
     total,
   });

@@ -49,4 +49,6 @@ node_modules/
 .next/
 .env.local
 .env.development
-.data/
+.data/*
+!.data/
+!.data/custom.sources.json

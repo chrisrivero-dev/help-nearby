@@ -2,7 +2,7 @@
 
 import type { FC } from 'react';
 import { motion } from 'framer-motion';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from './useTheme';
 import { useI18n } from '@/lib/i18n';
@@ -82,6 +82,7 @@ const TitleBase: FC<TitleProps> = ({
   // Use external ref if provided, otherwise create internal ref
   const internalRadarRef = useRef<HTMLDivElement | null>(null);
   const radarRef = externalRadarRef ?? internalRadarRef;
+  const titleTextRef = useRef<HTMLDivElement | null>(null);
   const { theme } = useTheme();
 
   // Get default title based on variant when no custom title is provided
@@ -125,9 +126,13 @@ const TitleBase: FC<TitleProps> = ({
   const [isNearbyHovered, setIsNearbyHovered] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [locationInput, setLocationInput] = useState('');
+  const [titleTextWidth, setTitleTextWidth] = useState(0);
   const [isLocationHovered, setIsLocationHovered] = useState(false);
   const [isLocationQuickSwitchHovered, setIsLocationQuickSwitchHovered] =
     useState(false);
+  const [hoveredLocationKey, setHoveredLocationKey] = useState<string | null>(
+    null,
+  );
 
   // Location for display, split across two lines: "City, State" then zip.
   const cityStateLine =
@@ -167,9 +172,30 @@ const TitleBase: FC<TitleProps> = ({
 
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
 
+  useEffect(() => {
+    const node = titleTextRef.current;
+    if (!node) return;
+
+    const measure = () => {
+      setTitleTextWidth(Math.ceil(node.getBoundingClientRect().width));
+    };
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [title]);
+
   // Get colors based on variant
   const colors = variantColors[variant] || variantColors['about'];
   const textColor = isDark ? '#e8e8e8' : '#111111';
+  const locationCellMinWidth = titleTextWidth
+    ? `${titleTextWidth}px`
+    : '16ch';
 
   const handleRadarClick = () => {
     setIsClicked(true);
@@ -264,7 +290,10 @@ const TitleBase: FC<TitleProps> = ({
           }}
         >
           <div style={titleContainerStyle}>
-            <div style={{ ...titleStyle, color: colors.normalColor }}>
+            <div
+              ref={titleTextRef}
+              style={{ ...titleStyle, color: colors.normalColor }}
+            >
               <span
                 onMouseEnter={() => setIsTitleHovered(true)}
                 onMouseLeave={() => setIsTitleHovered(false)}
@@ -374,7 +403,9 @@ const TitleBase: FC<TitleProps> = ({
                   fontWeight: 700,
                   lineHeight: 1.2,
                   height: '40px',
-                  width: '16ch',
+                  width: locationCellMinWidth,
+                  maxWidth: '100%',
+                  minWidth: locationCellMinWidth,
                   textAlign: 'center',
                   color: textColor,
                   background: isDark ? '#07080b' : '#ffffff',
@@ -388,7 +419,12 @@ const TitleBase: FC<TitleProps> = ({
               />
             ) : (
               <div
-                style={{ position: 'relative', display: 'inline-block' }}
+                style={{
+                  position: 'relative',
+                  display: 'inline-block',
+                  minWidth: locationCellMinWidth,
+                  maxWidth: '100%',
+                }}
                 onMouseEnter={() => {
                   setIsLocationHovered(true);
                   setIsLocationDropdownOpen(true);
@@ -396,6 +432,7 @@ const TitleBase: FC<TitleProps> = ({
                 onMouseLeave={() => {
                   setIsLocationHovered(false);
                   setIsLocationDropdownOpen(false);
+                  setHoveredLocationKey(null);
                 }}
               >
                 <button
@@ -406,8 +443,11 @@ const TitleBase: FC<TitleProps> = ({
                     display: 'flex',
                     flexDirection: 'row',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     height: '40px',
                     gap: '10px',
+                    width: '100%',
+                    minWidth: locationCellMinWidth,
                     fontFamily: "'Poppins', sans-serif",
                     fontWeight: 700,
                     fontSize: '1.4rem',
@@ -449,7 +489,8 @@ const TitleBase: FC<TitleProps> = ({
                       borderRadius: 0,
                       boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
                       zIndex: 1000,
-                      minWidth: '160px',
+                      width: '100%',
+                      minWidth: locationCellMinWidth,
                       overflow: 'hidden',
                     }}
                     onMouseEnter={() => {
@@ -457,34 +498,51 @@ const TitleBase: FC<TitleProps> = ({
                     }}
                     onMouseLeave={() => {
                       setIsLocationDropdownOpen(false);
+                      setHoveredLocationKey(null);
                     }}
                   >
-                    {filteredCities.map((city, index) => (
-                      <button
-                        key={`${city.city}-${city.state}`}
-                        type="button"
-                        onClick={() => handleQuickCitySwitch(city)}
-                        style={{
-                          display: 'block',
-                          width: '100%',
-                          padding: '10px 12px',
-                          fontSize: '1.2rem',
-                          fontWeight: 600,
-                          textAlign: 'left',
-                          color: isDark ? '#e8e8e8' : '#333',
-                          background: isDark ? '#1e1e1e' : '#ffffff',
-                          border: 'none',
-                          borderBottom:
-                            index < filteredCities.length - 1
-                              ? '1px solid #ddd'
-                              : 'none',
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {city.label}
-                      </button>
-                    ))}
+                    {filteredCities.map((city, index) => {
+                      const cityKey = `${city.city}-${city.state}`;
+                      const hovered = hoveredLocationKey === cityKey;
+                      return (
+                        <button
+                          key={cityKey}
+                          type="button"
+                          onMouseEnter={() => setHoveredLocationKey(cityKey)}
+                          onFocus={() => setHoveredLocationKey(cityKey)}
+                          onClick={() => handleQuickCitySwitch(city)}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '10px 12px',
+                            fontSize: '1.2rem',
+                            fontWeight: 600,
+                            textAlign: 'center',
+                            color: hovered
+                              ? '#111111'
+                              : isDark
+                                ? '#e8e8e8'
+                                : '#333',
+                            background: hovered
+                              ? '#fbbf24'
+                              : isDark
+                                ? '#1e1e1e'
+                                : '#ffffff',
+                            border: 'none',
+                            borderBottom:
+                              index < filteredCities.length - 1
+                                ? '1px solid #ddd'
+                                : 'none',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            transition:
+                              'background-color 0.12s ease, color 0.12s ease',
+                          }}
+                        >
+                          {city.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>

@@ -4,7 +4,7 @@ import type { FC } from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Search, X } from 'lucide-react';
+import { ExternalLink, Plus, Search, X } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
 import {
@@ -19,6 +19,7 @@ import type { CommunityTip } from '@/lib/community/types';
 import { ResourceCardCommunityNotes } from './ResourceCardCommunityNotes';
 import { SubmitTipForm } from './SubmitTipForm';
 import { ReportListingIssueModal } from './ReportListingIssueModal';
+import { AddSource } from './AddSource';
 
 const RESOURCES_PAGE_SIZE = 10;
 
@@ -271,7 +272,17 @@ const ResourceCard: FC<ResourceCardProps> = ({
         >
           <ExternalLink size={9} /> Source: {r.sourceName}
         </a>
-        {r.lastChecked && (
+        {r.isCustom && r.createdAt ? (
+          <span
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: '0.62rem',
+              color: mutedText,
+            }}
+          >
+            Added {formatChecked(r.createdAt)}
+          </span>
+        ) : r.lastChecked ? (
           <span
             style={{
               fontFamily: "'Poppins', sans-serif",
@@ -281,7 +292,7 @@ const ResourceCard: FC<ResourceCardProps> = ({
           >
             Last checked {formatChecked(r.lastChecked)}
           </span>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -295,6 +306,7 @@ export const ResourcesPanel: FC = () => {
 
   const [isExpanded, setIsExpanded] = useState(true);
   const [query, setQuery] = useState('');
+  const [showAddSource, setShowAddSource] = useState(false);
   const [activeCategories, setActiveCategories] = useState<ResourceCategory[]>(
     [],
   );
@@ -337,6 +349,12 @@ export const ResourcesPanel: FC = () => {
     }
   }, [isValid, latitude, longitude, refreshNearby]);
 
+  const handleSourceAdded = useCallback(async () => {
+    if (isValid && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      await refreshNearby();
+    }
+  }, [isValid, latitude, longitude, refreshNearby]);
+
   const resourceRenderKey = (r: NearbyResource, index: number) =>
     `${r.sourceName}:${r.id}:${r.latitude ?? ''}:${r.longitude ?? ''}:${index}`;
 
@@ -365,6 +383,7 @@ export const ResourcesPanel: FC = () => {
         r.zip,
         r.phone,
         r.sourceName,
+        r.customCategoryLabel,
         CATEGORY_LABELS[r.category],
       ]
         .filter(Boolean)
@@ -607,6 +626,30 @@ export const ResourcesPanel: FC = () => {
                 label="Refresh resources"
               />
             )}
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setShowAddSource(true);
+              }}
+              aria-label="Add custom source"
+              title="Add custom source"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 24,
+                height: 24,
+                padding: 0,
+                border: `1px solid ${isDark ? '#2a2a2a' : '#dddddd'}`,
+                background: 'transparent',
+                color: mutedText,
+                cursor: 'pointer',
+                borderRadius: 4,
+              }}
+            >
+              <Plus size={13} />
+            </button>
             {/* Info popover — live data sources */}
             <PanelInfoPopover
               isDark={isDark}
@@ -912,6 +955,13 @@ export const ResourcesPanel: FC = () => {
             </>
           )}
         </AnimatePresence>
+        {showAddSource && (
+          <AddSource
+            isDark={isDark}
+            onClose={() => setShowAddSource(false)}
+            onAdded={handleSourceAdded}
+          />
+        )}
       </motion.div>
     </motion.div>
   );
