@@ -1,3 +1,17 @@
+<style>
+/* Gold frame for this doc — fills in on hover (honored by the markdown preview). */
+body {
+  border: 3px solid #fbbf24;
+  border-radius: 6px;
+  padding: 16px 24px;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+body:hover {
+  background-color: #fbbf24;
+  color: #000;
+}
+</style>
+
 # Location-Aware Data Network — Architecture
 
 > **Status:** Living document. This is the source of truth for how Help Nearby
@@ -69,7 +83,7 @@ is the orchestration point. It already does layers 3 + part of 5
 
 | Layer | Today | Target |
 |-------|-------|--------|
-| Resolver | **v2 built (hub coverage)** — [`fipsResolver.ts`](../frontend/src/lib/location/fipsResolver.ts) resolves place → county → state → national from bundled NYC/LA polygons + Census fallback. National county bundle still TODO. | full national county bundle + sub-municipal hub layer |
+| Resolver | **v2 built (hub coverage)** — [`fipsResolver.ts`](../frontend/src/lib/location/fipsResolver.ts) resolves place → county → state → national from bundled NYC/LA/Chicago polygons + Census fallback. National county bundle still TODO. | full national county bundle + sub-municipal hub layer |
 | Registry | **data-driven built** — [`sources.json`](../frontend/src/data/sources.json) + [`registry.ts`](../frontend/src/lib/resources/registry.ts) select by jurisdiction via the resolver. Old bbox `sourceRegistry.ts` deleted. | → DB rows + admin UI |
 | Adapters | **`arcgis` + `socrata` built**, dispatched by `sourceType` via [`adapters/index.ts`](../frontend/src/lib/resources/adapters/index.ts) | + `geojson` + `rest` + `places` |
 | Reconcile | **built** — [`reconcile.ts`](../frontend/src/lib/resources/reconcile.ts): 2-of-3 entity matching, trust-ranked field merge, per-field provenance, wired into the route before ranking | + freshness/staleness model |
@@ -116,7 +130,7 @@ not *which rows to keep* — the upstreams do precise spatial filtering themselv
 |-------|----------|-----------|
 | State + County | **Bundle** (~3,200 county polygons, simplified) | Whole-US offline resolution; rarely changes. |
 | Place (city) | **Bundle only cities with sources** | 19k US places is too heavy; only target cities matter. Grows with the network. |
-| Sub-municipal (NYC/LA only) | **Bundle high-fidelity** | Density demands finer-than-county (see §4). |
+| Sub-municipal (hub cities only) | **Bundle high-fidelity** | Density demands finer-than-county (see §4). |
 | Miss / ambiguous | **Census geocoder API fallback** | `geocoding.geo.census.gov` resolves exactly; rare path. |
 
 Runtime: build a **Flatbush** bbox index once per cold start, query candidates,
@@ -131,7 +145,7 @@ boundary shapefiles → `mapshaper` simplify + field-filter → GeoJSON committe
 
 ---
 
-## 4. NYC & LA geography (the density problem)
+## 4. Hub geography (the density problem)
 
 **NYC is one place but five counties, published at sub-borough granularity.**
 A naive county key splits NYC into five and still isn't fine enough.
@@ -147,6 +161,7 @@ A naive county key splits NYC into five and still isn't fine enough.
 Key IDs:
 - **City of NYC** place GEOID `3651000`; **NY state** `36`.
 - **City of LA** place GEOID `0644000`; **LA County** `06037`; **CA state** `06`.
+- **City of Chicago** place GEOID `1714000`; **Cook County** `17031`; **IL state** `17`.
 
 NYC sub-municipal units: **Community Districts (59)**, **NTAs (~195)**,
 **MODZCTA** (NYC-modified ZCTA, used for DOHMH health data).
@@ -158,8 +173,8 @@ LA: **council districts**, **neighborhood councils**.
 2. Add an **optional sub-municipal layer for dense hubs only**. Bundle NYC
    Community Districts + LA neighborhoods at high fidelity; rest of US stops at
    county.
-3. **Tiered polygon fidelity** — NYC/LA simplified lightly (`30–50%`), rest of
-   US aggressively (`8%`). Border misresolution costs more in a dense hub.
+3. **Tiered polygon fidelity** — hub cities simplified lightly (`30–50%`), rest
+   of US aggressively (`8%`). Border misresolution costs more in a dense hub.
 4. **City-native geocoders for the hubs** — **NYC GeoSearch**
    (`geosearch.planninglabs.nyc`, official DCP; returns borough, NTA, BBL,
    rooftop coords) for NYC; **LA County/City GeoHub** geocoders for LA.
@@ -245,12 +260,12 @@ stack. The resolver currently bundles **hub coverage only**:
 
 | Selectable today | ids |
 |---|---|
-| Places | `place:3651000` (NYC), `place:0644000` (LA city) |
-| Counties | `county:3600{5}/360{47,61,81}`/`36085` (NYC boroughs), `county:06037` (LA) |
-| States | `state:36`, `state:06` |
+| Places | `place:3651000` (NYC), `place:0644000` (LA city), `place:1714000` (Chicago) |
+| Counties | `county:3600{5}/360{47,61,81}`/`36085` (NYC boroughs), `county:06037` (LA), `county:17031` (Cook) |
+| States | `state:36`, `state:06`, `state:17` |
 | National | `us` |
 
-A row keyed to anything else (e.g. Chicago `place:1714000`) will sit in the file
+A row keyed to anything outside the bundled hub coverage will sit in the file
 and **never be selected** until that polygon is added to
 [`data/geo/`](../frontend/src/data/geo/) via
 [`build-coverage.mjs`](../frontend/scripts/build-coverage.mjs). **`sources.json`
@@ -313,9 +328,15 @@ Each owns its `*.sources.json`, its adapters, and its output type:
 
 Both now run on the shared core, so adding a domain = a new `*.sources.json` + a
 typed registry that calls `selectByJurisdiction` + `fanOut`; the route just maps
-the typed output to its panel envelope. Alerts is NWS-only (national `us`) today;
-city/state alert feeds register scoped to `place:`/`state:` ids and are selected
-automatically — the same scaling story as resources.
+the typed output to its panel envelope. Alerts now spans national feeds (NWS,
+USGS, NASA EONET, EPA AirNow), state/coastal feeds (NOAA tsunami, CAL FIRE), and
+city feeds (NYC/LA/Chicago crime, NYC emergency notifications, FEMA declarations
+by county/state) — all registered in `alerts.sources.json` and selected by
+jurisdiction, the same scaling story as resources. Each alert is stamped with its
+source (`sourceName`/`sourceUrl`) so AlertPanel attributes items individually.
+The generic `socrata-local-incident` adapter makes any Socrata incident/notice
+dataset a zero-code row; `calfire`/`airnow`/`openfema-declaration` are dedicated
+adapters. AirNow needs `AIRNOW_API_KEY` and ships `enabled:false` until it's set.
 
 ### What is deliberately NOT in this system
 - **NewsTicker / breaking news** ([`/api/fema-disasters`](../frontend/src/app/api/fema-disasters/route.ts))
@@ -461,13 +482,24 @@ Fallbacks for NYC points: (future NYS state feeds →) HRSA national.
 | LA Public Library branches | library | **socrata** | place:0644000 | proves LA isn't ArcGIS-only; nested `location` col |
 | HRSA health centers | health | arcgis-rest | `us` | server-side spatial filter |
 
+### Chicago — `place:1714000` / `county:17031` / `state:17` (live)
+| Source | Category | sourceType | jurisdictionId | Notes |
+|--------|----------|------------|----------------|-------|
+| Chicago Public Library branches | library | socrata | place:1714000 | official CPL locations; GeoJSON-style point col |
+| Chicago Cooling Centers | cooling | socrata | place:1714000 | seasonal DFSS heat-refuge feed |
+| Chicago Warming Centers | warming | socrata | place:1714000 | first-class warming category; seasonal cold-refuge feed |
+| Chicago Community Service Centers | social_services | socrata | place:1714000 | DFSS benefits/emergency assistance centers |
+| Chicago Primary Care Community Health Centers | health | socrata | place:1714000 | overlaps HRSA by design for reconciliation |
+| HRSA health centers | health | arcgis-rest | `us` | national fallback |
+
 ---
 
 ## 11. Build order (NYC-first — it stresses everything)
 
 1. ✅ **Resolver v2 (hub coverage)** — *done.* Bundled NYC 5-county + LA County
-   polygons and NYC/LA city polygons (TIGERweb), dependency-free point-in-polygon,
-   density-aware cache, Census API fallback. Validated **39/39** against the
+   + Cook County polygons and NYC/LA/Chicago city polygons (TIGERweb),
+   dependency-free point-in-polygon,
+   density-aware cache, Census API fallback. Validated **45/45** against the
    gold-standard fixtures (`npm run validate:resolver`). Files:
    [`fipsResolver.ts`](../frontend/src/lib/location/fipsResolver.ts),
    [`jurisdiction.ts`](../frontend/src/lib/location/jurisdiction.ts),
@@ -485,9 +517,9 @@ Fallbacks for NYC points: (future NYS state feeds →) HRSA national.
    each keyed by `jurisdictionId` with `trust`/`enabled`), and jurisdiction-based
    selection ([`registry.ts`](../frontend/src/lib/resources/registry.ts)) wired into
    [`/api/nearby-resources`](../frontend/src/app/api/nearby-resources/route.ts).
-   Verified live (`npm run validate:sources`): NYC → NYC sources + national HRSA
-   (17 + 4 live rows), LA → its 4 sources; neither leaks into the other. Old
-   bbox `sourceRegistry.ts` deleted.
+   Verified live (`npm run validate:sources`): NYC → NYC sources + national HRSA,
+   LA → LA sources + national HRSA, Chicago → Chicago sources + national HRSA;
+   no hub leaks into another. Old bbox `sourceRegistry.ts` deleted.
 3. ✅ **Reconciliation** — *done.* [`reconcile.ts`](../frontend/src/lib/resources/reconcile.ts):
    entity matching on any 2 of {normalized name (Dice ≥0.8), normalized address,
    geo ≤50m}, greedy clustering, trust-ranked field merge with per-field
@@ -530,6 +562,30 @@ it works there it works in LA by construction.
 
 ## Changelog
 
+- **2026-06-20** — Alert consolidation: `fetchAlerts` now collapses the same
+  natural-hazard event reported by multiple sources (e.g. a wildfire from both
+  CAL FIRE and NASA EONET) into one highest-trust record. `WeatherAlert` gained
+  optional `latitude`/`longitude`/`trust` (stamped by adapters/registry);
+  consolidation is scoped to a canonical-hazard allowlist, requires different
+  sources, same canonical title, and ~15 km proximity — crime/weather/notice
+  lists are never merged. EONET category labels are canonicalized
+  (`"Wildfires"` → `"Wildfire"`) so badges and dedup align.
+- **2026-06-20** — Alerts expansion: added Chicago crime (live, fresh) as a
+  zero-code `socrata-local-incident` row; new `calfire` (CA wildfires, `state:06`),
+  `airnow` (EPA AQI, `us`, key-gated `enabled:false`), and `openfema-declaration`
+  (FEMA declarations by county/state, recent-OR-still-active) adapters. Added
+  per-item `sourceName`/`sourceUrl` to `WeatherAlert` (registry stamps each item;
+  AlertPanel shows it per row) and an optional `includeCategories` filter on the
+  Socrata incident adapter. LA crime (`2nrs-mtv8`) and NYC emergency notifications
+  (`8vv7-7wx3`) were wired but ship **`enabled:false`** — live probing showed both
+  open-data exports are frozen/stale (2024-12-30 and 2025-09-15); re-enable when
+  they resume. All endpoints live-probed. Files: `lib/alerts/{types,registry}.ts`,
+  `data/alerts.sources.json`, `components/help/AlertPanel.tsx`.
+- **2026-06-20** — Chicago expansion proof: added Cook County + Chicago city
+  resolver coverage, first-class `warming` category, GeoJSON-style Socrata point
+  support, and five official Chicago Data Portal sources (library, cooling,
+  warming, social_services, health). Food aid intentionally left as a gap until
+  a clean pantry/soup-kitchen feed is verified.
 - **2026-06-19** — NYC food gap closed: NYC Soup Kitchens & Food Pantries (FacDB,
   618 sites). Added a latlng `cast` mode to the Socrata adapter (`::number`) for
   text-typed lat/lng columns — also un-skips cqc8/fzy4/5ziv. Registry now 23
@@ -591,5 +647,5 @@ it works there it works in LA by construction.
   `geo/pointInPolygon.ts`, `data/geo/{counties,places}.json`, fixtures + jest test,
   `scripts/{validate-resolver,build-coverage}.mjs`, `validate:resolver` npm script.
 - **2026-06-19** — Initial draft: architecture, coverage-keying decision,
-  bundled-resolver + Census fallback, NYC/LA density handling, reconciliation,
+  bundled-resolver + Census fallback, hub density handling, reconciliation,
   reliability, validation, build order.
