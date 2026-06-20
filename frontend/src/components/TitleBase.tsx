@@ -2,7 +2,7 @@
 
 import type { FC } from 'react';
 import { motion } from 'framer-motion';
-import { useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from './useTheme';
 import { useI18n } from '@/lib/i18n';
@@ -43,6 +43,13 @@ interface VariantColors {
   hoverBg: string;
   hoverColor: string;
 }
+
+// Major cities for quick location switch
+const MAJOR_CITIES = [
+  { city: 'New York', state: 'NY', label: 'New York, NY' },
+  { city: 'Chicago', state: 'IL', label: 'Chicago, IL' },
+  { city: 'Los Angeles', state: 'CA', label: 'Los Angeles, CA' },
+] as const;
 
 const variantColors: Record<string, VariantColors> = {
   help: {
@@ -119,6 +126,8 @@ const TitleBase: FC<TitleProps> = ({
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [locationInput, setLocationInput] = useState('');
   const [isLocationHovered, setIsLocationHovered] = useState(false);
+  const [isLocationQuickSwitchHovered, setIsLocationQuickSwitchHovered] =
+    useState(false);
 
   // Location for display, split across two lines: "City, State" then zip.
   const cityStateLine =
@@ -136,6 +145,27 @@ const TitleBase: FC<TitleProps> = ({
     if (value) setLocation(value);
     setIsEditingLocation(false);
   };
+
+  // Handle quick city switch
+  const handleQuickCitySwitch = useCallback(
+    (cityData: { city: string; state: string }) => {
+      if (city && city === cityData.city && state === cityData.state) {
+        // Skip if already selected
+        return;
+      }
+      setLocation(`${cityData.city}, ${cityData.state}`);
+      setIsLocationDropdownOpen(false);
+      setIsLocationQuickSwitchHovered(false);
+    },
+    [city, state, setLocation],
+  );
+
+  // Get filtered cities (exclude currently loaded city)
+  const filteredCities = useMemo(() => {
+    return MAJOR_CITIES.filter((c) => !(c.city === city && c.state === state));
+  }, [city, state]);
+
+  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
 
   // Get colors based on variant
   const colors = variantColors[variant] || variantColors['about'];
@@ -174,7 +204,7 @@ const TitleBase: FC<TitleProps> = ({
     backgroundColor: isTitleHovered ? colors.hoverBg : 'rgba(0, 0, 0, 0)',
     color: isTitleHovered ? colors.hoverColor : textColor,
     padding: '0 5px',
-    borderRadius: '4px',
+    borderRadius: 0,
     transform: isTitleHovered ? 'scale(1.05)' : 'scale(1)',
   };
 
@@ -357,46 +387,107 @@ const TitleBase: FC<TitleProps> = ({
                 }}
               />
             ) : (
-              <button
-                type="button"
-                onClick={beginEditingLocation}
-                onMouseEnter={() => setIsLocationHovered(true)}
-                onMouseLeave={() => setIsLocationHovered(false)}
-                title="Edit location"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  height: '40px',
-                  gap: '10px',
-                  fontFamily: "'Poppins', sans-serif",
-                  fontWeight: 700,
-                  fontSize: '1.4rem',
-                  color: hasLocation ? textColor : '#fbbf24',
-                  background: 'none',
-                  border: `3px solid ${
-                    isLocationHovered
-                      ? '#fbbf24'
-                      : isDark
-                        ? '#252a36'
-                        : '#d0d4dc'
-                  }`,
-                  borderRadius: 0,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  lineHeight: 1.2,
-                  padding: '2px 6px',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.15s ease',
+              <div
+                style={{ position: 'relative', display: 'inline-block' }}
+                onMouseEnter={() => {
+                  setIsLocationHovered(true);
+                  setIsLocationDropdownOpen(true);
+                }}
+                onMouseLeave={() => {
+                  setIsLocationHovered(false);
+                  setIsLocationDropdownOpen(false);
                 }}
               >
-                <span>{cityStateLine || 'Set location'}</span>
-                {zipLine && (
-                  <span style={{ fontSize: '1.15rem', opacity: 0.7 }}>
-                    {zipLine}
-                  </span>
+                <button
+                  type="button"
+                  onClick={beginEditingLocation}
+                  title="Edit location"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    height: '40px',
+                    gap: '10px',
+                    fontFamily: "'Poppins', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '1.4rem',
+                    color: hasLocation ? textColor : '#fbbf24',
+                    background: 'none',
+                    border: `3px solid ${
+                      isLocationHovered
+                        ? '#fbbf24'
+                        : isDark
+                          ? '#252a36'
+                          : '#d0d4dc'
+                    }`,
+                    borderRadius: 0,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.2,
+                    padding: '2px 6px',
+                    boxSizing: 'border-box',
+                    transition: 'border-color 0.15s ease',
+                  }}
+                >
+                  <span>{cityStateLine || 'Set location'}</span>
+                  {zipLine && (
+                    <span style={{ fontSize: '1.15rem', opacity: 0.7 }}>
+                      {zipLine}
+                    </span>
+                  )}
+                </button>
+                {/* Quick city switch dropdown */}
+                {isLocationDropdownOpen && filteredCities.length > 0 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      marginTop: 0,
+                      backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
+                      border: '2px solid #fbbf24',
+                      borderRadius: 0,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                      zIndex: 1000,
+                      minWidth: '160px',
+                      overflow: 'hidden',
+                    }}
+                    onMouseEnter={() => {
+                      setIsLocationDropdownOpen(true);
+                    }}
+                    onMouseLeave={() => {
+                      setIsLocationDropdownOpen(false);
+                    }}
+                  >
+                    {filteredCities.map((city, index) => (
+                      <button
+                        key={`${city.city}-${city.state}`}
+                        type="button"
+                        onClick={() => handleQuickCitySwitch(city)}
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          padding: '10px 12px',
+                          fontSize: '1.2rem',
+                          fontWeight: 600,
+                          textAlign: 'left',
+                          color: isDark ? '#e8e8e8' : '#333',
+                          background: isDark ? '#1e1e1e' : '#ffffff',
+                          border: 'none',
+                          borderBottom:
+                            index < filteredCities.length - 1
+                              ? '1px solid #ddd'
+                              : 'none',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {city.label}
+                      </button>
+                    ))}
+                  </div>
                 )}
-              </button>
+              </div>
             )}
           </div>
         )}
