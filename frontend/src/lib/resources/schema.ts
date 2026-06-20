@@ -81,4 +81,5 @@ export interface NearbyResponse {
   resources: NearbyResource[];
   sources: SourceMeta[];
   degraded: boolean;
+  total?: number;
 }

@@ -27,6 +27,8 @@ const CATEGORY_LABELS: Record<ResourceCategory, string> = {
   other: 'Other',
 };
 
+const RESOURCES_PAGE_SIZE = 25;
+
 // Returns the best available address string for display. Rules:
 //  1. If the address field already looks complete (contains a 2-letter state
 //     abbreviation), show it as-is.
@@ -295,7 +297,7 @@ const ResourceCard: FC<ResourceCardProps> = ({
 export const ResourcesPanel: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { zip, latitude, longitude, isValid, isResolvingLocation } =
+  const { latitude, longitude, isValid, isResolvingLocation } =
     useLocationContext();
 
   const [sourcesOpen, setSourcesOpen] = useState(false);
@@ -304,6 +306,7 @@ export const ResourcesPanel: FC = () => {
   const [activeCategories, setActiveCategories] = useState<ResourceCategory[]>(
     [],
   );
+  const [page, setPage] = useState(1);
 
   const nearby = useNearbyResources({
     latitude,
@@ -328,33 +331,12 @@ export const ResourcesPanel: FC = () => {
   useEffect(() => {
     setQuery('');
     setActiveCategories([]);
+    setPage(1);
   }, [locationKey]);
 
-  const resourceKeys = useMemo(
-    () =>
-      (nearbyResources ?? [])
-        .map((r) => r.resource_key)
-        .filter((k): k is string => Boolean(k)),
-    [nearbyResources],
-  );
-
-  const { data: communityTips = {} } = useQuery({
-    queryKey: ['community-tips', resourceKeys],
-    queryFn: async () => {
-      if (resourceKeys.length === 0) return {};
-      const params = new URLSearchParams({
-        resourceKeys: resourceKeys.join(','),
-      });
-      const res = await fetch(`/api/community-tips?${params.toString()}`);
-      if (!res.ok) return {};
-      const data = (await res.json()) as {
-        tips: Record<string, CommunityTip[]>;
-      };
-      return data.tips ?? {};
-    },
-    enabled: resourceKeys.length > 0,
-    staleTime: 5 * 60 * 1000,
-  });
+  useEffect(() => {
+    setPage(1);
+  }, [query, activeCategories]);
 
   const handleRefresh = useCallback(() => {
     if (isValid && Number.isFinite(latitude) && Number.isFinite(longitude)) {
@@ -399,6 +381,51 @@ export const ResourcesPanel: FC = () => {
     });
   }, [nearbyResources, query, activeCategories]);
 
+  const filteredTotal = filteredResources?.length ?? 0;
+  const totalPages =
+    filteredTotal === 0 ? 0 : Math.ceil(filteredTotal / RESOURCES_PAGE_SIZE);
+  const shownTotalPages = Math.max(totalPages, 1);
+  const hasPreviousPage = page > 1;
+  const hasNextPage = page < totalPages;
+
+  useEffect(() => {
+    if (totalPages > 0 && page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const pagedResources = useMemo(() => {
+    if (!filteredResources) return filteredResources;
+    const offset = (page - 1) * RESOURCES_PAGE_SIZE;
+    return filteredResources.slice(offset, offset + RESOURCES_PAGE_SIZE);
+  }, [filteredResources, page]);
+
+  const resourceKeys = useMemo(
+    () =>
+      (pagedResources ?? [])
+        .map((r) => r.resource_key)
+        .filter((k): k is string => Boolean(k)),
+    [pagedResources],
+  );
+
+  const { data: communityTips = {} } = useQuery({
+    queryKey: ['community-tips', resourceKeys],
+    queryFn: async () => {
+      if (resourceKeys.length === 0) return {};
+      const params = new URLSearchParams({
+        resourceKeys: resourceKeys.join(','),
+      });
+      const res = await fetch(`/api/community-tips?${params.toString()}`);
+      if (!res.ok) return {};
+      const data = (await res.json()) as {
+        tips: Record<string, CommunityTip[]>;
+      };
+      return data.tips ?? {};
+    },
+    enabled: resourceKeys.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const toggleCategory = (c: ResourceCategory) =>
     setActiveCategories((prev) =>
       prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
@@ -409,6 +436,70 @@ export const ResourcesPanel: FC = () => {
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#7a7a7a' : '#888';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+
+  const PaginationControls = () => (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '0.8rem',
+        padding: '0.65rem 1.4rem',
+        borderBottom: `1px solid ${divider}`,
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "'Poppins', sans-serif",
+          fontSize: '0.68rem',
+          color: mutedText,
+        }}
+      >
+        Page {Math.min(page, shownTotalPages)} of {shownTotalPages}
+        {filteredTotal > 0 ? ` · ${filteredTotal} results` : ''}
+      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <button
+          type="button"
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={!hasPreviousPage || nearbyRefreshing}
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: '0.68rem',
+            fontWeight: 800,
+            padding: '0.25rem 0.55rem',
+            cursor:
+              !hasPreviousPage || nearbyRefreshing ? 'not-allowed' : 'pointer',
+            border: `1px solid ${isDark ? '#2a2a2a' : '#e0e0e0'}`,
+            background: 'transparent',
+            color: !hasPreviousPage || nearbyRefreshing ? mutedText : cardText,
+            opacity: !hasPreviousPage || nearbyRefreshing ? 0.45 : 1,
+          }}
+        >
+          Prev
+        </button>
+        <button
+          type="button"
+          onClick={() => setPage((p) => p + 1)}
+          disabled={!hasNextPage || nearbyRefreshing}
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: '0.68rem',
+            fontWeight: 800,
+            padding: '0.25rem 0.55rem',
+            cursor:
+              !hasNextPage || nearbyRefreshing ? 'not-allowed' : 'pointer',
+            border: `1px solid ${isDark ? '#2a2a2a' : '#e0e0e0'}`,
+            background: 'transparent',
+            color: !hasNextPage || nearbyRefreshing ? mutedText : cardText,
+            opacity: !hasNextPage || nearbyRefreshing ? 0.45 : 1,
+          }}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
 
   // Locked panel
   const LockedPanel = ({ minH = 100 }: { minH?: number }) => (
@@ -814,7 +905,8 @@ export const ResourcesPanel: FC = () => {
                       LIVE DATA UNAVAILABLE — SHOWING LAST-KNOWN INFORMATION
                     </div>
                   )}
-                  {(filteredResources ?? []).length === 0 ? (
+                  <PaginationControls />
+                  {(pagedResources ?? []).length === 0 ? (
                     <div style={{ padding: '1.2rem 1.4rem' }}>
                       <span
                         style={{
@@ -828,7 +920,7 @@ export const ResourcesPanel: FC = () => {
                       </span>
                     </div>
                   ) : (
-                    (filteredResources ?? []).map((r, i, arr) => (
+                    (pagedResources ?? []).map((r, i, arr) => (
                       <ResourceCard
                         key={resourceRenderKey(r, i)}
                         r={r}

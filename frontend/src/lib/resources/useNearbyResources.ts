@@ -15,6 +15,7 @@ interface NearbyCacheEntry {
   resources: NearbyResource[];
   sources: SourceMeta[];
   degraded: boolean;
+  total: number;
   ts: number;
 }
 
@@ -22,6 +23,7 @@ interface NearbyResourcesData {
   resources: NearbyResource[];
   sources: SourceMeta[];
   degraded: boolean;
+  total: number;
 }
 
 interface UseNearbyResourcesOptions {
@@ -66,6 +68,7 @@ const readNearbyCache = (key: string): NearbyResourcesData | null => {
       resources: entry.resources ?? [],
       sources: entry.sources ?? [],
       degraded: Boolean(entry.degraded),
+      total: entry.total ?? entry.resources?.length ?? 0,
     };
   } catch {
     return null;
@@ -100,7 +103,12 @@ async function fetchNearbyResources(
   });
   const res = await fetch(`/api/nearby-resources?${params.toString()}`);
   if (!res.ok) {
-    return { resources: [], sources: [], degraded: false };
+    return {
+      resources: [],
+      sources: [],
+      degraded: false,
+      total: 0,
+    };
   }
 
   const data = (await res.json()) as NearbyResponse;
@@ -108,6 +116,7 @@ async function fetchNearbyResources(
     resources: data.resources ?? [],
     sources: data.sources ?? [],
     degraded: Boolean(data.degraded),
+    total: data.total ?? data.resources?.length ?? 0,
   };
   writeNearbyCache(cacheKey, normalized);
   return normalized;
@@ -156,6 +165,7 @@ export function useNearbyResources({
     resources: query.data?.resources ?? null,
     sources: query.data?.sources ?? [],
     degraded: query.data?.degraded ?? false,
+    total: query.data?.total ?? 0,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     error: query.error,

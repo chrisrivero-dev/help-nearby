@@ -10,18 +10,22 @@ interface FeatureBarProps {
   hideThemeToggle?: boolean;
   bgColor?: string;
   vertical?: boolean;
+  itemStyle?: React.CSSProperties;
+  gap?: React.CSSProperties['gap'];
 }
 
 const FeatureBar: FC<FeatureBarProps> = ({
   hideThemeToggle = false,
   bgColor = '',
   vertical = false,
+  itemStyle,
+  gap,
 }) => {
   const containerStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: vertical ? 'column' : 'row',
     alignItems: 'center',
-    gap: vertical ? '12px' : '16px',
+    gap: gap ?? (vertical ? '12px' : '16px'),
     padding: vertical ? '0' : '4px 8px',
     borderRadius: '4px',
     backgroundColor: bgColor,
@@ -35,13 +39,21 @@ const FeatureBar: FC<FeatureBarProps> = ({
       }}
     >
       {/* Theme Toggle Button */}
-      {!hideThemeToggle && <ThemeToggleButton />}
+      {!hideThemeToggle && (
+        <div style={itemStyle}>
+          <ThemeToggleButton />
+        </div>
+      )}
 
       {/* Clock */}
-      <Clock />
+      <div style={itemStyle}>
+        <Clock />
+      </div>
 
       {/* Language Toggle */}
-      <LanguageToggle />
+      <div style={itemStyle}>
+        <LanguageToggle />
+      </div>
     </div>
   );
 };

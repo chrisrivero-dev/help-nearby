@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { haversineDistanceMiles } from '@/lib/location/distance';
-import {
-  selectSources,
-  type SelectedSource,
-} from '@/lib/resources/registry';
+import { selectSources, type SelectedSource } from '@/lib/resources/registry';
 import type {
-  NearbyResource,
   NearbyResponse,
   SourceMeta,
   ResourceCategory,
@@ -19,8 +15,6 @@ const RESOURCE_CACHE_TTL_SECONDS = 3600;
 /** Round coords to ~1km so nearby queries share cache entries. */
 const roundCoord = (n: number) => n.toFixed(2);
 
-const MAX_RESULTS = 25;
-const MAX_PER_SOURCE_DEFAULT = 8;
 const DEFAULT_RADIUS_MILES = 10;
 const MAX_RADIUS_MILES = 50;
 
@@ -93,7 +87,12 @@ export async function GET(
 
   // No registered live source covers this point — return empty, not demo data.
   if (live.length === 0) {
-    return NextResponse.json({ resources: [], sources: [], degraded: false });
+    return NextResponse.json({
+      resources: [],
+      sources: [],
+      degraded: false,
+      total: 0,
+    });
   }
 
   const liveRun = await runSources(live, query);
@@ -131,27 +130,17 @@ export async function GET(
       (a, b) => (a.distanceMiles ?? Infinity) - (b.distanceMiles ?? Infinity),
     );
 
-  // Source balancing: on uncategorized "snapshot" calls (the Help dashboard's
-  // default mode), prevent a single high-density source from filling the whole
-  // global cap and crowding out other authoritative sources. A category-filtered
-  // call is treated as a directed search — no per-source cap is applied so the
-  // user gets the best matches for that category.
-  const perSourceCap = category ? Infinity : MAX_PER_SOURCE_DEFAULT;
-  const perSourceCount = new Map<string, number>();
-  const balanced: typeof sortedByDistance = [];
-  for (const r of sortedByDistance) {
-    const key = r.sourceName;
-    const n = perSourceCount.get(key) ?? 0;
-    if (n >= perSourceCap) continue;
-    perSourceCount.set(key, n + 1);
-    balanced.push(r);
-    if (balanced.length >= MAX_RESULTS) break;
-  }
+  const total = sortedByDistance.length;
 
-  const withKeys = balanced.map((r) => ({
+  const withKeys = sortedByDistance.map((r) => ({
     ...r,
     resource_key: computeResourceKey(r.name, r.address),
   }));
 
-  return NextResponse.json({ resources: withKeys, sources: metas, degraded });
+  return NextResponse.json({
+    resources: withKeys,
+    sources: metas,
+    degraded,
+    total,
+  });
 }

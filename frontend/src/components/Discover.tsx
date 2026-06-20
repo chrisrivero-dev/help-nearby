@@ -4,7 +4,15 @@ import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
-import { Crosshair, Search } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Crosshair,
+  List,
+  MapPin,
+  Search,
+  X,
+} from 'lucide-react';
 import { useTheme } from './useTheme';
 import { useRouter } from 'next/navigation';
 import FeatureBar from './FeatureBar';
@@ -35,6 +43,8 @@ interface DiscoverProps {
   centerLng: number;
   hasInitialCenter?: boolean;
 }
+
+const DISCOVER_PAGE_SIZE = 25;
 
 const CATEGORY_LABELS: Record<ResourceCategory, string> = {
   health: 'Health',
@@ -72,6 +82,9 @@ const formatDist = (mi?: number) => {
 const formatAddress = (r: NearbyResource) =>
   [r.address, r.city, r.state].filter(Boolean).join(', ');
 
+const resourceMarkerKey = (resource: NearbyResource) =>
+  resource.resource_key ?? `${resource.sourceName}:${resource.id}`;
+
 const MapInstanceSetter: FC<{
   onMapReady: (map: import('leaflet').Map) => void;
 }> = ({ onMapReady }) => {
@@ -105,10 +118,19 @@ const Discover: FC<DiscoverProps> = ({
   const [mapInstance, setMapInstance] = useState<import('leaflet').Map | null>(
     null,
   );
+  const [page, setPage] = useState(1);
+  const [listOpen, setListOpen] = useState(true);
+  const [resourceQuery, setResourceQuery] = useState('');
+  const [activeCategories, setActiveCategories] = useState<ResourceCategory[]>(
+    [],
+  );
   const [leafletModule, setLeafletModule] = useState<
     typeof import('leaflet') | null
   >(null);
   const lastCenteredLocation = useRef('');
+  const resourceMarkerRefs = useRef<Map<string, import('leaflet').Marker>>(
+    new Map(),
+  );
 
   const hasMapCenter = isValid || hasInitialCenter;
   const activeLat = isValid ? latitude : centerLat;
@@ -118,16 +140,65 @@ const Discover: FC<DiscoverProps> = ({
     longitude,
     enabled: isValid,
   });
+  const allResources = nearby.resources ?? [];
+  const availableCategories = useMemo<ResourceCategory[]>(() => {
+    const present = new Set(allResources.map((r) => r.category));
+    return (Object.keys(CATEGORY_LABELS) as ResourceCategory[]).filter((c) =>
+      present.has(c),
+    );
+  }, [allResources]);
+  const filteredResources = useMemo(() => {
+    const q = resourceQuery.trim().toLowerCase();
+    return allResources.filter((r) => {
+      if (activeCategories.length > 0 && !activeCategories.includes(r.category))
+        return false;
+      if (!q) return true;
+      const haystack = [
+        r.name,
+        r.address,
+        r.city,
+        r.state,
+        r.zip,
+        r.phone,
+        r.sourceName,
+        CATEGORY_LABELS[r.category],
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [activeCategories, allResources, resourceQuery]);
+  const filtersActive =
+    resourceQuery.trim().length > 0 || activeCategories.length > 0;
+  const totalPages =
+    filteredResources.length === 0
+      ? 0
+      : Math.ceil(filteredResources.length / DISCOVER_PAGE_SIZE);
+  const shownTotalPages = Math.max(totalPages, 1);
+  const hasPreviousPage = page > 1;
+  const hasNextPage = page < totalPages;
+
+  useEffect(() => {
+    if (totalPages > 0 && page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const pagedResources = useMemo(() => {
+    const offset = (page - 1) * DISCOVER_PAGE_SIZE;
+    return filteredResources.slice(offset, offset + DISCOVER_PAGE_SIZE);
+  }, [filteredResources, page]);
   const resourcesWithCoords = useMemo(
     () =>
-      (nearby.resources ?? []).filter(
+      pagedResources.filter(
         (r) =>
           typeof r.latitude === 'number' &&
           typeof r.longitude === 'number' &&
           Number.isFinite(r.latitude) &&
           Number.isFinite(r.longitude),
       ),
-    [nearby.resources],
+    [pagedResources],
   );
   const locationLabel =
     isValid && (city || state)
@@ -144,6 +215,14 @@ const Discover: FC<DiscoverProps> = ({
   useEffect(() => {
     setLocationInput(zip);
   }, [zip]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [latitude, longitude]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeCategories, resourceQuery]);
 
   useEffect(() => {
     if (locationError) {
@@ -221,6 +300,23 @@ const Discover: FC<DiscoverProps> = ({
     boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
   };
 
+  const topRightControlStyle: React.CSSProperties = {
+    width: 34,
+    height: 34,
+    borderRadius: '4px',
+    border: `1px solid ${theme === 'dark' ? '#2a2a2a' : '#d8d8d8'}`,
+    backgroundColor:
+      theme === 'dark' ? 'rgba(0, 0, 0, 0.76)' : 'rgba(255, 255, 255, 0.86)',
+    color: 'var(--color-text)',
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.22)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+  };
+
   const handleLocate = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -250,6 +346,46 @@ const Discover: FC<DiscoverProps> = ({
       handleSearch();
     }
   };
+
+  const toggleCategory = (category: ResourceCategory) => {
+    setActiveCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category],
+    );
+  };
+
+  const focusResource = (resource: NearbyResource) => {
+    if (
+      typeof resource.latitude !== 'number' ||
+      typeof resource.longitude !== 'number'
+    ) {
+      return;
+    }
+    mapInstance?.flyTo([resource.latitude, resource.longitude], 15, {
+      animate: true,
+      duration: 0.55,
+    });
+
+    const marker = resourceMarkerRefs.current.get(resourceMarkerKey(resource));
+    window.setTimeout(() => {
+      marker?.openPopup();
+    }, 350);
+  };
+
+  const pagerButtonStyle = (disabled: boolean): React.CSSProperties => ({
+    width: 30,
+    height: 30,
+    borderRadius: '4px',
+    border: `1px solid ${theme === 'dark' ? '#2a2a2a' : '#d8d8d8'}`,
+    backgroundColor: theme === 'dark' ? '#111111' : '#ffffff',
+    color: 'var(--color-text)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.45 : 1,
+  });
 
   return (
     <div
@@ -373,11 +509,6 @@ const Discover: FC<DiscoverProps> = ({
               <Search size={14} fill="none" />
             </button>
           </div>
-
-          {/* Feature Bar */}
-          <div>
-            <FeatureBar bgColor="var(--color-bg)" />
-          </div>
         </div>
       </motion.div>
 
@@ -430,11 +561,19 @@ const Discover: FC<DiscoverProps> = ({
               )
                 return null;
               const address = formatAddress(resource);
+              const markerKey = resourceMarkerKey(resource);
               return (
                 <Marker
-                  key={`${resource.sourceName}:${resource.id}:${index}`}
+                  key={markerKey}
                   position={[resource.latitude, resource.longitude]}
                   icon={icon}
+                  ref={(marker) => {
+                    if (marker) {
+                      resourceMarkerRefs.current.set(markerKey, marker);
+                    } else {
+                      resourceMarkerRefs.current.delete(markerKey);
+                    }
+                  }}
                 >
                   <Popup>
                     <div
@@ -527,6 +666,335 @@ const Discover: FC<DiscoverProps> = ({
           : `${resourcesWithCoords.length} resources mapped`}
         {nearby.degraded ? ' - last-known data' : ''}
       </motion.div>
+
+      {/* Top-right map controls */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          zIndex: 1001,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '8px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setListOpen((v) => !v)}
+          aria-label={listOpen ? 'Close resource list' : 'Open resource list'}
+          style={topRightControlStyle}
+        >
+          {listOpen ? <X size={17} /> : <List size={17} />}
+        </button>
+        <FeatureBar
+          vertical
+          bgColor="transparent"
+          itemStyle={topRightControlStyle}
+          gap="8px"
+        />
+      </div>
+
+      <motion.aside
+        initial={false}
+        animate={{ x: listOpen ? 0 : 'calc(100% + 84px)' }}
+        transition={{ duration: 0.22, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute',
+          top: '84px',
+          right: '64px',
+          bottom: '76px',
+          zIndex: 1000,
+          width: 'min(360px, calc(100vw - 40px))',
+          background:
+            theme === 'dark'
+              ? 'rgba(10, 10, 10, 0.88)'
+              : 'rgba(255, 255, 255, 0.92)',
+          color: 'var(--color-text)',
+          border: `1px solid ${theme === 'dark' ? '#2a2a2a' : '#e0e0e0'}`,
+          boxShadow:
+            theme === 'dark'
+              ? '0 10px 28px rgba(0,0,0,0.48)'
+              : '0 10px 28px rgba(0,0,0,0.16)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          pointerEvents: listOpen ? 'auto' : 'none',
+        }}
+      >
+        <div
+          style={{
+            padding: '0.9rem 1rem',
+            borderBottom: `1px solid ${theme === 'dark' ? '#242424' : '#e8e8e8'}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.8rem',
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 800,
+                fontSize: '0.76rem',
+                letterSpacing: '0.12em',
+              }}
+            >
+              RESOURCES
+            </div>
+            <div
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: '0.68rem',
+                color: theme === 'dark' ? '#a3a3a3' : '#555',
+                marginTop: '0.15rem',
+              }}
+            >
+              Page {Math.min(page, shownTotalPages)} of {shownTotalPages}
+              {filteredResources.length > 0
+                ? ` · ${filteredResources.length} results`
+                : ''}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '0.35rem', flexShrink: 0 }}>
+            <button
+              type="button"
+              aria-label="Previous resources page"
+              disabled={!hasPreviousPage || nearby.isFetching}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              style={pagerButtonStyle(!hasPreviousPage || nearby.isFetching)}
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <button
+              type="button"
+              aria-label="Next resources page"
+              disabled={!hasNextPage || nearby.isFetching}
+              onClick={() => setPage((p) => p + 1)}
+              style={pagerButtonStyle(!hasNextPage || nearby.isFetching)}
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: '0.8rem 1rem',
+            borderBottom: `1px solid ${theme === 'dark' ? '#242424' : '#e8e8e8'}`,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.6rem',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              border: `1px solid ${theme === 'dark' ? '#252525' : '#e4e4e4'}`,
+              background: theme === 'dark' ? '#0a0a0a' : '#fafafa',
+              padding: '0.4rem 0.6rem',
+            }}
+          >
+            <Search size={13} color={theme === 'dark' ? '#a3a3a3' : '#555'} />
+            <input
+              type="text"
+              value={resourceQuery}
+              onChange={(e) => setResourceQuery(e.target.value)}
+              placeholder="Filter by name, street, ZIP, or source…"
+              style={{
+                flex: 1,
+                minWidth: 0,
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: '0.7rem',
+                color: 'var(--color-text)',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+              }}
+            />
+            {filtersActive && (
+              <button
+                type="button"
+                onClick={() => {
+                  setResourceQuery('');
+                  setActiveCategories([]);
+                }}
+                aria-label="Clear resource filters"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: theme === 'dark' ? '#a3a3a3' : '#555',
+                  lineHeight: 0,
+                }}
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          {availableCategories.length > 1 && (
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.35rem',
+              }}
+            >
+              {availableCategories.map((category) => {
+                const active = activeCategories.includes(category);
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => toggleCategory(category)}
+                    aria-pressed={active}
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.62rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      padding: '0.22rem 0.55rem',
+                      cursor: 'pointer',
+                      border: `1px solid ${
+                        active
+                          ? '#f59e0b'
+                          : theme === 'dark'
+                            ? '#2a2a2a'
+                            : '#e0e0e0'
+                      }`,
+                      background: active ? '#f59e0b' : 'transparent',
+                      color: active
+                        ? '#000'
+                        : theme === 'dark'
+                          ? '#a3a3a3'
+                          : '#555',
+                    }}
+                  >
+                    {CATEGORY_LABELS[category]}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          {nearby.isLoading || nearby.isFetching ? (
+            <div
+              style={{
+                padding: '1.2rem 1rem',
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: '0.78rem',
+                color: theme === 'dark' ? '#a3a3a3' : '#555',
+              }}
+            >
+              Loading resources...
+            </div>
+          ) : pagedResources.length === 0 ? (
+            <div
+              style={{
+                padding: '1.2rem 1rem',
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: '0.78rem',
+                color: theme === 'dark' ? '#a3a3a3' : '#555',
+                lineHeight: 1.5,
+              }}
+            >
+              No resources found for this page.
+            </div>
+          ) : (
+            pagedResources.map((resource, index, arr) => {
+              const address = formatAddress(resource);
+              const hasCoords =
+                typeof resource.latitude === 'number' &&
+                typeof resource.longitude === 'number';
+              return (
+                <button
+                  key={`${resourceMarkerKey(resource)}:${index}`}
+                  type="button"
+                  onClick={() => focusResource(resource)}
+                  disabled={!hasCoords}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '0.85rem 1rem',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom:
+                      index === arr.length - 1
+                        ? 'none'
+                        : `1px solid ${theme === 'dark' ? '#242424' : '#ededed'}`,
+                    color: 'var(--color-text)',
+                    cursor: hasCoords ? 'pointer' : 'default',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.65rem',
+                  }}
+                >
+                  <MapPin
+                    size={15}
+                    color={CATEGORY_COLORS[resource.category]}
+                    style={{ flexShrink: 0, marginTop: 2 }}
+                  />
+                  <span style={{ minWidth: 0, flex: 1 }}>
+                    <span
+                      style={{
+                        display: 'block',
+                        fontFamily: "'Poppins', sans-serif",
+                        fontWeight: 800,
+                        fontSize: '0.75rem',
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {resource.name}
+                    </span>
+                    <span
+                      style={{
+                        display: 'block',
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.66rem',
+                        color: theme === 'dark' ? '#a3a3a3' : '#555',
+                        marginTop: '0.16rem',
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      {CATEGORY_LABELS[resource.category]}
+                      {resource.distanceMiles !== undefined
+                        ? ` · ${formatDist(resource.distanceMiles)}`
+                        : ''}
+                    </span>
+                    {address && (
+                      <span
+                        style={{
+                          display: 'block',
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '0.66rem',
+                          color: theme === 'dark' ? '#c7c7c7' : '#333',
+                          marginTop: '0.18rem',
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        {address}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </motion.aside>
 
       {/* Search error banner */}
       {searchError && (
