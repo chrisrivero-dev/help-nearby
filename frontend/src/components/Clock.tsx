@@ -291,7 +291,8 @@ function ClockDigits({
       const parts = formatter.formatToParts(now);
       const hour = parts.find((p) => p.type === 'hour')?.value ?? '12';
       const minute = parts.find((p) => p.type === 'minute')?.value ?? '00';
-      const dayPeriod = parts.find((p) => p.type === 'dayPeriod')?.value ?? 'AM';
+      const dayPeriod =
+        parts.find((p) => p.type === 'dayPeriod')?.value ?? 'AM';
 
       const timeString = `${hour}:${minute}`;
       latestTimeRef.current = timeString;
@@ -423,8 +424,8 @@ const Clock: FC = () => {
         style={{
           cursor: 'pointer',
           color: isDark ? '#e8e8e8' : '#111111',
-          width: '24px',
-          height: '24px',
+          width: '18px',
+          height: '18px',
           margin: 0,
           padding: 0,
         }}

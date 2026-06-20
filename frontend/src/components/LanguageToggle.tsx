@@ -30,7 +30,7 @@ export default function LanguageToggle() {
         alignItems: 'center',
         justifyContent: 'center',
         cursor: 'pointer',
-        fontSize: '0.75rem',
+        fontSize: '0.875rem',
         fontFamily: "'Poppins', sans-serif",
         fontWeight: 600,
         color: isDark ? '#dedede' : '#111111',
