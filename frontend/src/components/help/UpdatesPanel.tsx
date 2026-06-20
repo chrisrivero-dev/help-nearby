@@ -1,11 +1,15 @@
 'use client';
 
 import type { FC } from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
+import {
+  PanelStatusSquare,
+  PanelRefreshButton,
+} from './PanelStatusControls';
 import type { LocalUpdate } from '@/lib/community/types';
 
 const GOLD_COLOR = '#f59e0b';
@@ -40,29 +44,29 @@ export const UpdatesPanel: FC = () => {
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
   const isLive = items.length > 0;
 
-  // Fetch real, approved, non-expired updates once opened with a location set.
-  // No demo fallback — an empty result renders the empty state.
-  useEffect(() => {
-    if (!isExpanded || !hasLocation || loaded) return;
-    let cancelled = false;
+  // Fetch real, approved, non-expired updates. No demo fallback — an empty
+  // result renders the empty state.
+  const load = useCallback(() => {
     setLoading(true);
     fetch('/api/local-updates')
       .then((r) => (r.ok ? r.json() : { updates: [] }))
       .then((d: { updates?: LocalUpdate[] }) => {
-        if (cancelled) return;
         setItems(Array.isArray(d.updates) ? d.updates : []);
         setLoaded(true);
       })
-      .catch(() => {
-        if (!cancelled) setLoaded(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [isExpanded, hasLocation, loaded]);
+      .catch(() => setLoaded(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Load lazily once the panel is opened with a location set.
+  useEffect(() => {
+    if (!isExpanded || !hasLocation || loaded) return;
+    load();
+  }, [isExpanded, hasLocation, loaded, load]);
+
+  const handleRefresh = useCallback(() => {
+    if (hasLocation) load();
+  }, [hasLocation, load]);
 
   const EmptyOrLocked = ({ text }: { text: string }) => (
     <div
@@ -140,15 +144,7 @@ export const UpdatesPanel: FC = () => {
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <div
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: 0,
-                background: isLive ? '#22c55e' : '#ef4444',
-                flexShrink: 0,
-              }}
-            />
+            <PanelStatusSquare loading={loading} ok={isLive} isDark={isDark} />
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -162,6 +158,15 @@ export const UpdatesPanel: FC = () => {
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            {/* Manual refresh — left of the info icon */}
+            {hasLocation && (
+              <PanelRefreshButton
+                loading={loading}
+                onRefresh={handleRefresh}
+                isDark={isDark}
+                label="Refresh updates"
+              />
+            )}
             <div
               style={{ position: 'relative' }}
               onMouseEnter={() => setSourcesOpen(true)}

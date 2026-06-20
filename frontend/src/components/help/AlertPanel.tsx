@@ -6,6 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Info } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
+import {
+  PanelStatusSquare,
+  PanelRefreshButton,
+} from './PanelStatusControls';
 
 interface WeatherAlert {
   id: string;
@@ -100,9 +104,11 @@ export const AlertPanel: FC = () => {
     }
   }, [zip, isValid, latitude, longitude, fetchWeatherAlerts]);
 
-  // Check if we have live data (fetched successfully without error)
-  const isLive =
-    weatherAlerts !== null && !weatherAlertsError && !weatherAlertsLoading;
+  const handleRefresh = useCallback(() => {
+    if (isValid && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      fetchWeatherAlerts(latitude, longitude);
+    }
+  }, [isValid, latitude, longitude, fetchWeatherAlerts]);
 
   const formatCheckedTime = (iso: string) =>
     new Date(iso).toLocaleTimeString([], {
@@ -164,16 +170,12 @@ export const AlertPanel: FC = () => {
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            {/* Status indicator - moved left of title, flat bright square */}
-            {sources.length > 0 && (
-              <div
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 0,
-                  background: isLive ? '#22c55e' : '#ef4444',
-                  flexShrink: 0,
-                }}
+            {/* Status indicator - left of title */}
+            {(weatherAlertsLoading || sources.length > 0) && (
+              <PanelStatusSquare
+                loading={weatherAlertsLoading}
+                ok={!weatherAlertsError}
+                isDark={isDark}
               />
             )}
             <span
@@ -189,6 +191,15 @@ export const AlertPanel: FC = () => {
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            {/* Manual refresh — left of the info icon */}
+            {zip && isValid && (
+              <PanelRefreshButton
+                loading={weatherAlertsLoading}
+                onRefresh={handleRefresh}
+                isDark={isDark}
+                label="Refresh alerts"
+              />
+            )}
             {/* Info tooltip */}
             <div
               style={{ position: 'relative' }}

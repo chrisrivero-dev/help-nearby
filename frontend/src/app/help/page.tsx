@@ -4,23 +4,15 @@ import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import NavBar from '@/components/NavBar';
-import {
-  LocationProvider,
-  useLocationContext,
-} from '@/components/help/LocationContext';
+import { LocationProvider } from '@/components/help/LocationContext';
 import { NewsTicker } from '@/components/help/NewsTicker';
 import { PanelLayout } from '@/components/help/PanelLayout';
 import { AlertPanel } from '@/components/help/AlertPanel';
 import { ResourcesPanel } from '@/components/help/ResourcesPanel';
-import { TransitPanel } from '@/components/help/TransitPanel';
 import { CommunityPanel } from '@/components/help/CommunityPanel';
 import { UpdatesPanel } from '@/components/help/UpdatesPanel';
 
-import { useTheme } from '@/components/useTheme';
-
 const HelpDashboard: FC = () => {
-  const { theme } = useTheme();
-
   // Detect mobile for responsive layout
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -34,7 +26,7 @@ const HelpDashboard: FC = () => {
   const navVariant = 'help' as const;
   const navTitle = 'HELP! NEARBY.' as const;
 
-  // Clear the taller fixed NavBar (title row + location row) with a margin.
+  // Clear the taller fixed NavBar (title + location rows) with a margin.
   const paddingTop = isMobile ? '190px' : '160px';
 
   return (
@@ -70,7 +62,6 @@ const HelpDashboard: FC = () => {
         <ResourcesPanel />
         <CommunityPanel />
         <UpdatesPanel />
-        <TransitPanel />
       </PanelLayout>
     </motion.main>
   );

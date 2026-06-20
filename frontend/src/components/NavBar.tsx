@@ -1,6 +1,6 @@
 'use client';
 
-import type { FC, RefObject } from 'react';
+import type { FC, ReactNode, RefObject } from 'react';
 import TitleBase from './TitleBase';
 import { useTheme } from './useTheme';
 
@@ -13,6 +13,8 @@ interface NavBarProps {
   showMapPin?: boolean;
   hideThemeToggle?: boolean;
   showLocation?: boolean;
+  /** Optional content rendered inside the fixed header, below the title. */
+  subBar?: ReactNode;
 }
 
 const NavBar: FC<NavBarProps> = ({
@@ -23,12 +25,14 @@ const NavBar: FC<NavBarProps> = ({
   radarRef,
   hideThemeToggle,
   showLocation,
+  subBar,
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const dividerColor = isDark ? '#1e2028' : '#e0e2e8';
 
-  // The bar itself is the title base surface: a single full-bleed header with
-  // a translucent blurred background and a defining bottom border.
+  // Fixed, full-bleed header with a translucent blurred background. The header
+  // stacks two attached bands: the main nav (title) and an optional sub-bar.
   const headerStyle: React.CSSProperties = {
     position: 'fixed',
     top: 0,
@@ -40,9 +44,16 @@ const NavBar: FC<NavBarProps> = ({
       : 'rgba(250, 250, 250, 0.7)',
     backdropFilter: 'blur(10px) saturate(180%)',
     WebkitBackdropFilter: 'blur(10px) saturate(180%)',
-    borderBottom: `1px solid ${isDark ? '#1e2028' : '#e0e2e8'}`,
     color: isDark ? '#e8e8e8' : '#111111',
     zIndex: 1001,
+  };
+
+  // Each band carries a bottom border so the nav and the sub-bar read as two
+  // distinct, attached strips.
+  const bandStyle: React.CSSProperties = {
+    width: '100%',
+    boxSizing: 'border-box',
+    borderBottom: `1px solid ${dividerColor}`,
   };
 
   // Content frame - matches the main page content container
@@ -52,22 +63,33 @@ const NavBar: FC<NavBarProps> = ({
     maxWidth: 1600,
     margin: '0 auto',
     boxSizing: 'border-box',
-    padding: '10px max(2%, 16px)',
   };
 
   return (
     <header style={headerStyle}>
-      <div style={contentFrameStyle}>
-        <TitleBase
-          title={title}
-          subtitle={subtitle}
-          showRadar={showRadar}
-          variant={variant}
-          radarRef={radarRef}
-          showLocation={showLocation}
-          hideThemeToggle={hideThemeToggle}
-        />
+      {/* Main nav band */}
+      <div style={bandStyle}>
+        <div style={{ ...contentFrameStyle, padding: '10px max(2%, 16px)' }}>
+          <TitleBase
+            title={title}
+            subtitle={subtitle}
+            showRadar={showRadar}
+            variant={variant}
+            radarRef={radarRef}
+            showLocation={showLocation}
+            hideThemeToggle={hideThemeToggle}
+          />
+        </div>
       </div>
+
+      {/* Sub-bar band - separate strip attached below the main nav */}
+      {subBar && (
+        <div style={bandStyle}>
+          <div style={{ ...contentFrameStyle, padding: '8px max(2%, 16px)' }}>
+            {subBar}
+          </div>
+        </div>
+      )}
     </header>
   );
 };

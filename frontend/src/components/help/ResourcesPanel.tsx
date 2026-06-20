@@ -3,9 +3,13 @@
 import type { FC } from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Info, Search, X, RefreshCw } from 'lucide-react';
+import { ExternalLink, Info, Search, X } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
+import {
+  PanelStatusSquare,
+  PanelRefreshButton,
+} from './PanelStatusControls';
 import type {
   NearbyResource,
   NearbyResponse,
@@ -582,60 +586,14 @@ export const ResourcesPanel: FC = () => {
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            {/* Status indicator - left of title. While loading it is an empty
-                bordered square that rotates in place like a gear, then smoothly
-                fills green or red once the status is known. */}
-            {(nearbyLoading || sources.length > 0) &&
-              (() => {
-                const statusColor = !sources.some((s) => s.ok)
-                  ? '#ef4444'
-                  : '#22c55e';
-                return (
-                  <motion.div
-                    style={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: 0,
-                      flexShrink: 0,
-                      border: '2px solid',
-                      transformOrigin: '50% 50%',
-                    }}
-                    animate={
-                      nearbyLoading
-                        ? {
-                            rotate: [0, 90, 90, 180, 180, 270, 270, 360, 360],
-                            backgroundColor: 'rgba(0,0,0,0)',
-                            borderColor: cardText,
-                          }
-                        : {
-                            rotate: 0,
-                            backgroundColor: statusColor,
-                            borderColor: statusColor,
-                          }
-                    }
-                    transition={
-                      nearbyLoading
-                        ? {
-                            rotate: {
-                              duration: 4,
-                              ease: 'easeInOut',
-                              times: [
-                                0, 0.075, 0.25, 0.325, 0.5, 0.575, 0.75, 0.825,
-                                1,
-                              ],
-                              repeat: Infinity,
-                            },
-                            backgroundColor: { duration: 0.3 },
-                          }
-                        : {
-                            rotate: { duration: 0.3 },
-                            backgroundColor: { duration: 0.5 },
-                            borderColor: { duration: 0.5 },
-                          }
-                    }
-                  />
-                );
-              })()}
+            {/* Status indicator - left of title. */}
+            {(nearbyLoading || sources.length > 0) && (
+              <PanelStatusSquare
+                loading={nearbyLoading}
+                ok={sources.some((s) => s.ok)}
+                isDark={isDark}
+              />
+            )}
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -651,37 +609,12 @@ export const ResourcesPanel: FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             {/* Manual refresh — bypasses the cache. Left of the info icon. */}
             {zip && isValid && (
-              <motion.button
-                type="button"
-                aria-label="Refresh resources"
-                title="Refresh resources"
-                disabled={nearbyLoading}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRefresh();
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 18,
-                  height: 18,
-                  padding: 0,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: nearbyLoading ? 'default' : 'pointer',
-                  color: mutedText,
-                  lineHeight: 0,
-                }}
-                animate={nearbyLoading ? { rotate: 360 } : { rotate: 0 }}
-                transition={
-                  nearbyLoading
-                    ? { duration: 1, ease: 'linear', repeat: Infinity }
-                    : { duration: 0.2 }
-                }
-              >
-                <RefreshCw size={13} />
-              </motion.button>
+              <PanelRefreshButton
+                loading={nearbyLoading}
+                onRefresh={handleRefresh}
+                isDark={isDark}
+                label="Refresh resources"
+              />
             )}
             {/* Info tooltip */}
             <div
