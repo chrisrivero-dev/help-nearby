@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
         return jsonResponse(
           {
             alerts: [],
-            source: 'National Weather Service',
+            source: 'Official alert sources',
             fetchedAt: new Date().toISOString(),
             location: null,
             error: 'invalid_coordinates',
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         return jsonResponse(
           {
             alerts: [],
-            source: 'National Weather Service',
+            source: 'Official alert sources',
             fetchedAt: new Date().toISOString(),
             location: null,
             error: 'invalid_zip',
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
         return jsonResponse(
           {
             alerts: [],
-            source: 'National Weather Service',
+            source: 'Official alert sources',
             fetchedAt: new Date().toISOString(),
             location: normalized,
             error: 'unsupported_zip',
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
       return jsonResponse(
         {
           alerts: [],
-          source: 'National Weather Service',
+          source: 'Official alert sources',
           fetchedAt: new Date().toISOString(),
           location: null,
           error: 'missing_location',
@@ -92,19 +92,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Scoped alert sources for this point (NWS today; city/state feeds later)
-    // via the shared registry core.
-    const { alerts, degraded } = await fetchAlerts(lat, lng);
+    // Scoped alert sources for this point via the shared registry core.
+    const { alerts, checked, degraded } = await fetchAlerts(lat, lng);
     const fetchedAt = new Date().toISOString();
 
     if (degraded && alerts.length === 0) {
       return jsonResponse(
         {
           alerts: [],
-          source: 'National Weather Service',
+          source: 'Official alert sources',
+          sources: checked,
           fetchedAt,
           location,
-          error: 'nws_unavailable',
+          error: 'official_alerts_unavailable',
         },
         502,
       );
@@ -113,11 +113,12 @@ export async function GET(request: NextRequest) {
     return jsonResponse({
       alerts,
       source: {
-        name: 'National Weather Service',
+        name: 'Official alert sources',
         url: 'https://www.weather.gov/',
         attribution:
-          'Official weather alerts from the National Weather Service',
+          'Official weather, disaster, geologic, tsunami, and local public-safety alert sources',
       },
+      sources: checked,
       fetchedAt,
       location,
       error: null,
@@ -126,10 +127,10 @@ export async function GET(request: NextRequest) {
     return jsonResponse(
       {
         alerts: [],
-        source: 'National Weather Service',
+        source: 'Official alert sources',
         fetchedAt: new Date().toISOString(),
         location: null,
-        error: 'weather_alerts_failed',
+        error: 'official_alerts_failed',
       },
       500,
     );

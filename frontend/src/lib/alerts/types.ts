@@ -21,8 +21,30 @@ export interface WeatherAlert {
 }
 
 /** Adapter kinds available to the alerts domain. */
-export type AlertSourceType = 'nws-weather';
+export type AlertSourceType =
+  | 'nws-weather'
+  | 'usgs-earthquake'
+  | 'nasa-eonet'
+  | 'noaa-tsunami'
+  | 'socrata-local-incident';
+
+export interface SocrataAlertAdapter {
+  endpoint: string;
+  locationField?: string;
+  latField?: string;
+  lngField?: string;
+  dateField: string;
+  titleField: string;
+  descriptionField?: string;
+  categoryField?: string;
+  areaField?: string;
+  urlField?: string;
+  days?: number;
+  limit?: number;
+  radiusKm?: number;
+}
 
 export interface AlertSourceRow extends BaseSourceRow {
   sourceType: AlertSourceType;
+  adapter?: SocrataAlertAdapter;
 }

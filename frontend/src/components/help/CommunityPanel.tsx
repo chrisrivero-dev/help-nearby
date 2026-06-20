@@ -29,7 +29,7 @@ function formatWhen(o: CommunityOpportunity): string | undefined {
 export const CommunityPanel: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { zip } = useLocationContext();
+  const { zip, latitude, longitude, isValid } = useLocationContext();
   const hasLocation = !!zip;
   const [isExpanded, setIsExpanded] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
@@ -46,7 +46,15 @@ export const CommunityPanel: FC = () => {
   // empty result renders the empty state below.
   const load = useCallback(() => {
     setLoading(true);
-    fetch('/api/community-opportunities')
+    const params = new URLSearchParams();
+    if (isValid && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      params.set('lat', latitude.toString());
+      params.set('lng', longitude.toString());
+    }
+    const url = params.size
+      ? `/api/community-opportunities?${params.toString()}`
+      : '/api/community-opportunities';
+    fetch(url)
       .then((r) => (r.ok ? r.json() : { opportunities: [] }))
       .then((d: { opportunities?: CommunityOpportunity[] }) => {
         setItems(Array.isArray(d.opportunities) ? d.opportunities : []);
@@ -54,7 +62,7 @@ export const CommunityPanel: FC = () => {
       })
       .catch(() => setLoaded(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [isValid, latitude, longitude]);
 
   // Load lazily once the panel is opened with a location set.
   useEffect(() => {

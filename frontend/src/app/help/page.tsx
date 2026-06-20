@@ -55,13 +55,33 @@ const HelpDashboard: FC = () => {
       {/* Ticker Strip */}
       <NewsTicker />
 
-      {/* Dashboard Grid - Masonry layout in PanelLayout */}
-      <PanelLayout>
-        <AlertPanel />
-        <ResourcesPanel />
-        <CommunityPanel />
-        <UpdatesPanel />
-      </PanelLayout>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile
+            ? 'minmax(0, 1fr)'
+            : 'minmax(320px, 480px) minmax(0, 1fr)',
+          gap: isMobile ? '1rem' : '1.5rem',
+          alignItems: 'start',
+          width: '100%',
+        }}
+      >
+        <PanelLayout className="panel-stack">
+          <AlertPanel />
+          <ResourcesPanel />
+          <CommunityPanel />
+          <UpdatesPanel />
+        </PanelLayout>
+
+        {!isMobile && (
+          <div
+            aria-hidden="true"
+            style={{
+              minHeight: 'calc(100vh - 220px)',
+            }}
+          />
+        )}
+      </div>
     </motion.main>
   );
 };

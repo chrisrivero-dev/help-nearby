@@ -6,10 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Info } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
-import {
-  PanelStatusSquare,
-  PanelRefreshButton,
-} from './PanelStatusControls';
+import { PanelStatusSquare, PanelRefreshButton } from './PanelStatusControls';
 
 interface WeatherAlert {
   id: string;
@@ -24,6 +21,12 @@ interface WeatherAlert {
   expires: string | null;
   area: string;
   url: string;
+}
+
+interface AlertSourceStatus {
+  id: string;
+  name: string;
+  ok: boolean;
 }
 
 const GOLD_COLOR = '#f59e0b';
@@ -50,6 +53,9 @@ export const AlertPanel: FC = () => {
   const [weatherAlerts, setWeatherAlerts] = useState<WeatherAlert[] | null>(
     null,
   );
+  const [selectedAlertType, setSelectedAlertType] = useState<string | null>(
+    null,
+  );
 
   // Extract unique event types from alerts for category badges
   const eventTypes = useMemo(() => {
@@ -57,18 +63,24 @@ export const AlertPanel: FC = () => {
     const types = new Set(weatherAlerts.map((a) => a.title));
     return Array.from(types);
   }, [weatherAlerts]);
+  const filteredWeatherAlerts = useMemo(() => {
+    if (!weatherAlerts) return null;
+    if (!selectedAlertType) return weatherAlerts;
+    return weatherAlerts.filter((alert) => alert.title === selectedAlertType);
+  }, [selectedAlertType, weatherAlerts]);
   const [weatherAlertsLoading, setWeatherAlertsLoading] = useState(false);
   const [weatherAlertsError, setWeatherAlertsError] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [sourcesOpen, setSourcesOpen] = useState(false);
-  const [sources, setSources] = useState<
-    { id: string; name: string; ok: boolean }[]
-  >([{ id: 'nws', name: 'National Weather Service', ok: true }]);
+  const [sources, setSources] = useState<AlertSourceStatus[]>([
+    { id: 'nws', name: 'National Weather Service', ok: true },
+  ]);
 
   const fetchWeatherAlerts = useCallback(async (lat: number, lng: number) => {
     setWeatherAlertsLoading(true);
     setWeatherAlertsError(false);
     setWeatherAlerts(null);
+    setSelectedAlertType(null);
 
     try {
       const params = new URLSearchParams({
@@ -81,6 +93,9 @@ export const AlertPanel: FC = () => {
         setWeatherAlertsError(true);
       } else {
         setWeatherAlerts(data.alerts ?? []);
+        if (Array.isArray(data.sources) && data.sources.length > 0) {
+          setSources(data.sources);
+        }
       }
     } catch {
       setWeatherAlertsError(true);
@@ -88,6 +103,15 @@ export const AlertPanel: FC = () => {
       setWeatherAlertsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (
+      selectedAlertType &&
+      !eventTypes.some((eventType) => eventType === selectedAlertType)
+    ) {
+      setSelectedAlertType(null);
+    }
+  }, [eventTypes, selectedAlertType]);
 
   useEffect(() => {
     if (!zip) {
@@ -314,7 +338,7 @@ export const AlertPanel: FC = () => {
         <AnimatePresence mode="wait">
           {isExpanded ? (
             <>
-              {/* Event type badges (from NWS properties.event) */}
+              {/* Event type filter badges */}
               {eventTypes.length > 0 && (
                 <div
                   style={{
@@ -326,24 +350,47 @@ export const AlertPanel: FC = () => {
                   }}
                 >
                   {eventTypes.map((eventType) => (
-                    <div
+                    <button
+                      type="button"
                       key={eventType}
+                      aria-pressed={selectedAlertType === eventType}
+                      onClick={() =>
+                        setSelectedAlertType((current) =>
+                          current === eventType ? null : eventType,
+                        )
+                      }
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.28rem',
                         padding: '0.2rem 0.48rem',
-                        border: `1px solid ${divider}`,
-                        backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
+                        border: `1px solid ${
+                          selectedAlertType === eventType
+                            ? accentColor
+                            : divider
+                        }`,
+                        backgroundColor:
+                          selectedAlertType === eventType
+                            ? isDark
+                              ? 'rgba(245, 158, 11, 0.14)'
+                              : 'rgba(245, 158, 11, 0.12)'
+                            : isDark
+                              ? '#1a1a1a'
+                              : '#f5f5f5',
                         fontSize: '0.65rem',
                         fontFamily: "'Poppins', sans-serif",
                         fontWeight: 600,
-                        color: mutedText,
+                        color:
+                          selectedAlertType === eventType
+                            ? accentColor
+                            : mutedText,
                         letterSpacing: '0.04em',
+                        cursor: 'pointer',
+                        lineHeight: 1.2,
                       }}
                     >
                       {eventType}
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -368,7 +415,7 @@ export const AlertPanel: FC = () => {
                       color: mutedText,
                     }}
                   >
-                    Checking for official weather alerts...
+                    Checking official alert sources...
                   </span>
                 </motion.div>
               ) : weatherAlertsError ? (
@@ -391,7 +438,7 @@ export const AlertPanel: FC = () => {
                       lineHeight: 1.5,
                     }}
                   >
-                    Official weather alerts could not be loaded. Check{' '}
+                    Official alerts could not be loaded. Check{' '}
                     <a
                       href="https://www.weather.gov/"
                       target="_blank"
@@ -403,7 +450,7 @@ export const AlertPanel: FC = () => {
                     >
                       weather.gov
                     </a>{' '}
-                    directly.
+                    or local emergency sources directly.
                   </span>
                 </motion.div>
               ) : weatherAlerts !== null && weatherAlerts.length === 0 ? (
@@ -429,68 +476,94 @@ export const AlertPanel: FC = () => {
                       lineHeight: 1.6,
                     }}
                   >
-                    NO WEATHER ALERTS
+                    NO OFFICIAL ALERTS
                   </span>
                 </motion.div>
-              ) : weatherAlerts !== null && weatherAlerts.length > 0 ? (
+              ) : filteredWeatherAlerts !== null &&
+                weatherAlerts !== null &&
+                weatherAlerts.length > 0 ? (
                 <motion.div
                   key="alerts-content"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {weatherAlerts.map((alert) => (
+                  {filteredWeatherAlerts.length === 0 ? (
                     <div
-                      key={alert.id}
                       style={{
                         display: 'flex',
-                        gap: '0.75rem',
-                        alignItems: 'flex-start',
-                        padding: '0.85rem 1rem',
-                        borderLeft: `3px solid ${accentColor}`,
-                        background: isDark ? '#0d0d0d' : '#fafafa',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '120px',
+                        padding: '1.2rem',
+                        textAlign: 'center',
                       }}
                     >
-                      <div>
-                        <div
-                          style={{
-                            fontFamily: "'Poppins', sans-serif",
-                            fontWeight: 700,
-                            fontSize: '0.83rem',
-                            color: cardText,
-                            marginBottom: '0.2rem',
-                          }}
-                        >
-                          {alert.title}
-                        </div>
-                        {alert.headline && (
-                          <div
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.77rem',
-                              color: mutedText,
-                              lineHeight: 1.5,
-                              marginBottom: '0.3rem',
-                            }}
-                          >
-                            {alert.headline}
-                          </div>
-                        )}
-                        {alert.area && (
-                          <div
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.64rem',
-                              color: mutedText,
-                              letterSpacing: '0.02em',
-                            }}
-                          >
-                            {alert.area}
-                          </div>
-                        )}
-                      </div>
+                      <span
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '0.78rem',
+                          color: mutedText,
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        NO {selectedAlertType?.toUpperCase()} ALERTS
+                      </span>
                     </div>
-                  ))}
+                  ) : (
+                    filteredWeatherAlerts.map((alert) => (
+                      <div
+                        key={alert.id}
+                        style={{
+                          display: 'flex',
+                          gap: '0.75rem',
+                          alignItems: 'flex-start',
+                          padding: '0.85rem 1rem',
+                          borderLeft: `3px solid ${accentColor}`,
+                          background: isDark ? '#0d0d0d' : '#fafafa',
+                        }}
+                      >
+                        <div>
+                          <div
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontWeight: 700,
+                              fontSize: '0.83rem',
+                              color: cardText,
+                              marginBottom: '0.2rem',
+                            }}
+                          >
+                            {alert.title}
+                          </div>
+                          {alert.headline && (
+                            <div
+                              style={{
+                                fontFamily: "'Poppins', sans-serif",
+                                fontSize: '0.77rem',
+                                color: mutedText,
+                                lineHeight: 1.5,
+                                marginBottom: '0.3rem',
+                              }}
+                            >
+                              {alert.headline}
+                            </div>
+                          )}
+                          {alert.area && (
+                            <div
+                              style={{
+                                fontFamily: "'Poppins', sans-serif",
+                                fontSize: '0.64rem',
+                                color: mutedText,
+                                letterSpacing: '0.02em',
+                              }}
+                            >
+                              {alert.area}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
                   {!weatherAlertsLoading && (
                     <div
                       style={{
@@ -509,7 +582,15 @@ export const AlertPanel: FC = () => {
                           letterSpacing: '0.02em',
                         }}
                       >
-                        Source: National Weather Service
+                        Sources:{' '}
+                        {sources
+                          .filter((source) => source.ok)
+                          .map((source) => source.name)
+                          .slice(0, 2)
+                          .join(', ') || 'Official alert sources'}
+                        {sources.filter((source) => source.ok).length > 2
+                          ? ' + more'
+                          : ''}
                       </span>
                       {weatherAlerts[0]?.effective && (
                         <span

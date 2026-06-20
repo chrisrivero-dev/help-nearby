@@ -27,7 +27,7 @@ const CATEGORY_LABELS: Record<ResourceCategory, string> = {
   other: 'Other',
 };
 
-const RESOURCES_PAGE_SIZE = 25;
+const RESOURCES_PAGE_SIZE = 10;
 
 // Returns the best available address string for display. Rules:
 //  1. If the address field already looks complete (contains a 2-letter state

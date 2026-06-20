@@ -74,6 +74,10 @@ const Menu: FC<MenuProps> = () => {
     setMenuOpen(false);
     router.push('/resources');
   };
+  const handleDirectoryClick = () => {
+    setMenuOpen(false);
+    router.push('/directory');
+  };
   const handleAboutClick = () => {
     setMenuOpen(false);
     router.push('/about');
@@ -343,6 +347,9 @@ const Menu: FC<MenuProps> = () => {
             </MenuItem>
             <MenuItem href="/resources" onClick={handleResourcesClick}>
               Resources
+            </MenuItem>
+            <MenuItem href="/directory" onClick={handleDirectoryClick}>
+              Directory
             </MenuItem>
           </div>
 
