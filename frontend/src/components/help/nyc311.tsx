@@ -11,35 +11,42 @@ import {
   PanelRefreshButton,
   PanelInfoPopover,
 } from './PanelStatusControls';
-import type { CommunityOpportunity } from '@/lib/community/types';
+import type { NYC311Item } from '@/lib/nyc311/types';
 
 const GOLD_COLOR = '#fbbf24';
-const COMMUNITY_CACHE_TTL_MS = 10 * 60 * 1000;
-const COMMUNITY_PAGE_SIZE = 10;
+const NYC311_CACHE_TTL_MS = 10 * 60 * 1000;
+const NYC311_PAGE_SIZE = 10;
 
-interface CommunitySourceStatus {
+// Cheap client-side NYC bounding box — avoids a fetch (and a panel flash) for
+// obviously non-NYC locations. The server's jurisdiction resolver (`applies`)
+// is still the authoritative gate; this only suppresses clearly-outside points.
+const inNycBox = (lat: number, lng: number): boolean =>
+  lat >= 40.49 && lat <= 40.92 && lng >= -74.27 && lng <= -73.68;
+
+interface NYC311SourceStatus {
   id: string;
   name: string;
   ok: boolean;
 }
 
-interface CommunityCacheEntry {
-  items: CommunityOpportunity[];
-  sources: CommunitySourceStatus[];
+interface NYC311CacheEntry {
+  items: NYC311Item[];
+  applies: boolean;
+  sources: NYC311SourceStatus[];
   lastChecked: string;
   ts: number;
 }
 
 const cacheKey = (lat: number, lng: number) =>
-  `hn:community:${lat.toFixed(3)},${lng.toFixed(3)}`;
+  `hn:nyc311:${lat.toFixed(3)},${lng.toFixed(3)}`;
 
-const readCommunityCache = (key: string): CommunityCacheEntry | null => {
+const readCache = (key: string): NYC311CacheEntry | null => {
   if (typeof window === 'undefined') return null;
   try {
     const raw = window.localStorage.getItem(key);
     if (!raw) return null;
-    const entry = JSON.parse(raw) as CommunityCacheEntry;
-    if (!entry?.ts || Date.now() - entry.ts > COMMUNITY_CACHE_TTL_MS) {
+    const entry = JSON.parse(raw) as NYC311CacheEntry;
+    if (!entry?.ts || Date.now() - entry.ts > NYC311_CACHE_TTL_MS) {
       window.localStorage.removeItem(key);
       return null;
     }
@@ -49,10 +56,7 @@ const readCommunityCache = (key: string): CommunityCacheEntry | null => {
   }
 };
 
-const writeCommunityCache = (
-  key: string,
-  entry: Omit<CommunityCacheEntry, 'ts'>,
-): void => {
+const writeCache = (key: string, entry: Omit<NYC311CacheEntry, 'ts'>): void => {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(key, JSON.stringify({ ...entry, ts: Date.now() }));
@@ -61,53 +65,32 @@ const writeCommunityCache = (
   }
 };
 
-// The displayed tag: the source-native category (e.g. NYC "Street and
-// Neighborhood") when present, otherwise the coarse enum type.
-function tagOf(o: CommunityOpportunity): string {
-  const c = o.category?.trim();
-  return c && c.length > 0 ? c : o.type;
+// Displayed tag: the source-native category (e.g. the 311 request status).
+function tagOf(item: NYC311Item): string | undefined {
+  return item.category?.trim() || undefined;
 }
 
-// "When" line: prefer the source's own human labels (NYC datePart "Jun 21" +
-// timePart "5:30am to 7:30pm"); fall back to deriving from startAt/endAt for
-// sources that only provide machine timestamps.
-function formatWhen(o: CommunityOpportunity): string | undefined {
-  const dl = o.dateLabel?.trim();
-  const tl = o.timeLabel?.trim();
-  if (dl || tl) return [dl, tl].filter(Boolean).join(' · ');
-
-  if (!o.startAt) return undefined;
-  const start = new Date(o.startAt);
-  if (Number.isNaN(start.getTime())) return undefined;
-  const dateStr = start.toLocaleDateString(undefined, {
+// "When" line derived from the upstream report timestamp.
+function formatReported(item: NYC311Item): string | undefined {
+  if (!item.reportedAt) return undefined;
+  const d = new Date(item.reportedAt);
+  if (Number.isNaN(d.getTime())) return undefined;
+  const dateStr = d.toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
   });
-  const isAllDay = start.getHours() === 0 && start.getMinutes() <= 5;
-  if (isAllDay) return `${dateStr} · All day`;
-  const time = (d: Date) =>
-    d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-  const end = o.endAt ? new Date(o.endAt) : null;
-  if (end && !Number.isNaN(end.getTime()) && end.getTime() > start.getTime()) {
-    return `${dateStr} · ${time(start)} – ${time(end)}`;
-  }
-  return `${dateStr} · ${time(start)}`;
+  const time = d.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  return `${dateStr} · ${time}`;
 }
 
-// Clean URL for display as link text — drop the scheme and any trailing slash.
 function displayUrl(url: string): string {
   return url
     .trim()
     .replace(/^https?:\/\//i, '')
     .replace(/\/+$/, '');
-}
-
-// "Where" line: the source address, unless it's a non-location placeholder.
-function formatWhere(o: CommunityOpportunity): string | undefined {
-  const a = o.address?.trim();
-  if (!a) return undefined;
-  if (/^check website/i.test(a)) return undefined;
-  return a;
 }
 
 function formatChecked(iso: string): string {
@@ -122,49 +105,53 @@ function formatChecked(iso: string): string {
   });
 }
 
-export const CommunityPanel: FC = () => {
+export const NYC311Panel: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const { latitude, longitude, isValid, isResolvingLocation } =
     useLocationContext();
   const hasLocation =
     isValid && Number.isFinite(latitude) && Number.isFinite(longitude);
+  // Only a candidate for NYC when inside the bounding box; server confirms.
+  const maybeNyc = hasLocation && inNycBox(latitude, longitude);
 
   const [isExpanded, setIsExpanded] = useState(true);
-  const [items, setItems] = useState<CommunityOpportunity[]>([]);
-  const [sources, setSources] = useState<CommunitySourceStatus[]>([]);
+  const [items, setItems] = useState<NYC311Item[]>([]);
+  const [applies, setApplies] = useState(false);
+  const [sources, setSources] = useState<NYC311SourceStatus[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
   const [lastChecked, setLastChecked] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [activeTypes, setActiveTypes] = useState<string[]>([]);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [page, setPage] = useState(1);
 
   const cardText = isDark ? '#dedede' : '#111111';
-  // Detail/subtext tone matched to Alerts/Resources panels (darker, near-black).
   const detailText = isDark ? '#bdbdbd' : '#444444';
   const mutedText = isDark ? '#7a7a7a' : '#888';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
 
-  // Distinct tags present in the current results, for the toggle chips.
   const tagOptions = useMemo(() => {
     const seen = new Set<string>();
-    for (const o of items) seen.add(tagOf(o));
+    for (const o of items) {
+      const t = tagOf(o);
+      if (t) seen.add(t);
+    }
     return Array.from(seen).sort((a, b) => a.localeCompare(b));
   }, [items]);
 
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter((o) => {
-      if (activeTypes.length > 0 && !activeTypes.includes(tagOf(o)))
-        return false;
+      const t = tagOf(o);
+      if (activeTags.length > 0 && (!t || !activeTags.includes(t))) return false;
       if (!q) return true;
       const haystack = [
         o.title,
         o.organizationName,
         o.category,
-        o.type,
+        o.description,
         o.address,
       ]
         .filter(Boolean)
@@ -172,58 +159,53 @@ export const CommunityPanel: FC = () => {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [items, query, activeTypes]);
+  }, [items, query, activeTags]);
 
-  const filtersActive = query.trim().length > 0 || activeTypes.length > 0;
-  const toggleType = (t: string) =>
-    setActiveTypes((prev) =>
+  const filtersActive = query.trim().length > 0 || activeTags.length > 0;
+  const toggleTag = (t: string) =>
+    setActiveTags((prev) =>
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
     );
 
-  // Pagination — 10 per page, like the other panels.
   const filteredTotal = filteredItems.length;
   const totalPages =
-    filteredTotal === 0 ? 0 : Math.ceil(filteredTotal / COMMUNITY_PAGE_SIZE);
+    filteredTotal === 0 ? 0 : Math.ceil(filteredTotal / NYC311_PAGE_SIZE);
   const shownTotalPages = Math.max(totalPages, 1);
   const hasPreviousPage = page > 1;
   const hasNextPage = page < totalPages;
   const pagedItems = useMemo(
     () =>
       filteredItems.slice(
-        (page - 1) * COMMUNITY_PAGE_SIZE,
-        (page - 1) * COMMUNITY_PAGE_SIZE + COMMUNITY_PAGE_SIZE,
+        (page - 1) * NYC311_PAGE_SIZE,
+        (page - 1) * NYC311_PAGE_SIZE + NYC311_PAGE_SIZE,
       ),
     [filteredItems, page],
   );
 
   // Drop active toggles that no longer exist after a refresh/location change.
   useEffect(() => {
-    setActiveTypes((prev) => {
+    setActiveTags((prev) => {
       const next = prev.filter((t) => tagOptions.includes(t));
       return next.length === prev.length ? prev : next;
     });
   }, [tagOptions]);
 
-  // Reset to the first page when filters change; keep page in range as results shrink.
   useEffect(() => {
     setPage(1);
-  }, [query, activeTypes]);
+  }, [query, activeTags]);
   useEffect(() => {
     if (totalPages > 0 && page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
-  // Fetch real, approved, non-expired opportunities for the resolved location.
-  // localStorage-cached (10 min); refresh bypasses the cache. No demo fallback —
-  // an empty result renders the empty state, which is still a successful load.
+  // Fetch live 311 records. localStorage-cached (10 min); refresh bypasses it.
+  // Skips entirely outside the NYC box; the server `applies` flag is the final
+  // word on whether the panel shows.
   const load = useCallback(
     async (opts?: { bypassCache?: boolean }) => {
-      if (
-        !isValid ||
-        !Number.isFinite(latitude) ||
-        !Number.isFinite(longitude)
-      ) {
+      if (!hasLocation || !inNycBox(latitude, longitude)) {
         setItems([]);
         setSources([]);
+        setApplies(false);
         setError(false);
         return;
       }
@@ -232,9 +214,10 @@ export const CommunityPanel: FC = () => {
       if (opts?.bypassCache) {
         if (typeof window !== 'undefined') window.localStorage.removeItem(key);
       } else {
-        const cached = readCommunityCache(key);
+        const cached = readCache(key);
         if (cached) {
           setItems(cached.items);
+          setApplies(cached.applies);
           setSources(cached.sources);
           setLastChecked(cached.lastChecked);
           setError(false);
@@ -250,28 +233,28 @@ export const CommunityPanel: FC = () => {
           lat: latitude.toString(),
           lng: longitude.toString(),
         });
-        const res = await fetch(
-          `/api/community-opportunities?${params.toString()}`,
-        );
+        const res = await fetch(`/api/nyc311?${params.toString()}`);
         const data = (await res.json()) as {
-          opportunities?: CommunityOpportunity[];
-          import?: { checked?: CommunitySourceStatus[] };
+          items?: NYC311Item[];
+          applies?: boolean;
+          import?: { checked?: NYC311SourceStatus[] };
         };
         if (!res.ok) {
           setError(true);
         } else {
-          const ops = Array.isArray(data.opportunities)
-            ? data.opportunities
-            : [];
+          const nextItems = Array.isArray(data.items) ? data.items : [];
+          const nextApplies = data.applies === true;
           const srcs = Array.isArray(data.import?.checked)
             ? data.import!.checked!
             : [];
           const checkedAt = new Date().toISOString();
-          setItems(ops);
+          setItems(nextItems);
+          setApplies(nextApplies);
           setSources(srcs);
           setLastChecked(checkedAt);
-          writeCommunityCache(key, {
-            items: ops,
+          writeCache(key, {
+            items: nextItems,
+            applies: nextApplies,
             sources: srcs,
             lastChecked: checkedAt,
           });
@@ -283,10 +266,9 @@ export const CommunityPanel: FC = () => {
         setLoaded(true);
       }
     },
-    [isValid, latitude, longitude],
+    [hasLocation, latitude, longitude],
   );
 
-  // Load eagerly whenever the resolved location changes (mirrors AlertPanel).
   useEffect(() => {
     void load();
   }, [load]);
@@ -298,7 +280,12 @@ export const CommunityPanel: FC = () => {
   const busy = loading || isResolvingLocation;
   const showStatus = busy || sources.length > 0 || error;
 
-  const EmptyOrLocked = ({ text }: { text: string }) => (
+  // Hide the panel entirely outside NYC: not in the box, or the server said the
+  // location isn't covered by an NYC source.
+  if (!maybeNyc) return null;
+  if (loaded && !applies) return null;
+
+  const EmptyState = ({ text }: { text: string }) => (
     <div
       style={{
         padding: '1.75rem 1.4rem',
@@ -386,20 +373,16 @@ export const CommunityPanel: FC = () => {
                 color: cardText,
               }}
             >
-              COMMUNITY! NEARBY
+              311! NEARBY
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            {/* Manual refresh — left of the info icon */}
-            {hasLocation && (
-              <PanelRefreshButton
-                loading={busy}
-                onRefresh={handleRefresh}
-                isDark={isDark}
-                label="Refresh community"
-              />
-            )}
-            {/* Info popover — live data sources actually queried for this location */}
+            <PanelRefreshButton
+              loading={busy}
+              onRefresh={handleRefresh}
+              isDark={isDark}
+              label="Refresh 311"
+            />
             <PanelInfoPopover
               isDark={isDark}
               title="LIVE DATA SOURCES"
@@ -436,8 +419,8 @@ export const CommunityPanel: FC = () => {
                       lineHeight: 1.4,
                     }}
                   >
-                    Official events and happenings from your area&rsquo;s civic
-                    data sources. No live source covers this location yet.
+                    Recent NYC 311 service requests near you, from the city&rsquo;s
+                    open data. Updated daily.
                   </li>
                 )}
               </ul>
@@ -471,22 +454,20 @@ export const CommunityPanel: FC = () => {
         <AnimatePresence mode="wait">
           {isExpanded ? (
             <motion.div
-              key="community-content"
+              key="nyc311-content"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {!hasLocation ? (
-                <EmptyOrLocked text="Enter your location to see community events and happenings nearby." />
-              ) : busy && !loaded ? (
-                <EmptyOrLocked text="Checking official community sources…" />
+              {busy && !loaded ? (
+                <EmptyState text="Checking NYC 311 service requests…" />
               ) : error ? (
-                <EmptyOrLocked text="Community events could not be loaded. Try refreshing." />
+                <EmptyState text="NYC 311 data could not be loaded. Try refreshing." />
               ) : items.length === 0 ? (
-                <EmptyOrLocked text="No community events or happenings are currently listed nearby." />
+                <EmptyState text="No recent 311 service requests are listed near you." />
               ) : (
                 <>
-                  {/* Filter bar — keyword search + category toggles */}
+                  {/* Filter bar — keyword search + status toggles */}
                   <div
                     style={{
                       padding: '0.8rem 1.4rem',
@@ -511,7 +492,7 @@ export const CommunityPanel: FC = () => {
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Filter by name, category, or org…"
+                        placeholder="Filter by type, agency, or status…"
                         style={{
                           flex: 1,
                           minWidth: 0,
@@ -528,7 +509,7 @@ export const CommunityPanel: FC = () => {
                           type="button"
                           onClick={() => {
                             setQuery('');
-                            setActiveTypes([]);
+                            setActiveTags([]);
                           }}
                           aria-label="Clear filters"
                           style={{
@@ -556,12 +537,12 @@ export const CommunityPanel: FC = () => {
                         }}
                       >
                         {tagOptions.map((t) => {
-                          const active = activeTypes.includes(t);
+                          const active = activeTags.includes(t);
                           return (
                             <button
                               key={t}
                               type="button"
-                              onClick={() => toggleType(t)}
+                              onClick={() => toggleTag(t)}
                               aria-pressed={active}
                               style={{
                                 fontFamily: "'Poppins', sans-serif",
@@ -657,140 +638,147 @@ export const CommunityPanel: FC = () => {
                     </div>
                   )}
                   {filteredItems.length === 0 ? (
-                    <EmptyOrLocked text="No community events match your filters." />
+                    <EmptyState text="No 311 requests match your filters." />
                   ) : (
                     pagedItems.map((item, i) => {
-                    const when = formatWhen(item);
-                    const where = formatWhere(item);
-                    return (
-                      <div
-                        key={item.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '0.85rem',
-                          padding: '0.82rem 1.4rem',
-                          borderBottom:
-                            i < pagedItems.length - 1
-                              ? `1px solid ${divider}`
-                              : undefined,
-                        }}
-                      >
-                        <span
+                      const when = formatReported(item);
+                      const where = item.address?.trim();
+                      const tag = tagOf(item);
+                      return (
+                        <div
+                          key={item.id}
                           style={{
-                            display: 'inline-block',
-                            marginTop: '0.18rem',
-                            padding: '0.18rem 0.45rem',
-                            background: isDark ? '#1a1a1a' : '#f5f5f5',
-                            border: `1px solid ${divider}`,
-                            color: mutedText,
-                            fontFamily: "'Poppins', sans-serif",
-                            fontWeight: 700,
-                            fontSize: '0.57rem',
-                            letterSpacing: '0.06em',
-                            flexShrink: 0,
-                            maxWidth: 130,
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '0.85rem',
+                            padding: '0.82rem 1.4rem',
+                            borderBottom:
+                              i < pagedItems.length - 1
+                                ? `1px solid ${divider}`
+                                : undefined,
                           }}
                         >
-                          {tagOf(item)}
-                        </span>
-                        <div style={{ minWidth: 0 }}>
-                          <div
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontWeight: 700,
-                              fontSize: '0.82rem',
-                              color: cardText,
-                              marginBottom: '0.12rem',
-                            }}
-                          >
-                            {item.title}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.7rem',
-                              color: detailText,
-                            }}
-                          >
-                            {item.organizationName}
-                            {when ? ` · ${when}` : ''}
-                          </div>
-                          {where ? (
-                            <div
+                          {tag ? (
+                            <span
                               style={{
-                                display: 'flex',
-                                alignItems: 'flex-start',
-                                gap: '0.25rem',
+                                display: 'inline-block',
                                 marginTop: '0.18rem',
+                                padding: '0.18rem 0.45rem',
+                                background: isDark ? '#1a1a1a' : '#f5f5f5',
+                                border: `1px solid ${divider}`,
+                                color: mutedText,
                                 fontFamily: "'Poppins', sans-serif",
-                                fontSize: '0.66rem',
-                                color: detailText,
-                                lineHeight: 1.4,
+                                fontWeight: 700,
+                                fontSize: '0.57rem',
+                                letterSpacing: '0.06em',
+                                flexShrink: 0,
+                                maxWidth: 130,
                               }}
                             >
-                              <MapPin
-                                size={10}
-                                style={{ flexShrink: 0, marginTop: '0.15rem' }}
-                              />
-                              <span>{where}</span>
-                            </div>
+                              {tag}
+                            </span>
                           ) : null}
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '0.16rem',
-                              marginTop: '0.4rem',
-                            }}
-                          >
-                            {item.website ? (
-                              <a
-                                href={item.website}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                          <div style={{ minWidth: 0 }}>
+                            <div
+                              style={{
+                                fontFamily: "'Poppins', sans-serif",
+                                fontWeight: 700,
+                                fontSize: '0.82rem',
+                                color: cardText,
+                                marginBottom: '0.12rem',
+                              }}
+                            >
+                              {item.title}
+                            </div>
+                            <div
+                              style={{
+                                fontFamily: "'Poppins', sans-serif",
+                                fontSize: '0.7rem',
+                                color: detailText,
+                              }}
+                            >
+                              {item.description
+                                ? item.description
+                                : item.organizationName}
+                              {when ? ` · ${when}` : ''}
+                            </div>
+                            {where ? (
+                              <div
                                 style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '0.2rem',
+                                  display: 'flex',
+                                  alignItems: 'flex-start',
+                                  gap: '0.25rem',
+                                  marginTop: '0.18rem',
                                   fontFamily: "'Poppins', sans-serif",
                                   fontSize: '0.66rem',
-                                  color: GOLD_COLOR,
-                                  textDecoration: 'none',
-                                  maxWidth: '100%',
-                                  overflowWrap: 'anywhere',
+                                  color: detailText,
+                                  lineHeight: 1.4,
                                 }}
                               >
-                                <ExternalLink
-                                  size={9}
-                                  style={{ flexShrink: 0 }}
-                                />{' '}
-                                {displayUrl(item.website)}
-                              </a>
+                                <MapPin
+                                  size={10}
+                                  style={{ flexShrink: 0, marginTop: '0.15rem' }}
+                                />
+                                <span>{where}</span>
+                              </div>
                             ) : null}
-                            {item.sourceUrl ? (
-                              <a
-                                href={item.sourceUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            {item.sourceUrl || item.website ? (
+                              <div
                                 style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '0.2rem',
-                                  fontFamily: "'Poppins', sans-serif",
-                                  fontSize: '0.66rem',
-                                  color: mutedText,
-                                  textDecoration: 'underline',
-                                  width: 'fit-content',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '0.16rem',
+                                  marginTop: '0.4rem',
                                 }}
                               >
-                                <ExternalLink size={9} /> View source
-                              </a>
+                                {item.website ? (
+                                  <a
+                                    href={item.website}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '0.2rem',
+                                      fontFamily: "'Poppins', sans-serif",
+                                      fontSize: '0.66rem',
+                                      color: GOLD_COLOR,
+                                      textDecoration: 'none',
+                                      maxWidth: '100%',
+                                      overflowWrap: 'anywhere',
+                                    }}
+                                  >
+                                    <ExternalLink
+                                      size={9}
+                                      style={{ flexShrink: 0 }}
+                                    />{' '}
+                                    {displayUrl(item.website)}
+                                  </a>
+                                ) : null}
+                                {item.sourceUrl ? (
+                                  <a
+                                    href={item.sourceUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '0.2rem',
+                                      fontFamily: "'Poppins', sans-serif",
+                                      fontSize: '0.66rem',
+                                      color: mutedText,
+                                      textDecoration: 'underline',
+                                      width: 'fit-content',
+                                    }}
+                                  >
+                                    <ExternalLink size={9} /> View source
+                                  </a>
+                                ) : null}
+                              </div>
                             ) : null}
                           </div>
                         </div>
-                      </div>
-                    );
+                      );
                     })
                   )}
                   {lastChecked && (

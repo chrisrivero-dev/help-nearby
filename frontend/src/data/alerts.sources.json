@@ -133,6 +133,33 @@
     }
   },
   {
+    "id": "nyc-311-service-requests",
+    "name": "NYC 311 Service Requests",
+    "url": "https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9",
+    "sourceType": "socrata-local-incident",
+    "jurisdictionId": "place:3651000",
+    "trust": 50,
+    "refresh": "near-real-time on NYC Open Data (latest record ~1 day old when probed)",
+    "ttlSeconds": 1800,
+    "enabled": false,
+    "notes": "Official NYC 311 service requests near the query point. 311 is NON-EMERGENCY by design and dominated by routine requests (illegal parking, noise), so this is registered as an opt-in situational-awareness source: SHIPS enabled:false and includeCategories is curated to infrastructure/hazard complaint types only. Enable deliberately if you want local-disruption signal in the alert feed; widen/narrow includeCategories to taste. Has a Point `location` column for server-side within_box filtering. Fields probed live 2026-06-21.",
+    "adapter": {
+      "endpoint": "https://data.cityofnewyork.us/resource/erm2-nwe9.json",
+      "locationField": "location",
+      "latField": "latitude",
+      "lngField": "longitude",
+      "dateField": "created_date",
+      "titleField": "complaint_type",
+      "descriptionField": "descriptor",
+      "categoryField": "complaint_type",
+      "includeCategories": ["Water System", "Sewer", "WATER LEAK", "Damaged Tree", "Traffic Signal Condition", "Street Light Condition"],
+      "areaField": "borough",
+      "days": 7,
+      "limit": 10,
+      "radiusKm": 3
+    }
+  },
+  {
     "id": "la-lapd-crime-recent",
     "name": "LAPD Crime Data (2020–present)",
     "url": "https://data.lacity.org/Public-Safety/Crime-Data-from-2020-to-Present/2nrs-mtv8",

@@ -9,6 +9,7 @@ import { PanelLayout } from '@/components/help/PanelLayout';
 import { AlertPanel } from '@/components/help/AlertPanel';
 import { ResourcesPanel } from '@/components/help/ResourcesPanel';
 import { CommunityPanel } from '@/components/help/CommunityPanel';
+import { NYC311Panel } from '@/components/help/nyc311';
 import { UpdatesPanel } from '@/components/help/UpdatesPanel';
 
 const HelpDashboard: FC = () => {
@@ -70,6 +71,7 @@ const HelpDashboard: FC = () => {
           <AlertPanel />
           <ResourcesPanel />
           <CommunityPanel />
+          <NYC311Panel />
           <UpdatesPanel />
         </PanelLayout>
 

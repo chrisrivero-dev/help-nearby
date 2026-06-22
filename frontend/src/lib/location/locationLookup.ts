@@ -10,6 +10,48 @@ export interface ZipCodeLocation {
 // In-memory cache — avoids repeated network calls for the same query
 const _cache = new Map<string, ZipCodeLocation>();
 
+// Query mentions NYC or a borough → worth trying the city-native geocoder first.
+const NYC_HINT =
+  /\b(nyc|new york|manhattan|brooklyn|queens|the bronx|bronx|staten island)\b/i;
+
+/**
+ * NYC GeoSearch (geosearch.planninglabs.nyc, official NYC DCP) — rooftop-accurate,
+ * no API key. Only matches NYC addresses, so we gate it behind an NYC hint and fall
+ * back to Nominatim when it returns nothing. Sharper than Nominatim inside the city,
+ * which improves which NYC sub-area the resolver picks for all panels.
+ */
+async function lookupNycGeoSearch(query: string): Promise<ZipCodeLocation | null> {
+  try {
+    const url = `https://geosearch.planninglabs.nyc/v2/search?text=${encodeURIComponent(
+      query
+    )}&size=1`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const feature = data?.features?.[0];
+    const coords = feature?.geometry?.coordinates;
+    if (!Array.isArray(coords) || coords.length < 2) return null;
+
+    const lng = Number(coords[0]);
+    const lat = Number(coords[1]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+    const props = feature.properties ?? {};
+    return {
+      zipCode: typeof props.postalcode === 'string' ? props.postalcode : '',
+      city: props.borough || props.locality || 'New York',
+      stateCode: typeof props.region === 'string' ? props.region : 'New York',
+      latitude: lat,
+      longitude: lng,
+      isValid: true,
+    };
+  } catch (e) {
+    console.error('GeoSearch lookup error:', e);
+    return null;
+  }
+}
+
 /**
  * Lookup location information based on a query.
  * If the query looks like a US ZIP code (5 digits), use the Zippopotam.us API.
@@ -75,6 +117,15 @@ export async function lookupLocation(query: string): Promise<ZipCodeLocation> {
   // -------------------
   const cacheKey = `addr:${cleanQuery.toLowerCase()}`;
   if (_cache.has(cacheKey)) return _cache.get(cacheKey)!;
+
+  // City-native geocoder for NYC-looking queries; falls back to Nominatim below.
+  if (NYC_HINT.test(cleanQuery)) {
+    const nyc = await lookupNycGeoSearch(cleanQuery);
+    if (nyc) {
+      _cache.set(cacheKey, nyc);
+      return nyc;
+    }
+  }
 
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(

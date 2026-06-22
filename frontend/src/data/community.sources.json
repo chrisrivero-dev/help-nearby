@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "id": "nyc-events-calendar",
+    "name": "NYC Events Calendar",
+    "url": "https://www.nyc.gov/events",
+    "sourceType": "json-feed",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "official City of New York events feed (api.nyc.gov/calendar/search)",
+    "ttlSeconds": 3600,
+    "enabled": true,
+    "autoApprove": true,
+    "requiresLocation": false,
+    "notes": "Official NYC Events Calendar API (powers nyc.gov 'Find Local Events'), served via the api.nyc.gov Azure API Management gateway. Requires the free 'NYC 311 Public Developers'/Event Calendar product subscription key, sent as Ocp-Apim-Subscription-Key via the NYC_API_KEY env var. Endpoint + fields confirmed live 2026-06-21 against /calendar/search: response { items: [...], pagination }, fixed 12 upcoming events per page (no date params — default is today-forward, ascending). Items carry no lat/lng (address is freeform text), so no geo filter; city-wide events shown for any NYC point. autoApprove:true (city-official trust tier 80).",
+    "adapter": {
+      "kind": "json-feed",
+      "url": "https://api.nyc.gov/calendar/search",
+      "arrayPath": "items",
+      "headers": { "Ocp-Apim-Subscription-Key": "${NYC_API_KEY}" },
+      "fieldMap": {
+        "externalId": "guid",
+        "title": "name",
+        "category": "categories",
+        "description": "desc",
+        "dateLabel": "datePart",
+        "timeLabel": "timePart",
+        "website": "website",
+        "address": "address",
+        "startAt": "startDate",
+        "endAt": "endDate",
+        "sourceUrl": "permalink",
+        "organizationName": "agencyName"
+      },
+      "defaultType": "event",
+      "organizationName": "City of New York"
+    }
+  }
+]

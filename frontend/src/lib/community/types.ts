@@ -46,6 +46,14 @@ export interface CommunityOpportunity {
   id: string;
   title: string;
   type: 'volunteer' | 'donation' | 'event' | 'shelter' | 'food' | 'other';
+  /** Source-native category, shown as the tag (e.g. NYC "Street and Neighborhood"). */
+  category?: string;
+  /** Human date label as published by the source (e.g. NYC "Jun 21"). */
+  dateLabel?: string;
+  /** Human time label as published by the source (e.g. NYC "5:30am to 7:30pm"). */
+  timeLabel?: string;
+  /** Event website (distinct from the source/permalink page). */
+  website?: string;
   organizationName: string;
   description?: string;
   venueName?: string;

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "nyc-311-service-requests",
+    "name": "NYC 311 Service Requests",
+    "url": "https://data.cityofnewyork.us/resource/erm2-nwe9.json",
+    "sourceType": "json-feed",
+    "jurisdictionId": "place:3651000",
+    "trust": 80,
+    "refresh": "NYC Open Data 311 Service Requests (erm2-nwe9), automated daily refresh",
+    "ttlSeconds": 900,
+    "enabled": true,
+    "autoApprove": true,
+    "requiresLocation": true,
+    "notes": "Live 311 service requests near the user, from the NYC Open Data Socrata dataset erm2-nwe9 ('311 Service Requests from 2010 to Present'). No key required; sends X-App-Token only if NYC_OPENDATA_APP_TOKEN is set (raises rate limits, otherwise dropped). The {lat}/{lng} tokens in the SoQL $where are substituted with the user's coordinates by lib/nyc311/registry.ts before fetch; within_circle(location, …) scopes to a ~2km radius, newest first. Confirmed live 2026-06-21: response is a root JSON array; fields include unique_key, created_date, complaint_type, descriptor, agency_name, incident_address, borough, status, latitude, longitude. NOTE: daily refresh (≈1 day lag), not real-time. To switch to the api.nyc.gov nyc-311-public-api GetAssets operation instead, replace adapter.url/query/fieldMap with that operation's schema and set headers to { \"Ocp-Apim-Subscription-Key\": \"${NYC_311_KEY}\" }.",
+    "adapter": {
+      "kind": "json-feed",
+      "url": "https://data.cityofnewyork.us/resource/erm2-nwe9.json",
+      "query": {
+        "$where": "within_circle(location, {lat}, {lng}, 2000)",
+        "$order": "created_date DESC",
+        "$limit": "50"
+      },
+      "headers": { "X-App-Token": "${NYC_OPENDATA_APP_TOKEN}" },
+      "fieldMap": {
+        "externalId": "unique_key",
+        "title": "complaint_type",
+        "description": "descriptor",
+        "category": "status",
+        "address": "incident_address",
+        "latitude": "latitude",
+        "longitude": "longitude",
+        "startAt": "created_date",
+        "organizationName": "agency_name"
+      },
+      "organizationName": "NYC 311"
+    }
+  }
+]

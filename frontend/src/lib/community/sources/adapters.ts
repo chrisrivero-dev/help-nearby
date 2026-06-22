@@ -5,7 +5,7 @@ import type {
   JsonFeedAdapterConfig,
   RssAtomAdapterConfig,
 } from './types';
-import { mapCommunityType, normalizeIsoDate } from './normalize';
+import { normalizeIsoDate } from './normalize';
 
 function textFromHtml(html: string): string {
   return html
@@ -119,9 +119,61 @@ function arrayAtPath(root: unknown, path?: string): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
+function numField(record: Record<string, unknown>, key?: string): number | undefined {
+  const raw = field(record, key);
+  if (typeof raw === 'number') return Number.isFinite(raw) ? raw : undefined;
+  if (typeof raw === 'string' && raw.trim()) {
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : undefined;
+  }
+  return undefined;
+}
+
+// Expand `{today}` / `{today+Nd}` / `{today-Nd}` to an ISO `YYYY-MM-DD` date.
+function expandDateTokens(value: string, now: Date): string {
+  return value.replace(/\{today(?:([+-]\d+)d)?\}/g, (_m, offset?: string) => {
+    const d = new Date(now);
+    if (offset) d.setUTCDate(d.getUTCDate() + parseInt(offset, 10));
+    return d.toISOString().slice(0, 10);
+  });
+}
+
+// Substitute `${VAR}` from process.env; drop any header whose env var is unset
+// so a key-gated source is skipped rather than sent without credentials.
+function resolveHeaders(headers?: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, rawValue] of Object.entries(headers ?? {})) {
+    let missing = false;
+    const resolved = rawValue.replace(/\$\{(\w+)\}/g, (_m, name: string) => {
+      const v = process.env[name];
+      if (v === undefined || v === '') {
+        missing = true;
+        return '';
+      }
+      return v;
+    });
+    if (missing) continue;
+    out[key] = resolved;
+  }
+  return out;
+}
+
+function buildJsonUrl(config: JsonFeedAdapterConfig, now: Date): string {
+  if (!config.query) return config.url;
+  const url = new URL(config.url);
+  for (const [key, rawValue] of Object.entries(config.query)) {
+    url.searchParams.set(key, expandDateTokens(rawValue, now));
+  }
+  return url.toString();
+}
+
 async function runJson(config: JsonFeedAdapterConfig): Promise<CommunitySourceItem[]> {
-  const res = await fetch(config.url, { next: { revalidate: 0 } });
-  if (!res.ok) throw new Error(`community_json_fetch:${res.status}:${config.url}`);
+  const url = buildJsonUrl(config, new Date());
+  const res = await fetch(url, {
+    headers: resolveHeaders(config.headers),
+    next: { revalidate: 0 },
+  });
+  if (!res.ok) throw new Error(`community_json_fetch:${res.status}:${url}`);
   const json = (await res.json()) as unknown;
   return arrayAtPath(json, config.arrayPath).map((raw) => {
     const record =
@@ -130,18 +182,29 @@ async function runJson(config: JsonFeedAdapterConfig): Promise<CommunitySourceIt
     return {
       externalId: String(field(record, map.externalId) ?? field(record, 'id') ?? ''),
       title: String(field(record, map.title) ?? field(record, 'title') ?? ''),
-      type:
-        mapCommunityType(field(record, map.type) ?? field(record, 'type')) ??
-        config.defaultType,
+      // Pass the raw type/default through; normalizeCommunityItem maps it to the
+      // enum. (mapCommunityType never returns nullish, so a `?? defaultType`
+      // fallback here would be dead code.)
+      type: (field(record, map.type) ??
+        field(record, 'type') ??
+        config.defaultType) as CommunitySourceItem['type'],
+      category: String(field(record, map.category) ?? ''),
+      dateLabel: String(field(record, map.dateLabel) ?? ''),
+      timeLabel: String(field(record, map.timeLabel) ?? ''),
+      website: String(field(record, map.website) ?? ''),
       organizationName:
         String(field(record, map.organizationName) ?? '') ||
         config.organizationName,
       description: String(field(record, map.description) ?? ''),
       venueName: String(field(record, map.venueName) ?? ''),
       address: String(field(record, map.address) ?? ''),
+      latitude: numField(record, map.latitude),
+      longitude: numField(record, map.longitude),
       startAt: String(field(record, map.startAt) ?? field(record, 'startAt') ?? ''),
       endAt: String(field(record, map.endAt) ?? field(record, 'endAt') ?? ''),
       sourceUrl: String(field(record, map.sourceUrl) ?? field(record, 'url') ?? ''),
+      contactPhone: String(field(record, map.contactPhone) ?? ''),
+      contactEmail: String(field(record, map.contactEmail) ?? ''),
     };
   });
 }

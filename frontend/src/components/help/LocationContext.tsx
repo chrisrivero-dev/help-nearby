@@ -108,6 +108,34 @@ const toStateCode = (value?: string) => {
   return US_STATE_ABBREVIATIONS[trimmed] ?? trimmed;
 };
 
+// URL query parameter used to persist the active location across refreshes and
+// navigation. Holds the raw query (ZIP, "City, ST", or "lat,lng") so the full
+// range of inputs the provider accepts survives a reload.
+const LOCATION_QUERY_PARAM = 'loc';
+
+const readLocationFromUrl = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const value = new URLSearchParams(window.location.search).get(
+    LOCATION_QUERY_PARAM,
+  );
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+};
+
+const writeLocationToUrl = (query: string) => {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  const trimmed = query.trim();
+  if (trimmed) {
+    url.searchParams.set(LOCATION_QUERY_PARAM, trimmed);
+  } else {
+    url.searchParams.delete(LOCATION_QUERY_PARAM);
+  }
+  // replaceState keeps the location out of the back/forward history so a single
+  // search doesn't create a history entry, while still surviving refreshes.
+  window.history.replaceState(window.history.state, '', url);
+};
+
 const COORDINATE_QUERY_RE = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/;
 
 const parseCoordinateQuery = (query: string) => {
@@ -226,6 +254,25 @@ export const LocationProvider: FC<LocationProviderProps> = ({
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isResolvingLocation, setIsResolvingLocation] = useState(false);
   const requestSeq = useRef(0);
+  // Gates URL writes until after the initial URL read, so the default ZIP can't
+  // clobber a `?loc=` param present on first load.
+  const hydratedFromUrl = useRef(false);
+
+  // On mount, adopt any location persisted in the URL (`?loc=`). Runs in an
+  // effect rather than a lazy initializer so server and client first render
+  // agree on the default and there's no hydration mismatch.
+  useEffect(() => {
+    const fromUrl = readLocationFromUrl();
+    if (fromUrl) setLocationQuery(fromUrl);
+    hydratedFromUrl.current = true;
+  }, []);
+
+  // Reflect the active location into the URL so refreshes and navigation keep
+  // it instead of resetting to the default.
+  useEffect(() => {
+    if (!hydratedFromUrl.current) return;
+    writeLocationToUrl(locationQuery);
+  }, [locationQuery]);
 
   // Normalize location - accepts a ZIP code or a "City, ST" query and
   // resolves it to coordinates.

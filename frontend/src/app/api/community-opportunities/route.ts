@@ -62,7 +62,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         updated: number;
         expired: number;
         degraded: boolean;
-        checked: Array<{ id: string; ok: boolean }>;
+        checked: Array<{ id: string; name: string; ok: boolean }>;
       }
     | undefined;
   let selectedSourceIds: Set<string> | undefined;
@@ -79,7 +79,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       updated: result.updated,
       expired: result.expired,
       degraded: result.degraded,
-      checked: result.checked.map((s) => ({ id: s.id, ok: s.ok })),
+      checked: result.checked.map((s) => ({
+        id: s.id,
+        name: s.name,
+        ok: s.ok,
+      })),
     };
   }
 

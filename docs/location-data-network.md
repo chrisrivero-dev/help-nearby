@@ -19,7 +19,7 @@ body:hover {
 > one trustworthy answer. Update it as the design and implementation evolve —
 > do not let code and this doc drift.
 >
-> **Last updated:** 2026-06-19
+> **Last updated:** 2026-06-21
 > **Owners:** (add names)
 > **Related:** [`source-registry.md`](./source-registry.md) (candidate sources),
 > [`api/openFEMA.md`](./api/openFEMA.md)
@@ -325,6 +325,7 @@ Each owns its `*.sources.json`, its adapters, and its output type:
 |---|---|---|---|
 | Resources | [`sources.json`](../frontend/src/data/sources.json) + [`registry.ts`](../frontend/src/lib/resources/registry.ts) | `NearbyResource` → reconcile + distance rank | ResourcesPanel |
 | Alerts | [`alerts.sources.json`](../frontend/src/data/alerts.sources.json) + [`alerts/registry.ts`](../frontend/src/lib/alerts/registry.ts) | `WeatherAlert` | AlertPanel |
+| Community | [`community.sources.json`](../frontend/src/data/community.sources.json) + [`community/sources/`](../frontend/src/lib/community/sources/) | `CommunityOpportunity` → import/merge + moderation | CommunityPanel |
 
 Both now run on the shared core, so adding a domain = a new `*.sources.json` + a
 typed registry that calls `selectByJurisdiction` + `fanOut`; the route just maps
@@ -465,6 +466,16 @@ reconciliation/dedup tests (§7).
 
 Fallbacks for NYC points: (future NYS state feeds →) HRSA national.
 
+### NYC community events — `place:3651000` (registry: community)
+| Source | Type | sourceType | id | Notes |
+|--------|------|------------|----|-------|
+| NYC Events Calendar | event | json-feed | `nyc-events-calendar` | **Live.** Official city events `GET api.nyc.gov/calendar/search` (powers nyc.gov "Find Local Events"). `Ocp-Apim-Subscription-Key` from `NYC_API_KEY`; `autoApprove`. Confirmed end-to-end (12 upcoming events/page, today-forward, no lat/lng). First community-registry source. |
+
+### NYC alerts also — `place:3651000` (registry: alerts)
+| Source | sourceType | id | Notes |
+|--------|------------|----|-------|
+| NYC 311 Service Requests | socrata-local-incident | `nyc-311-service-requests` | Non-emergency 311 (dataset `erm2-nwe9`); opt-in situational-awareness, ships `enabled:false`, `includeCategories` curated to infrastructure/hazard types. Zero-code row. |
+
 ### NYC also has an ArcGIS source — `place:3651000`
 | Source | Category | sourceType | Notes |
 |--------|----------|------------|-------|
@@ -508,7 +519,9 @@ Fallbacks for NYC points: (future NYS state feeds →) HRSA national.
    [`lib/location/__tests__/`](../frontend/src/lib/location/__tests__/),
    rebuild script [`build-coverage.mjs`](../frontend/scripts/build-coverage.mjs).
    *Still TODO:* national county bundle, sub-municipal hub layer (Community
-   Districts / NTAs), NYC GeoSearch geocoder routing.
+   Districts / NTAs). NYC GeoSearch geocoder routing is now wired for NYC-looking
+   address queries in [`locationLookup.ts`](../frontend/src/lib/location/locationLookup.ts)
+   (no key; falls back to Nominatim).
 2. ✅ **Socrata adapter + data-driven registry** — *done.* `sourceType`-dispatched
    adapter registry ([`adapters/index.ts`](../frontend/src/lib/resources/adapters/index.ts)),
    [`socrata.ts`](../frontend/src/lib/resources/adapters/socrata.ts) (point
@@ -562,6 +575,25 @@ it works there it works in LA by construction.
 
 ## Changelog
 
+- **2026-06-21** — NYC API Portal integration (first community-registry source).
+  Reviewed `api-portal.nyc.gov` (Azure APIM; free self-serve subscription key sent
+  as `Ocp-Apim-Subscription-Key`). **Community:** wired the **NYC Events Calendar
+  API** into the bare Community panel — extended the `json-feed` adapter
+  ([`community/sources/{types,adapters}.ts`](../frontend/src/lib/community/sources/))
+  with env-substituted request `headers` (`${VAR}`, dropped when unset), `query`
+  params with `{today}`/`{today±Nd}` date tokens, and `latitude`/`longitude`/
+  `contactPhone`/`contactEmail` field mapping (previously dropped); added the
+  `nyc-events-calendar` row + `NYC_API_KEY` to `.env.example`. **Live + confirmed
+  end-to-end** against `GET api.nyc.gov/calendar/search` (response `{items,pagination}`,
+  12 upcoming events/page, today-forward; items carry no lat/lng so events are
+  city-wide for any NYC point). Verified: NYC point → 12 approved events, LA → 0,
+  re-import idempotent. **Alerts:** added `nyc-311-service-requests` (Socrata `erm2-nwe9`, live-probed
+  fresh) as a zero-code `socrata-local-incident` row — opt-in `enabled:false` with
+  `includeCategories` curated to infrastructure/hazard types (311 is non-emergency).
+  **Location:** added NYC **GeoSearch** routing (no key) in `locationLookup.ts` for
+  NYC-looking address queries, falling back to Nominatim. The Portal's Geoclient/311
+  *content* APIs were reviewed and left out (key-gated geocoding duplicate / reference
+  content, not location-scoped). Build + resolver/reliability gates green.
 - **2026-06-20** — Alert consolidation: `fetchAlerts` now collapses the same
   natural-hazard event reported by multiple sources (e.g. a wildfire from both
   CAL FIRE and NASA EONET) into one highest-trust record. `WeatherAlert` gained

@@ -95,20 +95,6 @@ const MapInstanceSetter: FC<{
   return null;
 };
 
-const MapLocationPicker: FC<{
-  onPick: (lat: number, lng: number) => void;
-}> = ({ onPick }) => {
-  useMapEvents({
-    dblclick: (event) => {
-      onPick(event.latlng.lat, event.latlng.lng);
-    },
-    contextmenu: (event) => {
-      onPick(event.latlng.lat, event.latlng.lng);
-    },
-  });
-  return null;
-};
-
 const Discover: FC<DiscoverProps> = ({
   centerLat,
   centerLng,
@@ -384,12 +370,6 @@ const Discover: FC<DiscoverProps> = ({
     }
   };
 
-  const handleMapLocationPick = (lat: number, lng: number) => {
-    setSearchError(null);
-    setLocationInput('Resolving map location...');
-    setLocation(`${lat.toFixed(6)},${lng.toFixed(6)}`);
-  };
-
   const toggleCategory = (category: ResourceCategory) => {
     setActiveCategories((prev) =>
       prev.includes(category)
@@ -611,10 +591,8 @@ const Discover: FC<DiscoverProps> = ({
             attributionControl={false}
             scrollWheelZoom={true}
             zoomControl={false}
-            doubleClickZoom={false}
           >
             <MapInstanceSetter onMapReady={setMapInstance} />
-            <MapLocationPicker onPick={handleMapLocationPick} />
             <TileLayer
               url={
                 theme === 'dark'
