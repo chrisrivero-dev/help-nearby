@@ -11,10 +11,14 @@ import { ResourcesPanel } from '@/components/help/ResourcesPanel';
 import { CommunityPanel } from '@/components/help/CommunityPanel';
 import { NYC311Panel } from '@/components/help/nyc311';
 import { UpdatesPanel } from '@/components/help/UpdatesPanel';
+import { LocationSituationPanel } from '@/components/help/LocationSituationPanel';
+import { ResourceDetailView } from '@/components/help/ResourceDetailView';
+import type { NearbyResource } from '@/lib/resources/schema';
 
 const HelpDashboard: FC = () => {
   // Detect mobile for responsive layout
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedResource, setSelectedResource] = useState<NearbyResource | null>(null);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -69,19 +73,24 @@ const HelpDashboard: FC = () => {
       >
         <PanelLayout className="panel-stack">
           <AlertPanel />
-          <ResourcesPanel />
+          <ResourcesPanel
+            onSelectResource={isMobile ? undefined : setSelectedResource}
+            selectedResourceId={selectedResource?.id}
+          />
           <CommunityPanel />
           <NYC311Panel />
           <UpdatesPanel />
         </PanelLayout>
 
         {!isMobile && (
-          <div
-            aria-hidden="true"
-            style={{
-              minHeight: 'calc(100vh - 220px)',
-            }}
-          />
+          selectedResource
+            ? (
+              <ResourceDetailView
+                resource={selectedResource}
+                onClose={() => setSelectedResource(null)}
+              />
+            )
+            : <LocationSituationPanel />
         )}
       </div>
     </motion.main>

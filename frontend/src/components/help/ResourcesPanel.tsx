@@ -71,6 +71,8 @@ interface ResourceCardProps {
   originLat: number;
   originLng: number;
   tips: CommunityTip[];
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 const ResourceCard: FC<ResourceCardProps> = ({
@@ -80,6 +82,8 @@ const ResourceCard: FC<ResourceCardProps> = ({
   originLat,
   originLng,
   tips,
+  isSelected = false,
+  onSelect,
 }) => {
   const [showTipForm, setShowTipForm] = useState(false);
   const [showReport, setShowReport] = useState(false);
@@ -112,9 +116,18 @@ const ResourceCard: FC<ResourceCardProps> = ({
 
   return (
     <div
+      onClick={onSelect}
       style={{
         padding: '0.9rem 1.4rem',
         borderBottom: isLast ? undefined : `1px solid ${divider}`,
+        borderLeft: isSelected ? '3px solid #fbbf24' : undefined,
+        paddingLeft: isSelected ? 'calc(1.4rem - 3px)' : undefined,
+        background: isSelected
+          ? isDark
+            ? 'rgba(251,191,36,0.06)'
+            : 'rgba(251,191,36,0.08)'
+          : undefined,
+        cursor: onSelect ? 'pointer' : undefined,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.9rem' }}>
@@ -213,7 +226,7 @@ const ResourceCard: FC<ResourceCardProps> = ({
             <>
               <button
                 type="button"
-                onClick={() => setShowTipForm((v) => !v)}
+                onClick={(e) => { e.stopPropagation(); setShowTipForm((v) => !v); }}
                 style={actionButtonStyle}
               >
                 {showTipForm
@@ -224,7 +237,7 @@ const ResourceCard: FC<ResourceCardProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => setShowReport((v) => !v)}
+                onClick={(e) => { e.stopPropagation(); setShowReport((v) => !v); }}
                 style={actionButtonStyle}
               >
                 {showReport ? 'Cancel report' : 'Report issue'}
@@ -298,7 +311,15 @@ const ResourceCard: FC<ResourceCardProps> = ({
   );
 };
 
-export const ResourcesPanel: FC = () => {
+interface ResourcesPanelProps {
+  onSelectResource?: (r: NearbyResource) => void;
+  selectedResourceId?: string;
+}
+
+export const ResourcesPanel: FC<ResourcesPanelProps> = ({
+  onSelectResource,
+  selectedResourceId,
+}) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const { latitude, longitude, isValid, isResolvingLocation } =
@@ -936,6 +957,10 @@ export const ResourcesPanel: FC = () => {
                           r.resource_key !== undefined
                             ? (communityTips[r.resource_key] ?? [])
                             : []
+                        }
+                        isSelected={selectedResourceId === r.id}
+                        onSelect={
+                          onSelectResource ? () => onSelectResource(r) : undefined
                         }
                       />
                     ))
