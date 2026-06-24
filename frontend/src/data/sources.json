@@ -484,6 +484,28 @@
     }
   },
   {
+    "id": "la-familysource-centers",
+    "name": "FamilySource Centers",
+    "url": "https://data.lacity.org/Community-Economic-Development/FamilySource-Centers/hi8w-jppr",
+    "sourceType": "socrata",
+    "category": "social_services",
+    "jurisdictionId": "place:0644000",
+    "trust": 80,
+    "ttlSeconds": 86400,
+    "enabled": true,
+    "notes": "City of Los Angeles FamilySource Centers dataset from LA Open Data. Family/social support services in the City of Los Angeles.",
+    "adapter": {
+      "kind": "socrata",
+      "endpoint": "https://data.lacity.org/resource/hi8w-jppr.json",
+      "geo": { "kind": "point", "field": "lat_long" },
+      "fieldMap": {
+        "name": "agency",
+        "address": "address",
+        "phone": "phone_number"
+      }
+    }
+  },
+  {
     "id": "nyc-parks-recreation-centers",
     "name": "NYC Parks Recreation Centers",
     "url": "https://www.nycgovparks.org/facilities/recreationcenters",
