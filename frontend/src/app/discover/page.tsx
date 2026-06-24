@@ -9,11 +9,11 @@ function DiscoverContent() {
   const searchParams = useSearchParams();
   const latParam = searchParams?.get('lat');
   const lngParam = searchParams?.get('lng');
-  const lat = latParam === null ? NaN : parseFloat(latParam);
-  const lng = lngParam === null ? NaN : parseFloat(lngParam);
+  const lat = latParam == null ? NaN : parseFloat(latParam);
+  const lng = lngParam == null ? NaN : parseFloat(lngParam);
   const hasInitialCenter =
-    latParam !== null &&
-    lngParam !== null &&
+    latParam != null &&
+    lngParam != null &&
     Number.isFinite(lat) &&
     Number.isFinite(lng) &&
     lat >= -90 &&
