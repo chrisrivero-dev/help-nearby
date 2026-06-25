@@ -29,7 +29,7 @@ const NavBar: FC<NavBarProps> = ({
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const dividerColor = isDark ? '#1e2028' : '#e0e2e8';
+  const dividerColor = '#000000';
 
   // Fixed, full-bleed header with a translucent blurred background. The header
   // stacks two attached bands: the main nav (title) and an optional sub-bar.
@@ -53,7 +53,7 @@ const NavBar: FC<NavBarProps> = ({
   const bandStyle: React.CSSProperties = {
     width: '100%',
     boxSizing: 'border-box',
-    borderBottom: `1px solid ${dividerColor}`,
+    borderBottom: `2px solid ${dividerColor}`,
   };
 
   // Content frame - matches the main page content container

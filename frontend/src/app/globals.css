@@ -321,7 +321,7 @@ html.no-transitions * {
   column-gap: 0;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0;
 }
 
 .panel-masonry.panel-stack > * {
@@ -336,7 +336,7 @@ html.no-transitions * {
   }
 
   .panel-masonry.panel-stack {
-    gap: 1rem;
+    gap: 0;
   }
 }
 
@@ -345,6 +345,25 @@ html.no-transitions * {
   break-inside: avoid;
   display: block;
   margin-bottom: 1.5rem;
+}
+
+/* Each panel sits in a slot; on hover the slot lifts above its neighbours so a
+   panel's upward hover-offset paints over the tiled panel below it. */
+.panel-slot {
+  position: relative;
+}
+
+.panel-slot:hover {
+  z-index: 5;
+}
+
+.help-panel-header:hover {
+  border-bottom-color: #fbbf24 !important;
+}
+
+.help-panel-header:hover *,
+.help-panel-header:hover svg {
+  color: var(--help-panel-header-hover-color) !important;
 }
 
 /* Tighter row gap on mobile */

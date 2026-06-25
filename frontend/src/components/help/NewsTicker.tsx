@@ -99,7 +99,7 @@ export const NewsTicker: FC = () => {
   const tickerBg = isDark
     ? 'linear-gradient(90deg, #111314 0%, #0d0f12 100%)'
     : 'linear-gradient(90deg, #f7f8fa 0%, #f4f5f7 100%)';
-  const tickerBorder = isDark ? '#1e2028' : '#e0e2e8';
+  const tickerBorder = '#000000';
   const tickerShadow = isDark
     ? '2px 2px 0px rgba(0,0,0,0.5)'
     : '2px 2px 0px rgba(0,0,0,0.04)';
@@ -116,7 +116,7 @@ export const NewsTicker: FC = () => {
         alignItems: 'center',
         height: 42,
         background: tickerBg,
-        borderTop: `1px solid ${tickerBorder}`,
+        border: `2px solid ${tickerBorder}`,
         boxShadow: tickerShadow,
         flexShrink: 0,
         whiteSpace: 'nowrap',

@@ -1,11 +1,19 @@
 'use client';
 
 import type { FC } from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import NavBar from '@/components/NavBar';
 import { NewsTicker } from '@/components/help/NewsTicker';
 import { PanelLayout } from '@/components/help/PanelLayout';
+import { PanelControlCell } from '@/components/help/PanelControlCell';
+import {
+  PanelControlProvider,
+  HELP_PANELS,
+  type HelpPanelId,
+  type ExpandSignal,
+  type PanelStatus,
+} from '@/components/help/PanelControlContext';
 import { AlertPanel } from '@/components/help/AlertPanel';
 import { ResourcesPanel } from '@/components/help/ResourcesPanel';
 import { CommunityPanel } from '@/components/help/CommunityPanel';
@@ -30,22 +38,111 @@ const HelpDashboard: FC = () => {
   const navVariant = 'help' as const;
   const navTitle = 'HELP! NEARBY.' as const;
 
-  // Clear the taller fixed NavBar (title + location rows) with a margin.
-  const paddingTop = isMobile ? '190px' : '160px';
+  // Measure the fixed NavBar so content sits flush against its bottom edge with
+  // no gap (the NavBar height varies with theme / wrapping). Falls back to a
+  // sensible default before the first measurement.
+  const [navHeight, setNavHeight] = useState(isMobile ? 190 : 160);
+  useEffect(() => {
+    const header = document.querySelector('header');
+    if (!header) return;
+    const update = () => setNavHeight(header.getBoundingClientRect().height);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(header);
+    return () => ro.disconnect();
+  }, [isMobile]);
+
+  const paddingTop = `${navHeight}px`;
+  // Height of the fixed NewsTicker strip at the bottom of the viewport.
+  const tickerHeight = '42px';
+
+  // ── Sidebar panel controls (driven by the top control cell) ──
+  // Which panels are selected to view.
+  const [selectedPanels, setSelectedPanels] = useState<Set<HelpPanelId>>(
+    () => new Set(HELP_PANELS.map((p) => p.id)),
+  );
+  // Whether to show panels whose source isn't live (not green).
+  const [showNonLive, setShowNonLive] = useState(true);
+  // Applicability + live status reported by each panel. 311 starts
+  // unavailable until it confirms an NYC location; the rest are always-on.
+  const [statuses, setStatuses] = useState<Record<HelpPanelId, PanelStatus>>(
+    () => {
+      const init = {} as Record<HelpPanelId, PanelStatus>;
+      for (const p of HELP_PANELS) {
+        init[p.id] = { available: p.id !== 'nyc311', live: false };
+      }
+      return init;
+    },
+  );
+  // Expand/collapse-all command broadcast to the panels.
+  const [allExpanded, setAllExpanded] = useState(true);
+  const [expandSignal, setExpandSignal] = useState<ExpandSignal>({
+    value: true,
+    nonce: 0,
+  });
+
+  const reportStatus = useCallback((id: HelpPanelId, status: PanelStatus) => {
+    setStatuses((prev) => {
+      const cur = prev[id];
+      if (cur && cur.available === status.available && cur.live === status.live) {
+        return prev;
+      }
+      return { ...prev, [id]: status };
+    });
+  }, []);
+
+  const togglePanel = useCallback((id: HelpPanelId) => {
+    setSelectedPanels((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleExpandAll = useCallback(() => {
+    setAllExpanded((prev) => {
+      const next = !prev;
+      setExpandSignal((s) => ({ value: next, nonce: s.nonce + 1 }));
+      return next;
+    });
+  }, []);
+
+  const panelControlValue = useMemo(
+    () => ({ reportStatus, expandSignal }),
+    [reportStatus, expandSignal],
+  );
+
+  // Only panels applicable to the current location appear in the picker.
+  const availablePanels = HELP_PANELS.filter((p) => statuses[p.id]?.available);
+  const liveStatus = useMemo(() => {
+    const map = {} as Record<HelpPanelId, boolean>;
+    for (const p of HELP_PANELS) map[p.id] = !!statuses[p.id]?.live;
+    return map;
+  }, [statuses]);
+
+  // A panel renders when applicable AND selected AND (showing non-live OR live).
+  const isPanelVisible = (id: HelpPanelId) =>
+    !!statuses[id]?.available &&
+    selectedPanels.has(id) &&
+    (showNonLive || !!statuses[id]?.live);
+  const panelDisplay = (id: HelpPanelId) =>
+    isPanelVisible(id) ? undefined : 'none';
 
   return (
     <motion.main
       style={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100vh',
+        // Full-page (desktop): fill the viewport between the fixed NavBar and
+        // the fixed NewsTicker, with no outer page scroll. Mobile falls back to
+        // a normal scrolling column.
+        height: isMobile ? 'auto' : '100vh',
+        minHeight: isMobile ? '100vh' : undefined,
+        overflow: isMobile ? undefined : 'hidden',
         width: '100%',
-        maxWidth: '1600px',
-        margin: '0 auto',
-        paddingLeft: 'max(2%, 16px)',
-        paddingRight: 'max(2%, 16px)',
         paddingTop: paddingTop,
-        paddingBottom: '4rem',
+        paddingBottom: isMobile ? '4rem' : tickerHeight,
         backgroundColor: 'var(--color-bg)',
         color: 'var(--color-text)',
         boxSizing: 'border-box',
@@ -60,39 +157,86 @@ const HelpDashboard: FC = () => {
       {/* Ticker Strip */}
       <NewsTicker />
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile
-            ? 'minmax(0, 1fr)'
-            : 'minmax(320px, 480px) minmax(0, 1fr)',
-          gap: isMobile ? '1rem' : '1.5rem',
-          alignItems: 'start',
-          width: '100%',
-        }}
-      >
-        <PanelLayout className="panel-stack">
-          <AlertPanel />
-          <ResourcesPanel
-            onSelectResource={isMobile ? undefined : setSelectedResource}
-            selectedResourceId={selectedResource?.id}
-          />
-          <CommunityPanel />
-          <NYC311Panel />
-          <UpdatesPanel />
-        </PanelLayout>
-
-        {!isMobile && (
-          selectedResource
-            ? (
-              <ResourceDetailView
-                resource={selectedResource}
-                onClose={() => setSelectedResource(null)}
+      <PanelControlProvider value={panelControlValue}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile
+              ? 'minmax(0, 1fr)'
+              : 'clamp(320px, 32%, 440px) minmax(0, 1fr)',
+            gap: 0,
+            alignItems: 'stretch',
+            width: '100%',
+            height: isMobile ? 'auto' : '100%',
+            minHeight: 0,
+          }}
+        >
+          {/* Left sidebar — control cell + all panels, tiled, with its own
+              scroll. The container clips at the flush NavBar edge so an upward
+              hover-lift on the top panel slides under the bar, not over it. */}
+          <div
+            style={{
+              height: isMobile ? 'auto' : '100%',
+              overflowY: isMobile ? 'visible' : 'auto',
+              minHeight: 0,
+            }}
+          >
+            <PanelLayout className="panel-stack">
+              {/* Static control cell. It elevates its own stacking only while
+                  its dropdown is open, so the panel below can still hover-lift
+                  over the control row. */}
+              <PanelControlCell
+                panels={availablePanels}
+                selected={selectedPanels}
+                onTogglePanel={togglePanel}
+                liveStatus={liveStatus}
+                allExpanded={allExpanded}
+                onToggleExpandAll={toggleExpandAll}
+                showNonLive={showNonLive}
+                onToggleShowNonLive={() => setShowNonLive((v) => !v)}
               />
-            )
-            : <LocationSituationPanel />
-        )}
-      </div>
+              <div className="panel-slot" style={{ display: panelDisplay('alerts') }}>
+                <AlertPanel />
+              </div>
+              <div className="panel-slot" style={{ display: panelDisplay('resources') }}>
+                <ResourcesPanel
+                  onSelectResource={isMobile ? undefined : setSelectedResource}
+                  selectedResourceId={selectedResource?.id}
+                />
+              </div>
+              <div className="panel-slot" style={{ display: panelDisplay('community') }}>
+                <CommunityPanel />
+              </div>
+              <div className="panel-slot" style={{ display: panelDisplay('nyc311') }}>
+                <NYC311Panel />
+              </div>
+              <div className="panel-slot" style={{ display: panelDisplay('updates') }}>
+                <UpdatesPanel />
+              </div>
+            </PanelLayout>
+          </div>
+
+          {/* Right main area — Overview / Resource Detail, own scroll */}
+          {!isMobile && (
+            <div
+              style={{
+                height: '100%',
+                overflowY: 'auto',
+                minHeight: 0,
+              }}
+            >
+              {selectedResource ? (
+                <ResourceDetailView
+                  resource={selectedResource}
+                  onClose={() => setSelectedResource(null)}
+                />
+              ) : (
+                <LocationSituationPanel />
+              )}
+            </div>
+          )}
+        </div>
+      </PanelControlProvider>
     </motion.main>
   );
 };

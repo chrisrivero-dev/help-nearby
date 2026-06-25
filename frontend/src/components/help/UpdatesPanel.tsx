@@ -5,6 +5,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
+import { NeoPanel } from './NeoPanel';
+import { PanelHeader } from './PanelHeader';
+import { usePanelControl } from './PanelControlContext';
 import {
   PanelStatusSquare,
   PanelRefreshButton,
@@ -95,51 +98,26 @@ export const UpdatesPanel: FC = () => {
     </div>
   );
 
+  // Report live status (green / connected source) and respond to the
+  // sidebar's expand/collapse-all control.
+  const panelControl = usePanelControl();
+  const panelLive = isLive && !loading;
+  useEffect(() => {
+    panelControl?.reportStatus('updates', { available: true, live: panelLive });
+  }, [panelControl, panelLive]);
+  const expandNonce = panelControl?.expandSignal.nonce ?? 0;
+  const expandValue = panelControl?.expandSignal.value ?? true;
+  useEffect(() => {
+    if (expandNonce === 0) return;
+    setIsExpanded(expandValue);
+  }, [expandNonce, expandValue]);
+
   return (
-    <motion.div
-      style={{
-        position: 'relative',
-        breakInside: 'avoid',
-        height: 'fit-content',
-      }}
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] as const }}
-    >
-      {/* Back panel - static, zIndex 1 */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          zIndex: 1,
-          width: '100%',
-          height: '100%',
-          background: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.05)',
-          border: `1px solid ${isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.05)'}`,
-        }}
-      />
-      {/* Front panel - zIndex 2, lifts on hover */}
-      <motion.div
-        style={{
-          background: isDark ? '#121212' : '#ffffff',
-          border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
-          position: 'relative',
-          zIndex: 2,
-        }}
-        whileHover={{ x: -4, y: -4 }}
-        transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
-      >
+    <NeoPanel>
         {/* Section Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '1rem 1.4rem',
-            borderBottom: `1px solid ${divider}`,
-            cursor: 'pointer',
-          }}
+        <PanelHeader
+          divider={divider}
+          isDark={isDark}
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -213,7 +191,7 @@ export const UpdatesPanel: FC = () => {
               </svg>
             </motion.div>
           </div>
-        </div>
+        </PanelHeader>
 
         <AnimatePresence mode="wait">
           {isExpanded ? (
@@ -315,7 +293,6 @@ export const UpdatesPanel: FC = () => {
             </motion.div>
           ) : null}
         </AnimatePresence>
-      </motion.div>
-    </motion.div>
+    </NeoPanel>
   );
 };

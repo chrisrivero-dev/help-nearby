@@ -75,7 +75,7 @@ export const ResourceDetailView: FC<ResourceDetailViewProps> = ({
   const detailText = isDark ? '#bdbdbd' : '#444444';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
   const bg = isDark ? '#121212' : '#ffffff';
-  const border = isDark ? '#252525' : '#e4e4e4';
+  const border = isDark ? '#404040' : '#111111';
   const linkColor = isDark ? '#93c5fd' : '#1d4ed8';
 
   const address = formatResourceAddress(r);
@@ -153,11 +153,8 @@ export const ResourceDetailView: FC<ResourceDetailViewProps> = ({
     <div
       style={{
         background: bg,
-        border: `1px solid ${border}`,
-        position: 'sticky',
-        top: '170px',
-        overflowY: 'auto',
-        maxHeight: 'calc(100vh - 200px)',
+        border: `3px solid ${border}`,
+        minHeight: '100%',
       }}
     >
       {/* Header */}

@@ -14,7 +14,7 @@ export const LocationSituationPanel: FC = () => {
   const mutedText = isDark ? '#7a7a7a' : '#888888';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
   const bg = isDark ? '#121212' : '#ffffff';
-  const border = isDark ? '#252525' : '#e4e4e4';
+  const border = isDark ? '#404040' : '#111111';
 
   const locationLabel = isResolvingLocation
     ? 'Resolving location…'
@@ -26,9 +26,8 @@ export const LocationSituationPanel: FC = () => {
     <div
       style={{
         background: bg,
-        border: `1px solid ${border}`,
-        position: 'sticky',
-        top: '170px',
+        border: `3px solid ${border}`,
+        minHeight: '100%',
       }}
     >
       {/* Header */}
