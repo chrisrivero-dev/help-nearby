@@ -26,7 +26,6 @@ export const LocationSituationPanel: FC = () => {
     <div
       style={{
         background: bg,
-        border: `3px solid ${border}`,
         minHeight: '100%',
       }}
     >
@@ -51,8 +50,14 @@ export const LocationSituationPanel: FC = () => {
       </div>
 
       {/* Body */}
-      <div style={{ padding: '1.4rem', display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
-
+      <div
+        style={{
+          padding: '1.4rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.1rem',
+        }}
+      >
         {/* Location row */}
         {locationLabel && (
           <div>
@@ -130,8 +135,8 @@ export const LocationSituationPanel: FC = () => {
           }}
         >
           Source-backed data where available. Strongest current coverage:
-          Southern California and California, with national health-center
-          and weather/IPAWS coverage.
+          Southern California and California, with national health-center and
+          weather/IPAWS coverage.
         </p>
       </div>
     </div>

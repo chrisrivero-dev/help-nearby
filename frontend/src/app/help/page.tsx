@@ -19,14 +19,17 @@ import { ResourcesPanel } from '@/components/help/ResourcesPanel';
 import { CommunityPanel } from '@/components/help/CommunityPanel';
 import { NYC311Panel } from '@/components/help/nyc311';
 import { UpdatesPanel } from '@/components/help/UpdatesPanel';
-import { LocationSituationPanel } from '@/components/help/LocationSituationPanel';
+import { OverviewPanel } from '@/components/help/OverviewPanel';
 import { ResourceDetailView } from '@/components/help/ResourceDetailView';
 import type { NearbyResource } from '@/lib/resources/schema';
 
 const HelpDashboard: FC = () => {
+  // Overview panel state
+  const [isOverviewExpanded, setIsOverviewExpanded] = useState(true);
   // Detect mobile for responsive layout
   const [isMobile, setIsMobile] = useState(false);
-  const [selectedResource, setSelectedResource] = useState<NearbyResource | null>(null);
+  const [selectedResource, setSelectedResource] =
+    useState<NearbyResource | null>(null);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -84,7 +87,11 @@ const HelpDashboard: FC = () => {
   const reportStatus = useCallback((id: HelpPanelId, status: PanelStatus) => {
     setStatuses((prev) => {
       const cur = prev[id];
-      if (cur && cur.available === status.available && cur.live === status.live) {
+      if (
+        cur &&
+        cur.available === status.available &&
+        cur.live === status.live
+      ) {
         return prev;
       }
       return { ...prev, [id]: status };
@@ -158,6 +165,13 @@ const HelpDashboard: FC = () => {
       <NewsTicker />
 
       <PanelControlProvider value={panelControlValue}>
+        {/* Full-width OverviewPanel - above the 2-column grid */}
+        <OverviewPanel
+          isExpanded={isOverviewExpanded}
+          onToggle={() => setIsOverviewExpanded((v) => !v)}
+        />
+
+        {/* Left sidebar + Right main area */}
         <div
           style={{
             display: 'grid',
@@ -195,29 +209,44 @@ const HelpDashboard: FC = () => {
                 showNonLive={showNonLive}
                 onToggleShowNonLive={() => setShowNonLive((v) => !v)}
               />
-              <div className="panel-slot" style={{ display: panelDisplay('alerts') }}>
+              <div
+                className="panel-slot"
+                style={{ display: panelDisplay('alerts') }}
+              >
                 <AlertPanel />
               </div>
-              <div className="panel-slot" style={{ display: panelDisplay('resources') }}>
+              <div
+                className="panel-slot"
+                style={{ display: panelDisplay('resources') }}
+              >
                 <ResourcesPanel
                   onSelectResource={isMobile ? undefined : setSelectedResource}
                   selectedResourceId={selectedResource?.id}
                 />
               </div>
-              <div className="panel-slot" style={{ display: panelDisplay('community') }}>
+              <div
+                className="panel-slot"
+                style={{ display: panelDisplay('community') }}
+              >
                 <CommunityPanel />
               </div>
-              <div className="panel-slot" style={{ display: panelDisplay('nyc311') }}>
+              <div
+                className="panel-slot"
+                style={{ display: panelDisplay('nyc311') }}
+              >
                 <NYC311Panel />
               </div>
-              <div className="panel-slot" style={{ display: panelDisplay('updates') }}>
+              <div
+                className="panel-slot"
+                style={{ display: panelDisplay('updates') }}
+              >
                 <UpdatesPanel />
               </div>
             </PanelLayout>
           </div>
 
-          {/* Right main area — Overview / Resource Detail, own scroll */}
-          {!isMobile && (
+          {/* Right main area — Resource Detail only (no Overview on right) */}
+          {!isMobile && selectedResource && (
             <div
               style={{
                 height: '100%',
@@ -225,14 +254,10 @@ const HelpDashboard: FC = () => {
                 minHeight: 0,
               }}
             >
-              {selectedResource ? (
-                <ResourceDetailView
-                  resource={selectedResource}
-                  onClose={() => setSelectedResource(null)}
-                />
-              ) : (
-                <LocationSituationPanel />
-              )}
+              <ResourceDetailView
+                resource={selectedResource}
+                onClose={() => setSelectedResource(null)}
+              />
             </div>
           )}
         </div>

@@ -52,14 +52,14 @@ export const NeoPanel: FC<NeoPanelProps> = ({ children, className, style }) => {
           width: '100%',
           height: '100%',
           background: shadowColor,
-          border: `3px solid ${shadowColor}`,
+          border: `2px solid ${shadowColor}`,
         }}
       />
       {/* Front panel - lifts straight up on hover */}
       <motion.div
         style={{
           background: panelBg,
-          border: `3px solid ${borderColor}`,
+          border: `2px solid ${borderColor}`,
           position: 'relative',
           zIndex: 2,
           ...style,

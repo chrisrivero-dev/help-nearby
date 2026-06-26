@@ -21,7 +21,11 @@ const formatResourceAddress = (r: NearbyResource): string | null => {
 };
 
 const formatDist = (mi: number) =>
-  mi < 0.1 ? '< 0.1 mi' : mi < 10 ? `${mi.toFixed(1)} mi` : `${Math.round(mi)} mi`;
+  mi < 0.1
+    ? '< 0.1 mi'
+    : mi < 10
+      ? `${mi.toFixed(1)} mi`
+      : `${Math.round(mi)} mi`;
 
 const formatChecked = (iso?: string): string | null => {
   if (!iso) return null;
@@ -40,11 +44,11 @@ const formatChecked = (iso?: string): string | null => {
 // format, not a quality or trust score.
 const SOURCE_TYPE_LABELS: Record<SourceType, string> = {
   'arcgis-rest': 'Public GIS dataset',
-  'socrata': 'Open data portal',
+  socrata: 'Open data portal',
   'open-data': 'Open data portal',
-  'api': 'API feed',
+  api: 'API feed',
   'manual-fallback': 'Manually maintained list',
-  'custom': 'Custom source (user-added)',
+  custom: 'Custom source (user-added)',
 };
 
 // Fields with provenance data that are meaningful to show a user.
@@ -61,21 +65,66 @@ interface ResourceDetailViewProps {
   onClose: () => void;
 }
 
+const SectionLabel: FC<{ children: string }> = ({ children }) => (
+  <p
+    style={{
+      fontFamily: "'Poppins', sans-serif",
+      fontSize: '0.6rem',
+      fontWeight: 700,
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase',
+      color: 'var(--color-muted, #888888)',
+      margin: '0 0 0.35rem',
+    }}
+  >
+    {children}
+  </p>
+);
+
+const ProvenanceRow: FC<{ label: string; sourceName: string }> = ({
+  label,
+  sourceName,
+}) => (
+  <div
+    style={{
+      display: 'flex',
+      gap: '0.4rem',
+      fontFamily: "'Poppins', sans-serif",
+      fontSize: '0.64rem',
+      lineHeight: 1.5,
+      color: 'var(--color-detail, #444444)',
+    }}
+  >
+    <span
+      style={{
+        color: 'var(--color-muted, #888888)',
+        flexShrink: 0,
+        minWidth: '3.5rem',
+      }}
+    >
+      {label}:
+    </span>
+    <span>{sourceName}</span>
+  </div>
+);
+
 export const ResourceDetailView: FC<ResourceDetailViewProps> = ({
   resource: r,
   onClose,
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { latitude: originLat, longitude: originLng, isValid } =
-    useLocationContext();
+  const {
+    latitude: originLat,
+    longitude: originLng,
+    isValid,
+  } = useLocationContext();
 
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#7a7a7a' : '#888888';
   const detailText = isDark ? '#bdbdbd' : '#444444';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
   const bg = isDark ? '#121212' : '#ffffff';
-  const border = isDark ? '#404040' : '#111111';
   const linkColor = isDark ? '#93c5fd' : '#1d4ed8';
 
   const address = formatResourceAddress(r);
@@ -86,7 +135,9 @@ export const ResourceDetailView: FC<ResourceDetailViewProps> = ({
     Number.isFinite(originLat) &&
     Number.isFinite(originLng);
 
-  const timestamp = r.isCustom ? formatChecked(r.createdAt) : formatChecked(r.lastChecked);
+  const timestamp = r.isCustom
+    ? formatChecked(r.createdAt)
+    : formatChecked(r.lastChecked);
   const timestampLabel = r.isCustom ? 'Added' : 'Last checked';
   const categoryLabel = CATEGORY_LABELS[r.category] ?? r.category;
   const sourceTypeLabel = SOURCE_TYPE_LABELS[r.sourceType] ?? r.sourceType;
@@ -112,48 +163,10 @@ export const ResourceDetailView: FC<ResourceDetailViewProps> = ({
 
   const hasFieldProvenance = provenanceRows.length > 0;
 
-  const SectionLabel: FC<{ children: string }> = ({ children }) => (
-    <p
-      style={{
-        fontFamily: "'Poppins', sans-serif",
-        fontSize: '0.6rem',
-        fontWeight: 700,
-        letterSpacing: '0.1em',
-        textTransform: 'uppercase',
-        color: mutedText,
-        margin: '0 0 0.35rem',
-      }}
-    >
-      {children}
-    </p>
-  );
-
-  const ProvenanceRow: FC<{ label: string; sourceName: string }> = ({
-    label,
-    sourceName,
-  }) => (
-    <div
-      style={{
-        display: 'flex',
-        gap: '0.4rem',
-        fontFamily: "'Poppins', sans-serif",
-        fontSize: '0.64rem',
-        lineHeight: 1.5,
-        color: detailText,
-      }}
-    >
-      <span style={{ color: mutedText, flexShrink: 0, minWidth: '3.5rem' }}>
-        {label}:
-      </span>
-      <span>{sourceName}</span>
-    </div>
-  );
-
   return (
     <div
       style={{
         background: bg,
-        border: `3px solid ${border}`,
         minHeight: '100%',
       }}
     >
