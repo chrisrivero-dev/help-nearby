@@ -37,66 +37,66 @@ export const ResourceCardCommunityNotes: FC<Props> = ({ tips }) => {
           gap: '0.45rem',
         }}
       >
-          <span
-            style={{
-              fontFamily: "'Poppins', sans-serif",
-              fontSize: '0.58rem',
-              fontWeight: 700,
-              letterSpacing: '0.1em',
-              color: mutedText,
-            }}
-          >
-            COMMUNITY NOTES · REVIEWED BY HELP NEARBY
-          </span>
+        <span
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: '0.58rem',
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            color: mutedText,
+          }}
+        >
+          COMMUNITY NOTES · REVIEWED BY HELP NEARBY
+        </span>
 
-          {displayed.map((tip) => (
-            <div key={tip.id}>
-              <p
-                style={{
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: '0.7rem',
-                  color: noteText,
-                  margin: 0,
-                  lineHeight: 1.55,
-                }}
-              >
-                {tip.body}
-              </p>
-              {(tip.submitterName || tip.visitedOn) && (
-                <span
-                  style={{
-                    fontFamily: "'Poppins', sans-serif",
-                    fontSize: '0.6rem',
-                    color: mutedText,
-                    display: 'block',
-                    marginTop: '0.18rem',
-                  }}
-                >
-                  {tip.submitterName && `— ${tip.submitterName}`}
-                  {tip.visitedOn && ` · ${tip.visitedOn}`}
-                </span>
-              )}
-            </div>
-          ))}
-
-          {!showAll && overflow > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowAll(true)}
+        {displayed.map((tip) => (
+          <div key={tip.id}>
+            <p
               style={{
                 fontFamily: "'Poppins', sans-serif",
-                fontSize: '0.62rem',
-                color: mutedText,
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                textAlign: 'left',
+                fontSize: '0.7rem',
+                color: noteText,
+                margin: 0,
+                lineHeight: 1.55,
               }}
             >
-              +{overflow} more note{overflow > 1 ? 's' : ''}
-            </button>
-          )}
+              {tip.body}
+            </p>
+            {(tip.submitterName || tip.visitedOn) && (
+              <span
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: '0.6rem',
+                  color: mutedText,
+                  display: 'block',
+                  marginTop: '0.18rem',
+                }}
+              >
+                {tip.submitterName && `— ${tip.submitterName}`}
+                {tip.visitedOn && ` · ${tip.visitedOn}`}
+              </span>
+            )}
+          </div>
+        ))}
+
+        {!showAll && overflow > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: '0.62rem',
+              color: mutedText,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              textAlign: 'left',
+            }}
+          >
+            +{overflow} more note{overflow > 1 ? 's' : ''}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -22,7 +22,8 @@ export const RESOURCES_90012: ProductionResource[] = [
     longitude: -118.2399432,
     sourceUrl: 'https://www.cscla.org/locations',
     verifiedAt: '2026-05-17',
-    notes: 'FQHC — medical, dental, behavioral health, social services. Multilingual (English, Cantonese, Mandarin, Spanish, Vietnamese).',
+    notes:
+      'FQHC — medical, dental, behavioral health, social services. Multilingual (English, Cantonese, Mandarin, Spanish, Vietnamese).',
   },
   {
     id: 'lapl-little-tokyo-001',
@@ -35,7 +36,7 @@ export const RESOURCES_90012: ProductionResource[] = [
     zip: '90012',
     phone: '(213) 612-0525',
     hours: 'Mon & Wed 10AM–8PM · Tue & Thu 12PM–8PM · Fri–Sat 9:30AM–5:30PM',
-    latitude: 34.0500710,
+    latitude: 34.050071,
     longitude: -118.2438831,
     sourceUrl: 'https://www.lapl.org/branches/little-tokyo',
     verifiedAt: '2026-05-17',
@@ -55,7 +56,8 @@ export const RESOURCES_90012: ProductionResource[] = [
     longitude: -118.2438433,
     sourceUrl: 'https://www.ltsc.org/contact/',
     verifiedAt: '2026-05-17',
-    notes: 'Multilingual social services — care management, mental health, senior services, domestic violence support.',
+    notes:
+      'Multilingual social services — care management, mental health, senior services, domestic violence support.',
   },
   {
     id: 'jwch-downtown-001',
@@ -72,7 +74,8 @@ export const RESOURCES_90012: ProductionResource[] = [
     longitude: -118.2441353,
     sourceUrl: 'https://jwchinstitute.org/home/locations-no-dropdowns/',
     verifiedAt: '2026-05-17',
-    notes: 'FQHC — primary care, dental, HIV care, behavioral health. Sliding-scale fees.',
+    notes:
+      'FQHC — primary care, dental, HIV care, behavioral health. Sliding-scale fees.',
   },
   {
     id: 'dpss-civic-center-14',
@@ -89,6 +92,7 @@ export const RESOURCES_90012: ProductionResource[] = [
     longitude: -118.2358086,
     sourceUrl: 'https://dpss.lacounty.gov/en/resources/offices.html',
     verifiedAt: '2026-05-17',
-    notes: 'In-person assistance with CalFresh, General Relief, Medi-Cal, and GROW.',
+    notes:
+      'In-person assistance with CalFresh, General Relief, Medi-Cal, and GROW.',
   },
 ];

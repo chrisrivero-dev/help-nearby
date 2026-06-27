@@ -39,4 +39,3 @@ const DirectoryPage: FC = () => {
 };
 
 export default DirectoryPage;
-

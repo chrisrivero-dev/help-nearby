@@ -89,8 +89,20 @@ export async function resolveJurisdictions(
     const { geoid, name } = geoidName(countyHit);
     const stateFips = stateFipsFromCounty(geoid);
     stack.push(
-      { id: countyId(geoid), level: 'county', name, fips: geoid, source: 'local' },
-      { id: stateId(stateFips), level: 'state', name: '', fips: stateFips, source: 'local' },
+      {
+        id: countyId(geoid),
+        level: 'county',
+        name,
+        fips: geoid,
+        source: 'local',
+      },
+      {
+        id: stateId(stateFips),
+        level: 'state',
+        name: '',
+        fips: stateFips,
+        source: 'local',
+      },
     );
   } else {
     // 3) Local miss → Census API backup (exact, rare).
@@ -123,7 +135,9 @@ async function censusFallback(
     const geographies = (await res.json())?.result?.geographies ?? {};
     const county = geographies['Counties']?.[0];
     if (!county?.GEOID) return [];
-    const stateFips = String(county.STATE ?? stateFipsFromCounty(String(county.GEOID)));
+    const stateFips = String(
+      county.STATE ?? stateFipsFromCounty(String(county.GEOID)),
+    );
     return [
       {
         id: countyId(String(county.GEOID)),
@@ -132,7 +146,13 @@ async function censusFallback(
         fips: String(county.GEOID),
         source: 'census-api',
       },
-      { id: stateId(stateFips), level: 'state', name: '', fips: stateFips, source: 'census-api' },
+      {
+        id: stateId(stateFips),
+        level: 'state',
+        name: '',
+        fips: stateFips,
+        source: 'census-api',
+      },
     ];
   } catch {
     return []; // resolver still returns [NATIONAL]

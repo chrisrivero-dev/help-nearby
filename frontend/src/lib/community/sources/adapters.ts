@@ -68,8 +68,11 @@ function collectJsonLdEvents(html: string): CommunitySourceItem[] {
           title: String(record.name ?? ''),
           type: 'event',
           description:
-            typeof record.description === 'string' ? record.description : undefined,
-          venueName: typeof location.name === 'string' ? location.name : undefined,
+            typeof record.description === 'string'
+              ? record.description
+              : undefined,
+          venueName:
+            typeof location.name === 'string' ? location.name : undefined,
           address: address
             ? [
                 address.streetAddress,
@@ -119,7 +122,10 @@ function arrayAtPath(root: unknown, path?: string): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
-function numField(record: Record<string, unknown>, key?: string): number | undefined {
+function numField(
+  record: Record<string, unknown>,
+  key?: string,
+): number | undefined {
   const raw = field(record, key);
   if (typeof raw === 'number') return Number.isFinite(raw) ? raw : undefined;
   if (typeof raw === 'string' && raw.trim()) {
@@ -140,7 +146,9 @@ function expandDateTokens(value: string, now: Date): string {
 
 // Substitute `${VAR}` from process.env; drop any header whose env var is unset
 // so a key-gated source is skipped rather than sent without credentials.
-function resolveHeaders(headers?: Record<string, string>): Record<string, string> {
+function resolveHeaders(
+  headers?: Record<string, string>,
+): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [key, rawValue] of Object.entries(headers ?? {})) {
     let missing = false;
@@ -167,7 +175,9 @@ function buildJsonUrl(config: JsonFeedAdapterConfig, now: Date): string {
   return url.toString();
 }
 
-async function runJson(config: JsonFeedAdapterConfig): Promise<CommunitySourceItem[]> {
+async function runJson(
+  config: JsonFeedAdapterConfig,
+): Promise<CommunitySourceItem[]> {
   const url = buildJsonUrl(config, new Date());
   const res = await fetch(url, {
     headers: resolveHeaders(config.headers),
@@ -180,7 +190,9 @@ async function runJson(config: JsonFeedAdapterConfig): Promise<CommunitySourceIt
       raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
     const map = config.fieldMap ?? {};
     return {
-      externalId: String(field(record, map.externalId) ?? field(record, 'id') ?? ''),
+      externalId: String(
+        field(record, map.externalId) ?? field(record, 'id') ?? '',
+      ),
       title: String(field(record, map.title) ?? field(record, 'title') ?? ''),
       // Pass the raw type/default through; normalizeCommunityItem maps it to the
       // enum. (mapCommunityType never returns nullish, so a `?? defaultType`
@@ -200,9 +212,13 @@ async function runJson(config: JsonFeedAdapterConfig): Promise<CommunitySourceIt
       address: String(field(record, map.address) ?? ''),
       latitude: numField(record, map.latitude),
       longitude: numField(record, map.longitude),
-      startAt: String(field(record, map.startAt) ?? field(record, 'startAt') ?? ''),
+      startAt: String(
+        field(record, map.startAt) ?? field(record, 'startAt') ?? '',
+      ),
       endAt: String(field(record, map.endAt) ?? field(record, 'endAt') ?? ''),
-      sourceUrl: String(field(record, map.sourceUrl) ?? field(record, 'url') ?? ''),
+      sourceUrl: String(
+        field(record, map.sourceUrl) ?? field(record, 'url') ?? '',
+      ),
       contactPhone: String(field(record, map.contactPhone) ?? ''),
       contactEmail: String(field(record, map.contactEmail) ?? ''),
     };
@@ -221,13 +237,20 @@ function decodeXml(text: string): string {
 
 function tag(block: string, names: string[]): string | undefined {
   for (const name of names) {
-    const match = block.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)<\\/${name}>`, 'i'));
-    if (match) return decodeXml(match[1]).replace(/<[^>]+>/g, ' ').trim();
+    const match = block.match(
+      new RegExp(`<${name}[^>]*>([\\s\\S]*?)<\\/${name}>`, 'i'),
+    );
+    if (match)
+      return decodeXml(match[1])
+        .replace(/<[^>]+>/g, ' ')
+        .trim();
   }
   return undefined;
 }
 
-async function runRss(config: RssAtomAdapterConfig): Promise<CommunitySourceItem[]> {
+async function runRss(
+  config: RssAtomAdapterConfig,
+): Promise<CommunitySourceItem[]> {
   const xml = await fetchText(config.url);
   const blocks =
     xml.match(/<item[\s\S]*?<\/item>/gi) ??
@@ -246,7 +269,9 @@ async function runRss(config: RssAtomAdapterConfig): Promise<CommunitySourceItem
     .filter((item) => item.title.trim());
 }
 
-async function runHtml(config: HtmlCalendarAdapterConfig): Promise<CommunitySourceItem[]> {
+async function runHtml(
+  config: HtmlCalendarAdapterConfig,
+): Promise<CommunitySourceItem[]> {
   const html = await fetchText(config.url);
   const jsonLd = collectJsonLdEvents(html);
   if (jsonLd.length > 0) {
@@ -288,7 +313,9 @@ export function runCommunityAdapter(
       return runRss(config);
     default: {
       const _exhaustive: never = config;
-      throw new Error(`unknown community adapter: ${JSON.stringify(_exhaustive)}`);
+      throw new Error(
+        `unknown community adapter: ${JSON.stringify(_exhaustive)}`,
+      );
     }
   }
 }

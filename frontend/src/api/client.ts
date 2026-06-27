@@ -1,13 +1,13 @@
-import axios, { AxiosInstance } from 'axios'
+import axios, { AxiosInstance } from 'axios';
 
-let client: AxiosInstance | null = null
+let client: AxiosInstance | null = null;
 
 export function getApi(): AxiosInstance {
-  if (client) return client
+  if (client) return client;
 
-  const baseURL = process.env.NEXT_PUBLIC_API_URL
+  const baseURL = process.env.NEXT_PUBLIC_API_URL;
   if (!baseURL) {
-    throw new Error('NEXT_PUBLIC_API_URL not defined')
+    throw new Error('NEXT_PUBLIC_API_URL not defined');
   }
 
   client = axios.create({
@@ -16,7 +16,7 @@ export function getApi(): AxiosInstance {
     headers: {
       'Content-Type': 'application/json',
     },
-  })
+  });
 
   client.interceptors.response.use(
     (response) => response,
@@ -25,13 +25,13 @@ export function getApi(): AxiosInstance {
         return Promise.reject({
           status: error.response.status,
           data: error.response.data,
-        })
+        });
       }
       return Promise.reject({
         message: error.message,
-      })
-    }
-  )
+      });
+    },
+  );
 
-  return client
+  return client;
 }

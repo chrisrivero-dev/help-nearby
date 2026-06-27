@@ -18,7 +18,13 @@ const NAME_SIM_THRESHOLD = 0.8;
 // ── Normalization ────────────────────────────────────────────────────────────
 
 const NAME_DROP = new Set([
-  'the', 'inc', 'incorporated', 'llc', 'corp', 'co', 'ltd',
+  'the',
+  'inc',
+  'incorporated',
+  'llc',
+  'corp',
+  'co',
+  'ltd',
 ]);
 
 export function normalizeName(raw: string): string {
@@ -97,8 +103,16 @@ export function isSameEntity(a: NearbyResource, b: NearbyResource): boolean {
 // ── Merge ────────────────────────────────────────────────────────────────────
 
 const MERGE_FIELDS: Array<keyof NearbyResource> = [
-  'name', 'address', 'city', 'state', 'zip', 'phone', 'website',
-  'latitude', 'longitude', 'updatedAt',
+  'name',
+  'address',
+  'city',
+  'state',
+  'zip',
+  'phone',
+  'website',
+  'latitude',
+  'longitude',
+  'updatedAt',
 ];
 
 function trustOf(r: NearbyResource): number {
@@ -106,7 +120,9 @@ function trustOf(r: NearbyResource): number {
 }
 
 function hasValue(v: unknown): boolean {
-  return v !== undefined && v !== null && !(typeof v === 'string' && v.trim() === '');
+  return (
+    v !== undefined && v !== null && !(typeof v === 'string' && v.trim() === '')
+  );
 }
 
 /** Merge a cluster of same-entity records into one canonical record. */

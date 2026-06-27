@@ -68,7 +68,9 @@ const normalizeState = (value: unknown) => {
   return /^[a-zA-Z]{2}$/.test(state) ? state.toUpperCase() : state;
 };
 
-export function validateCustomSourcePayload(payload: CustomSourcePayload):
+export function validateCustomSourcePayload(
+  payload: CustomSourcePayload,
+):
   | { ok: true; value: ValidCustomSourceInput }
   | { ok: false; error: string; status?: number } {
   const body = payload ?? {};

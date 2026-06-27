@@ -15,22 +15,28 @@ export async function POST(req: NextRequest) {
   const { to, resourceName, resourceAddress }: SmsPayload = await req.json();
 
   if (!to || !resourceName || !resourceAddress) {
-    return NextResponse.json({ ok: false, error: 'Missing required fields' }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: 'Missing required fields' },
+      { status: 400 },
+    );
   }
 
   const digits = to.replace(/\D/g, '');
   if (digits.length < 10) {
-    return NextResponse.json({ ok: false, error: 'Invalid phone number' }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: 'Invalid phone number' },
+      { status: 400 },
+    );
   }
 
-  const accountSid  = process.env.TWILIO_ACCOUNT_SID;
-  const authToken   = process.env.TWILIO_AUTH_TOKEN;
-  const fromNumber  = process.env.TWILIO_PHONE_NUMBER;
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
   const missing: string[] = [];
-  if (!accountSid)  missing.push('TWILIO_ACCOUNT_SID');
-  if (!authToken)   missing.push('TWILIO_AUTH_TOKEN');
-  if (!fromNumber)  missing.push('TWILIO_PHONE_NUMBER');
+  if (!accountSid) missing.push('TWILIO_ACCOUNT_SID');
+  if (!authToken) missing.push('TWILIO_AUTH_TOKEN');
+  if (!fromNumber) missing.push('TWILIO_PHONE_NUMBER');
 
   if (missing.length > 0) {
     return NextResponse.json(
@@ -49,14 +55,21 @@ export async function POST(req: NextRequest) {
         Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({ To: normalizePhone(to), From: fromNumber!, Body: body }),
+      body: new URLSearchParams({
+        To: normalizePhone(to),
+        From: fromNumber!,
+        Body: body,
+      }),
     },
   );
 
   if (!twilioRes.ok) {
     let twilioMessage = `HTTP ${twilioRes.status}`;
     try {
-      const errBody = await twilioRes.json() as { message?: string; code?: number };
+      const errBody = (await twilioRes.json()) as {
+        message?: string;
+        code?: number;
+      };
       twilioMessage = errBody.message ?? twilioMessage;
       console.error('[send-sms] Twilio error:', errBody);
     } catch {

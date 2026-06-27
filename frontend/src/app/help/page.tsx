@@ -25,7 +25,7 @@ import { ChatPanel } from '@/components/help/ChatPanel';
 import type { NearbyResource } from '@/lib/resources/schema';
 
 const MIN_SPLIT_PANE_HEIGHT = 220;
-const SPLIT_DIVIDER_HEIGHT = 14;
+const SPLIT_DIVIDER_HEIGHT = 0;
 
 const clampChatPaneHeight = (height: number, columnHeight: number) => {
   const availableHeight = Math.max(

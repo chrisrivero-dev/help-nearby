@@ -191,8 +191,10 @@ const Landing: FC = () => {
       const svgRect = bgSvgRef.current.getBoundingClientRect();
       const screenX = r.left + r.width / 2;
       const screenY = r.top + r.height / 2;
-      const vbX = 0, vbY = isMobile ? 30 : 0;
-      const vbW = isMobile ? 720 : 1000, vbH = isMobile ? 520 : 600;
+      const vbX = 0,
+        vbY = isMobile ? 30 : 0;
+      const vbW = isMobile ? 720 : 1000,
+        vbH = isMobile ? 520 : 600;
       const scale = Math.min(svgRect.width / vbW, svgRect.height / vbH);
       const offsetX = svgRect.left + (svgRect.width - vbW * scale) / 2;
       const offsetY = svgRect.top + (svgRect.height - vbH * scale) / 2;
@@ -225,542 +227,563 @@ const Landing: FC = () => {
           minHeight: isMobile ? 'auto' : '100vh',
         }}
       >
-      <motion.div
-        style={isMobile ? {
-          position: 'relative',
-          width: '100%',
-          minHeight: '100svh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-start',
-          justifyContent: 'center',
-          zIndex: zContent,
-          padding: '0 6vw',
-          boxSizing: 'border-box',
-        } : {
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: zContent,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-start',
-          width: 'clamp(640px, 78vw, 1050px)',
-        }}
-      >
-        {/* Aid network map — visual depth layer */}
-        <div
-          style={isMobile ? {
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            zIndex: 0,
-            pointerEvents: 'none',
-            overflow: 'hidden',
-          } : {
-            position: 'absolute',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '100%',
-            height: '70vh',
-            zIndex: 0,
-            pointerEvents: 'none',
-            overflow: 'hidden',
-          }}
+        <motion.div
+          style={
+            isMobile
+              ? {
+                  position: 'relative',
+                  width: '100%',
+                  minHeight: '100svh',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  justifyContent: 'center',
+                  zIndex: zContent,
+                  padding: '0 6vw',
+                  boxSizing: 'border-box',
+                }
+              : {
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: zContent,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  width: 'clamp(640px, 78vw, 1050px)',
+                }
+          }
         >
-          {/* Ambient glow */}
+          {/* Aid network map — visual depth layer */}
           <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: isDark
-                ? isMobile
-                  ? 'radial-gradient(ellipse 90vw 60vw at 50% 45%, rgba(251, 191, 36, 0.07) 0%, transparent 70%)'
-                  : 'radial-gradient(ellipse 560px 360px at 62% 50%, rgba(251, 191, 36, 0.055) 0%, transparent 70%)'
-                : isMobile
-                  ? 'radial-gradient(ellipse 90vw 60vw at 50% 45%, rgba(0, 0, 0, 0.022) 0%, transparent 70%)'
-                  : 'radial-gradient(ellipse 560px 360px at 62% 50%, rgba(0, 0, 0, 0.018) 0%, transparent 70%)',
-            }}
-          />
-
-          {/* City-grid + cycling aid preview cards */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%',
-              height: '100%',
-            }}
+            style={
+              isMobile
+                ? {
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    zIndex: 0,
+                    pointerEvents: 'none',
+                    overflow: 'hidden',
+                  }
+                : {
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '100%',
+                    height: '70vh',
+                    zIndex: 0,
+                    pointerEvents: 'none',
+                    overflow: 'hidden',
+                  }
+            }
           >
-            <svg
-              ref={bgSvgRef}
-              style={{ position: 'relative', width: '100%', height: '100%' }}
-              viewBox={isMobile ? '0 30 720 520' : '0 0 1000 600'}
-              preserveAspectRatio="xMidYMid meet"
-              fill="none"
-              aria-hidden="true"
+            {/* Ambient glow */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: isDark
+                  ? isMobile
+                    ? 'radial-gradient(ellipse 90vw 60vw at 50% 45%, rgba(251, 191, 36, 0.07) 0%, transparent 70%)'
+                    : 'radial-gradient(ellipse 560px 360px at 62% 50%, rgba(251, 191, 36, 0.055) 0%, transparent 70%)'
+                  : isMobile
+                    ? 'radial-gradient(ellipse 90vw 60vw at 50% 45%, rgba(0, 0, 0, 0.022) 0%, transparent 70%)'
+                    : 'radial-gradient(ellipse 560px 360px at 62% 50%, rgba(0, 0, 0, 0.018) 0%, transparent 70%)',
+              }}
+            />
+
+            {/* City-grid + cycling aid preview cards */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                height: '100%',
+              }}
             >
-              <defs>
-                <linearGradient id="hn-grad-food" x1="0" y1="0" x2="1" y2="1">
-                  <stop
-                    offset="0%"
-                    stopColor={
-                      isDark ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.07)'
-                    }
-                  />
-                  <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-                </linearGradient>
-                <linearGradient
-                  id="hn-grad-shelter"
-                  x1="0"
-                  y1="0"
-                  x2="1"
-                  y2="1"
-                >
-                  <stop
-                    offset="0%"
-                    stopColor={
-                      isDark ? 'rgba(99,179,237,0.22)' : 'rgba(0,0,0,0.07)'
-                    }
-                  />
-                  <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-                </linearGradient>
-                <linearGradient
-                  id="hn-grad-financial"
-                  x1="0"
-                  y1="0"
-                  x2="1"
-                  y2="1"
-                >
-                  <stop
-                    offset="0%"
-                    stopColor={
-                      isDark ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.07)'
-                    }
-                  />
-                  <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-                </linearGradient>
-                <linearGradient
-                  id="hn-grad-transit"
-                  x1="0"
-                  y1="0"
-                  x2="1"
-                  y2="1"
-                >
-                  <stop
-                    offset="0%"
-                    stopColor={
-                      isDark ? 'rgba(167,139,250,0.22)' : 'rgba(0,0,0,0.07)'
-                    }
-                  />
-                  <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-                </linearGradient>
-              </defs>
-
-              {/* Grid — horizontal streets */}
-              {[86, 172, 258, 344, 430].map((y) => (
-                <line
-                  key={`h-${y}`}
-                  x1={0}
-                  y1={y}
-                  x2={700}
-                  y2={y}
-                  stroke={
-                    isDark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.032)'
-                  }
-                  strokeWidth={1}
-                />
-              ))}
-
-              {/* Grid — vertical avenues */}
-              {[116, 232, 348, 464, 580].map((x) => (
-                <line
-                  key={`v-${x}`}
-                  x1={x}
-                  y1={0}
-                  x2={x}
-                  y2={520}
-                  stroke={
-                    isDark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.032)'
-                  }
-                  strokeWidth={1}
-                />
-              ))}
-
-              {/* Passive nodes */}
-              {(
-                [
-                  [116, 86],
-                  [348, 86],
-                  [580, 86],
-                  [116, 172],
-                  [232, 172],
-                  [464, 172],
-                  [116, 258],
-                  [348, 258],
-                  [116, 344],
-                  [232, 344],
-                  [464, 344],
-                  [580, 344],
-                  [116, 430],
-                  [348, 430],
-                  [580, 430],
-                ] as [number, number][]
-              ).map(([cx, cy]) => (
-                <circle
-                  key={`node-${cx}-${cy}`}
-                  cx={cx}
-                  cy={cy}
-                  r={cx > 280 ? 3.5 : 2.5}
-                  stroke={
-                    cx > 280
-                      ? isDark
-                        ? 'rgba(255,255,255,0.15)'
-                        : 'rgba(0,0,0,0.11)'
-                      : isDark
-                        ? 'rgba(255,255,255,0.07)'
-                        : 'rgba(0,0,0,0.05)'
-                  }
-                  strokeWidth={1}
-                  fill="none"
-                />
-              ))}
-
-              {/* Background network lines */}
-              {AID_CARDS.map((card, i) => (
-                <motion.path
-                  key={`bgpath-${card.id}`}
-                  d={getCardPathD(card)}
-                  stroke={
-                    isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'
-                  }
-                  strokeWidth={1}
-                  fill="none"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{
-                    duration: 1.4,
-                    delay: 0.9 + i * 0.18,
-                    ease: 'easeOut',
-                  }}
-                />
-              ))}
-
-              {/* Aid preview cards */}
-              {AID_CARDS.map((card, i) => {
-                const isActive = i === activeNode;
-                return (
-                  <motion.g
-                    key={card.id}
-                    initial={{ opacity: 0.16 }}
-                    animate={{ opacity: isActive ? 1 : 0.16 }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-                    onClick={() => router.push('/help')}
-                  >
-                    {/* Card background */}
-                    <rect
-                      x={card.x}
-                      y={card.y}
-                      width={CARD_W}
-                      height={CARD_H}
-                      rx={4}
-                      fill={isActive ? `url(#${card.gradId})` : 'none'}
-                      stroke={
-                        isActive
-                          ? isDark
-                            ? 'rgba(255,255,255,0.38)'
-                            : 'rgba(0,0,0,0.28)'
-                          : isDark
-                            ? 'rgba(255,255,255,0.14)'
-                            : 'rgba(0,0,0,0.10)'
+              <svg
+                ref={bgSvgRef}
+                style={{ position: 'relative', width: '100%', height: '100%' }}
+                viewBox={isMobile ? '0 30 720 520' : '0 0 1000 600'}
+                preserveAspectRatio="xMidYMid meet"
+                fill="none"
+                aria-hidden="true"
+              >
+                <defs>
+                  <linearGradient id="hn-grad-food" x1="0" y1="0" x2="1" y2="1">
+                    <stop
+                      offset="0%"
+                      stopColor={
+                        isDark ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.07)'
                       }
-                      strokeWidth={isActive ? 1.5 : 1}
                     />
+                    <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                  </linearGradient>
+                  <linearGradient
+                    id="hn-grad-shelter"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor={
+                        isDark ? 'rgba(99,179,237,0.22)' : 'rgba(0,0,0,0.07)'
+                      }
+                    />
+                    <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                  </linearGradient>
+                  <linearGradient
+                    id="hn-grad-financial"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor={
+                        isDark ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.07)'
+                      }
+                    />
+                    <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                  </linearGradient>
+                  <linearGradient
+                    id="hn-grad-transit"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor={
+                        isDark ? 'rgba(167,139,250,0.22)' : 'rgba(0,0,0,0.07)'
+                      }
+                    />
+                    <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                  </linearGradient>
+                </defs>
 
-                    {/* Icon marks — only when active */}
-                    {isActive && (
-                      <g transform={`translate(${card.x}, ${card.y})`}>
-                        {card.marks.map((d, mi) => (
-                          <motion.path
-                            key={`mark-${card.id}-${mi}`}
-                            d={d}
-                            stroke={
-                              isDark
-                                ? 'rgba(255,255,255,0.55)'
-                                : 'rgba(0,0,0,0.45)'
-                            }
-                            strokeWidth={1.5}
-                            fill="none"
-                            strokeLinecap="round"
-                            initial={{ opacity: 0, pathLength: 0 }}
-                            animate={{ opacity: 1, pathLength: 1 }}
-                            transition={{
-                              duration: 0.4,
-                              delay: mi * 0.1,
-                              ease: 'easeOut',
-                            }}
-                          />
-                        ))}
-                      </g>
-                    )}
+                {/* Grid — horizontal streets */}
+                {[86, 172, 258, 344, 430].map((y) => (
+                  <line
+                    key={`h-${y}`}
+                    x1={0}
+                    y1={y}
+                    x2={700}
+                    y2={y}
+                    stroke={
+                      isDark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.032)'
+                    }
+                    strokeWidth={1}
+                  />
+                ))}
 
-                    {/* Pulse ring — only when active */}
-                    {isActive && (
-                      <motion.rect
-                        x={card.x - 5}
-                        y={card.y - 5}
-                        width={CARD_W + 10}
-                        height={CARD_H + 10}
-                        rx={7}
-                        fill="none"
+                {/* Grid — vertical avenues */}
+                {[116, 232, 348, 464, 580].map((x) => (
+                  <line
+                    key={`v-${x}`}
+                    x1={x}
+                    y1={0}
+                    x2={x}
+                    y2={520}
+                    stroke={
+                      isDark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.032)'
+                    }
+                    strokeWidth={1}
+                  />
+                ))}
+
+                {/* Passive nodes */}
+                {(
+                  [
+                    [116, 86],
+                    [348, 86],
+                    [580, 86],
+                    [116, 172],
+                    [232, 172],
+                    [464, 172],
+                    [116, 258],
+                    [348, 258],
+                    [116, 344],
+                    [232, 344],
+                    [464, 344],
+                    [580, 344],
+                    [116, 430],
+                    [348, 430],
+                    [580, 430],
+                  ] as [number, number][]
+                ).map(([cx, cy]) => (
+                  <circle
+                    key={`node-${cx}-${cy}`}
+                    cx={cx}
+                    cy={cy}
+                    r={cx > 280 ? 3.5 : 2.5}
+                    stroke={
+                      cx > 280
+                        ? isDark
+                          ? 'rgba(255,255,255,0.15)'
+                          : 'rgba(0,0,0,0.11)'
+                        : isDark
+                          ? 'rgba(255,255,255,0.07)'
+                          : 'rgba(0,0,0,0.05)'
+                    }
+                    strokeWidth={1}
+                    fill="none"
+                  />
+                ))}
+
+                {/* Background network lines */}
+                {AID_CARDS.map((card, i) => (
+                  <motion.path
+                    key={`bgpath-${card.id}`}
+                    d={getCardPathD(card)}
+                    stroke={
+                      isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'
+                    }
+                    strokeWidth={1}
+                    fill="none"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{
+                      duration: 1.4,
+                      delay: 0.9 + i * 0.18,
+                      ease: 'easeOut',
+                    }}
+                  />
+                ))}
+
+                {/* Aid preview cards */}
+                {AID_CARDS.map((card, i) => {
+                  const isActive = i === activeNode;
+                  return (
+                    <motion.g
+                      key={card.id}
+                      initial={{ opacity: 0.16 }}
+                      animate={{ opacity: isActive ? 1 : 0.16 }}
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
+                      style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                      onClick={() => router.push('/help')}
+                    >
+                      {/* Card background */}
+                      <rect
+                        x={card.x}
+                        y={card.y}
+                        width={CARD_W}
+                        height={CARD_H}
+                        rx={4}
+                        fill={isActive ? `url(#${card.gradId})` : 'none'}
                         stroke={
-                          isDark ? 'rgba(251,191,36,0.30)' : 'rgba(0,0,0,0.10)'
+                          isActive
+                            ? isDark
+                              ? 'rgba(255,255,255,0.38)'
+                              : 'rgba(0,0,0,0.28)'
+                            : isDark
+                              ? 'rgba(255,255,255,0.14)'
+                              : 'rgba(0,0,0,0.10)'
                         }
-                        strokeWidth={1}
-                        style={{ transformOrigin: `${card.cx}px ${card.cy}px` }}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{
-                          opacity: [0, 0.75, 0],
-                          scale: [0.9, 1.12, 1.28],
-                        }}
-                        transition={{
-                          duration: 2.2,
-                          repeat: Infinity,
-                          ease: 'easeOut',
-                        }}
+                        strokeWidth={isActive ? 1.5 : 1}
                       />
-                    )}
-                  </motion.g>
-                );
-              })}
 
-              {/* Active connection path */}
-              <AnimatePresence mode="sync">
-                <motion.path
-                  key={`conn-${activeNode}`}
-                  d={getCardPathD(AID_CARDS[activeNode])}
-                  stroke={isDark ? 'rgba(251,191,36,0.35)' : 'rgba(0,0,0,0.18)'}
-                  strokeWidth={1.5}
-                  fill="none"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.65, ease: 'easeOut' }}
-                />
-              </AnimatePresence>
+                      {/* Icon marks — only when active */}
+                      {isActive && (
+                        <g transform={`translate(${card.x}, ${card.y})`}>
+                          {card.marks.map((d, mi) => (
+                            <motion.path
+                              key={`mark-${card.id}-${mi}`}
+                              d={d}
+                              stroke={
+                                isDark
+                                  ? 'rgba(255,255,255,0.55)'
+                                  : 'rgba(0,0,0,0.45)'
+                              }
+                              strokeWidth={1.5}
+                              fill="none"
+                              strokeLinecap="round"
+                              initial={{ opacity: 0, pathLength: 0 }}
+                              animate={{ opacity: 1, pathLength: 1 }}
+                              transition={{
+                                duration: 0.4,
+                                delay: mi * 0.1,
+                                ease: 'easeOut',
+                              }}
+                            />
+                          ))}
+                        </g>
+                      )}
 
-              {/* Active card label */}
-              <AnimatePresence mode="sync">
-                <motion.text
-                  key={`label-${activeNode}`}
-                  x={AID_CARDS[activeNode].cx}
-                  y={AID_CARDS[activeNode].y - 8}
-                  textAnchor="middle"
-                  fontFamily="'Poppins', sans-serif"
-                  fontWeight={700}
-                  fontSize={8}
-                  fill={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.45)'}
-                  letterSpacing={1.5}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  {AID_CARDS[activeNode].label}
-                </motion.text>
-              </AnimatePresence>
+                      {/* Pulse ring — only when active */}
+                      {isActive && (
+                        <motion.rect
+                          x={card.x - 5}
+                          y={card.y - 5}
+                          width={CARD_W + 10}
+                          height={CARD_H + 10}
+                          rx={7}
+                          fill="none"
+                          stroke={
+                            isDark
+                              ? 'rgba(251,191,36,0.30)'
+                              : 'rgba(0,0,0,0.10)'
+                          }
+                          strokeWidth={1}
+                          style={{
+                            transformOrigin: `${card.cx}px ${card.cy}px`,
+                          }}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{
+                            opacity: [0, 0.75, 0],
+                            scale: [0.9, 1.12, 1.28],
+                          }}
+                          transition={{
+                            duration: 2.2,
+                            repeat: Infinity,
+                            ease: 'easeOut',
+                          }}
+                        />
+                      )}
+                    </motion.g>
+                  );
+                })}
 
-            </svg>
+                {/* Active connection path */}
+                <AnimatePresence mode="sync">
+                  <motion.path
+                    key={`conn-${activeNode}`}
+                    d={getCardPathD(AID_CARDS[activeNode])}
+                    stroke={
+                      isDark ? 'rgba(251,191,36,0.35)' : 'rgba(0,0,0,0.18)'
+                    }
+                    strokeWidth={1.5}
+                    fill="none"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.65, ease: 'easeOut' }}
+                  />
+                </AnimatePresence>
+
+                {/* Active card label */}
+                <AnimatePresence mode="sync">
+                  <motion.text
+                    key={`label-${activeNode}`}
+                    x={AID_CARDS[activeNode].cx}
+                    y={AID_CARDS[activeNode].y - 8}
+                    textAnchor="middle"
+                    fontFamily="'Poppins', sans-serif"
+                    fontWeight={700}
+                    fontSize={8}
+                    fill={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.45)'}
+                    letterSpacing={1.5}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    {AID_CARDS[activeNode].label}
+                  </motion.text>
+                </AnimatePresence>
+              </svg>
+            </div>
           </div>
-        </div>
 
-        {/* Content layer — sits above visual depth layer */}
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            width: '100%',
-            boxSizing: 'border-box',
-          }}
-        >
-          {/* Headline */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.6,
-              ease: [0.25, 0.46, 0.45, 0.94],
-              delay: 0.2,
-            }}
-          >
-            <div
-              style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 800,
-                fontSize: isMobile
-                  ? 'clamp(2.5rem, 16vw, 5rem)'
-                  : 'clamp(2rem, 7vw, 5rem)',
-                textTransform: 'uppercase',
-                color: textColor,
-                lineHeight: 0.95,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              HELP!
-            </div>
-            <div
-              style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 800,
-                fontSize: isMobile
-                  ? 'clamp(2.5rem, 16vw, 5rem)'
-                  : 'clamp(2rem, 7vw, 5rem)',
-                textTransform: 'uppercase',
-                color: textColor,
-                lineHeight: 0.95,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              NEARBY.
-            </div>
-          </motion.div>
-
-          {/* Radar node — between headline and subtitle on all viewports */}
-          <motion.svg
-            ref={radarRef}
-            width="48"
-            height="48"
-            viewBox="0 0 48 48"
-            fill="none"
-            style={{ margin: isMobile ? '20px 0' : '28px 0', overflow: 'visible' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.45 }}
-          >
-            <motion.circle
-              cx={24}
-              cy={24}
-              r={6}
-              stroke={isDark ? 'rgba(251,191,36,0.5)' : 'rgba(0,0,0,0.2)'}
-              strokeWidth={1}
-              fill="none"
-              style={{ transformOrigin: '24px 24px' }}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: [0, 0.8, 0], scale: [0.5, 2.6, 3.8] }}
-              transition={{ duration: 2.8, delay: 0.5, repeat: Infinity, ease: 'easeOut' }}
-            />
-            <circle
-              cx={24}
-              cy={24}
-              r={5.5}
-              fill={isDark ? 'rgba(251,191,36,0.55)' : 'rgba(0,0,0,0.45)'}
-              stroke={isDark ? 'rgba(251,191,36,0.9)' : 'rgba(0,0,0,0.65)'}
-              strokeWidth={1.5}
-            />
-          </motion.svg>
-
-          {/* Subtitle */}
-          <motion.p
+          {/* Content layer — sits above visual depth layer */}
+          <div
             style={{
-              fontFamily: "'Poppins', sans-serif",
-              fontWeight: 400,
-              fontSize: isMobile
-                ? 'clamp(0.8rem, 3.2vw, 1rem)'
-                : 'clamp(0.9rem, 1.4vw, 1.05rem)',
-              color: mutedColor,
-              margin: 0,
-              maxWidth: isMobile ? '80vw' : '480px',
-              lineHeight: 1.65,
-            }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.6,
-              ease: [0.25, 0.46, 0.45, 0.94],
-              delay: 0.5,
-            }}
-          >
-            Find source-backed help nearby — food, health, shelter, cooling, warming,
-            and emergency resources from official public sources, with
-            directions, source attribution, and honest status indicators.
-          </motion.p>
-
-          {/* Positioning line */}
-          <motion.p
-            style={{
-              fontFamily: "'Poppins', sans-serif",
-              fontWeight: 600,
-              fontSize: '0.68rem',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: mutedColor,
-              margin: '14px 0 0',
-              maxWidth: isMobile ? '80vw' : '480px',
-              lineHeight: 1.7,
-            }}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.6,
-              ease: [0.25, 0.46, 0.45, 0.94],
-              delay: 0.58,
-            }}
-          >
-            Source-backed local aid infrastructure for communities, cities,
-            and nonprofits.
-          </motion.p>
-
-          {/* CTA Row */}
-          <motion.div
-            style={{
+              position: 'relative',
+              zIndex: 1,
               display: 'flex',
-              gap: isMobile ? '12px' : '16px',
-              marginTop: isMobile ? '28px' : '40px',
-              flexWrap: 'wrap' as const,
-              justifyContent: 'flex-start',
-            }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.6,
-              ease: [0.25, 0.46, 0.45, 0.94],
-              delay: 0.65,
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              width: '100%',
+              boxSizing: 'border-box',
             }}
           >
-            {/* Primary: Find Help */}
-            <PanelButton onClick={() => router.push('/help')} isDark={isDark}>
-              EXPLORE NEARBY →
-            </PanelButton>
-          </motion.div>
-
-          {/* Login — utility footnote, not a primary CTA */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.85 }}
-          >
-            <PanelButton
-              onClick={() => {
-                setIsLoginModalOpen(true);
+            {/* Headline */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.6,
+                ease: [0.25, 0.46, 0.45, 0.94],
+                delay: 0.2,
               }}
-              isDark={isDark}
-              variant="text"
             >
-              Login
-            </PanelButton>
-          </motion.div>
-        </div>
-      </motion.div>
+              <div
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontWeight: 800,
+                  fontSize: isMobile
+                    ? 'clamp(2.5rem, 16vw, 5rem)'
+                    : 'clamp(2rem, 7vw, 5rem)',
+                  textTransform: 'uppercase',
+                  color: textColor,
+                  lineHeight: 0.95,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                HELP!
+              </div>
+              <div
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontWeight: 800,
+                  fontSize: isMobile
+                    ? 'clamp(2.5rem, 16vw, 5rem)'
+                    : 'clamp(2rem, 7vw, 5rem)',
+                  textTransform: 'uppercase',
+                  color: textColor,
+                  lineHeight: 0.95,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                NEARBY.
+              </div>
+            </motion.div>
+
+            {/* Radar node — between headline and subtitle on all viewports */}
+            <motion.svg
+              ref={radarRef}
+              width="48"
+              height="48"
+              viewBox="0 0 48 48"
+              fill="none"
+              style={{
+                margin: isMobile ? '20px 0' : '28px 0',
+                overflow: 'visible',
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.45 }}
+            >
+              <motion.circle
+                cx={24}
+                cy={24}
+                r={6}
+                stroke={isDark ? 'rgba(251,191,36,0.5)' : 'rgba(0,0,0,0.2)'}
+                strokeWidth={1}
+                fill="none"
+                style={{ transformOrigin: '24px 24px' }}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: [0, 0.8, 0], scale: [0.5, 2.6, 3.8] }}
+                transition={{
+                  duration: 2.8,
+                  delay: 0.5,
+                  repeat: Infinity,
+                  ease: 'easeOut',
+                }}
+              />
+              <circle
+                cx={24}
+                cy={24}
+                r={5.5}
+                fill={isDark ? 'rgba(251,191,36,0.55)' : 'rgba(0,0,0,0.45)'}
+                stroke={isDark ? 'rgba(251,191,36,0.9)' : 'rgba(0,0,0,0.65)'}
+                strokeWidth={1.5}
+              />
+            </motion.svg>
+
+            {/* Subtitle */}
+            <motion.p
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 400,
+                fontSize: isMobile
+                  ? 'clamp(0.8rem, 3.2vw, 1rem)'
+                  : 'clamp(0.9rem, 1.4vw, 1.05rem)',
+                color: mutedColor,
+                margin: 0,
+                maxWidth: isMobile ? '80vw' : '480px',
+                lineHeight: 1.65,
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.6,
+                ease: [0.25, 0.46, 0.45, 0.94],
+                delay: 0.5,
+              }}
+            >
+              Find source-backed help nearby — food, health, shelter, cooling,
+              warming, and emergency resources from official public sources,
+              with directions, source attribution, and honest status indicators.
+            </motion.p>
+
+            {/* Positioning line */}
+            <motion.p
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 600,
+                fontSize: '0.68rem',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: mutedColor,
+                margin: '14px 0 0',
+                maxWidth: isMobile ? '80vw' : '480px',
+                lineHeight: 1.7,
+              }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.6,
+                ease: [0.25, 0.46, 0.45, 0.94],
+                delay: 0.58,
+              }}
+            >
+              Source-backed local aid infrastructure for communities, cities,
+              and nonprofits.
+            </motion.p>
+
+            {/* CTA Row */}
+            <motion.div
+              style={{
+                display: 'flex',
+                gap: isMobile ? '12px' : '16px',
+                marginTop: isMobile ? '28px' : '40px',
+                flexWrap: 'wrap' as const,
+                justifyContent: 'flex-start',
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.6,
+                ease: [0.25, 0.46, 0.45, 0.94],
+                delay: 0.65,
+              }}
+            >
+              {/* Primary: Find Help */}
+              <PanelButton onClick={() => router.push('/help')} isDark={isDark}>
+                EXPLORE NEARBY →
+              </PanelButton>
+            </motion.div>
+
+            {/* Login — utility footnote, not a primary CTA */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.85 }}
+            >
+              <PanelButton
+                onClick={() => {
+                  setIsLoginModalOpen(true);
+                }}
+                isDark={isDark}
+                variant="text"
+              >
+                Login
+              </PanelButton>
+            </motion.div>
+          </div>
+        </motion.div>
       </section>
 
       {/* Below the fold — credibility, audiences, and partner CTA */}
@@ -911,10 +934,10 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
         <p style={sectionLabelStyle}>Data approach</p>
         <div style={{ maxWidth: 680 }}>
           <p style={{ ...bodyStyle, marginBottom: '0.9rem' }}>
-            Help Nearby is being built around source-backed local aid
-            discovery. The goal is to make public resource information easier
-            to find, easier to understand, and easier to trace back to its
-            original source.
+            Help Nearby is being built around source-backed local aid discovery.
+            The goal is to make public resource information easier to find,
+            easier to understand, and easier to trace back to its original
+            source.
           </p>
           <p style={bodyStyle}>
             Current work focuses on connecting public datasets, showing source
@@ -935,8 +958,8 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
             maxWidth: 680,
           }}
         >
-          Data sources include public datasets and feeds from HRSA, CalOES,
-          NWS, FEMA/IPAWS, and local ArcGIS/Open Data portals.
+          Data sources include public datasets and feeds from HRSA, CalOES, NWS,
+          FEMA/IPAWS, and local ArcGIS/Open Data portals.
         </p>
       </section>
 
@@ -960,7 +983,12 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
       </section>
 
       {/* Embed widget */}
-      <section style={{ ...cardStyle, padding: isMobile ? '1.6rem 1.4rem' : '2rem 2.2rem' }}>
+      <section
+        style={{
+          ...cardStyle,
+          padding: isMobile ? '1.6rem 1.4rem' : '2rem 2.2rem',
+        }}
+      >
         <p style={sectionLabelStyle}>Embed widget</p>
         <p
           style={{
@@ -978,8 +1006,8 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
           organizations can add a source-backed local resource finder to their
           own website with a simple iframe. Visitors search by ZIP, filter by
           category, and get directions and source links for nearby food banks,
-          health centers, cooling centers, and warming centers — directly on your page. No
-          accounts or API keys required.
+          health centers, cooling centers, and warming centers — directly on
+          your page. No accounts or API keys required.
         </p>
         <p
           style={{
@@ -1060,8 +1088,8 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
             maxWidth: 560,
           }}
         >
-          Interested in reviewing Help Nearby for a city, county, nonprofit,
-          or pilot conversation?
+          Interested in reviewing Help Nearby for a city, county, nonprofit, or
+          pilot conversation?
         </p>
         <a
           href={CONTACT_MAILTO}
@@ -1090,9 +1118,9 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
           textAlign: 'center',
         }}
       >
-        Help Nearby is independently built and uses official public data
-        sources with attribution. It is not an official government emergency
-        alert system. In an emergency, call 911.
+        Help Nearby is independently built and uses official public data sources
+        with attribution. It is not an official government emergency alert
+        system. In an emergency, call 911.
       </p>
     </div>
   );

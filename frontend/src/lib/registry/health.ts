@@ -73,7 +73,9 @@ export function getHealthSnapshot(): SourceHealthRow[] {
       ...h,
       status,
       circuitOpen,
-      circuitOpenUntil: b?.openUntil ? new Date(b.openUntil).toISOString() : null,
+      circuitOpenUntil: b?.openUntil
+        ? new Date(b.openUntil).toISOString()
+        : null,
       failureRate: h.totalChecks ? h.totalFailures / h.totalChecks : 0,
     });
   }

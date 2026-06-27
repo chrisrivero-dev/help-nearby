@@ -20,10 +20,12 @@ const NYC_HINT =
  * back to Nominatim when it returns nothing. Sharper than Nominatim inside the city,
  * which improves which NYC sub-area the resolver picks for all panels.
  */
-async function lookupNycGeoSearch(query: string): Promise<ZipCodeLocation | null> {
+async function lookupNycGeoSearch(
+  query: string,
+): Promise<ZipCodeLocation | null> {
   try {
     const url = `https://geosearch.planninglabs.nyc/v2/search?text=${encodeURIComponent(
-      query
+      query,
     )}&size=1`;
     const res = await fetch(url);
     if (!res.ok) return null;
@@ -129,11 +131,12 @@ export async function lookupLocation(query: string): Promise<ZipCodeLocation> {
 
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-      cleanQuery
+      cleanQuery,
     )}&addressdetails=1&limit=1`;
     const res = await fetch(url, {
       headers: {
-        'User-Agent': 'help-nearby-app/1.0 (+https://github.com/chrisrivero-dev/help-nearby)',
+        'User-Agent':
+          'help-nearby-app/1.0 (+https://github.com/chrisrivero-dev/help-nearby)',
       },
     });
     if (!res.ok) return fallback;
@@ -147,7 +150,8 @@ export async function lookupLocation(query: string): Promise<ZipCodeLocation> {
     if (isNaN(lat) || isNaN(lng)) return fallback;
 
     const address = first.address || {};
-    const city = address.city || address.town || address.village || address.hamlet || '';
+    const city =
+      address.city || address.town || address.village || address.hamlet || '';
     const state = address.state || '';
 
     const result: ZipCodeLocation = {

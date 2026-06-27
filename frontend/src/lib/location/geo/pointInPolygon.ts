@@ -40,15 +40,18 @@ function pointInRing(lng: number, lat: number, ring: Ring): boolean {
     const xj = ring[j][0];
     const yj = ring[j][1];
     const intersects =
-      yi > lat !== yj > lat &&
-      lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
+      yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
     if (intersects) inside = !inside;
   }
   return inside;
 }
 
 /** Inside the outer ring AND not inside any hole. */
-function pointInPolygon(lng: number, lat: number, poly: PolygonCoords): boolean {
+function pointInPolygon(
+  lng: number,
+  lat: number,
+  poly: PolygonCoords,
+): boolean {
   if (poly.length === 0) return false;
   if (!pointInRing(lng, lat, poly[0])) return false;
   for (let h = 1; h < poly.length; h++) {
@@ -97,7 +100,9 @@ export function featureBBox(feature: GeoFeature): BBox {
 }
 
 function inBBox(lng: number, lat: number, b: BBox): boolean {
-  return lng >= b.minLng && lng <= b.maxLng && lat >= b.minLat && lat <= b.maxLat;
+  return (
+    lng >= b.minLng && lng <= b.maxLng && lat >= b.minLat && lat <= b.maxLat
+  );
 }
 
 /**

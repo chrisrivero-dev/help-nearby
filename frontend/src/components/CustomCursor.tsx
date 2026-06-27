@@ -117,7 +117,8 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ isMouseOverPanel }) => {
             width: '12px',
             height: '100px',
             transform: 'translateX(-50%)',
-            background: 'linear-gradient(to top, #00d9ff 0%, #33aaff 40%, #66ccff 70%, #ffffff 100%)', // Gradient from handle base to tip
+            background:
+              'linear-gradient(to top, #00d9ff 0%, #33aaff 40%, #66ccff 70%, #ffffff 100%)', // Gradient from handle base to tip
             borderRadius: '0 0 8px 8px', // Rounded top (tip), flat bottom (attachment)
             boxShadow:
               '0 0 10px #00d9ff, 0 0 20px #00d9ff, 0 0 40px #00d9ff, 0 0 60px #00d9ff',

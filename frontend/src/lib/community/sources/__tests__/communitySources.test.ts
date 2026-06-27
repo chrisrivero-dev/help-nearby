@@ -14,7 +14,9 @@ import type { SelectedCommunitySource } from '../types';
 
 beforeEach(() => _resetReliability());
 
-function source(p: Partial<SelectedCommunitySource> = {}): SelectedCommunitySource {
+function source(
+  p: Partial<SelectedCommunitySource> = {},
+): SelectedCommunitySource {
   return {
     id: 'test-source',
     name: 'Test Source',

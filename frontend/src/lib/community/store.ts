@@ -1,4 +1,10 @@
-import type { CommunityStore, CommunityTip, ListingIssueReport, CommunityOpportunity, LocalUpdate } from './types';
+import type {
+  CommunityStore,
+  CommunityTip,
+  ListingIssueReport,
+  CommunityOpportunity,
+  LocalUpdate,
+} from './types';
 
 // ─── Supabase REST helpers (no npm package — raw fetch) ───────────────────────
 // Used when SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY are set.

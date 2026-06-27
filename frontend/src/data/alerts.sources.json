@@ -152,7 +152,14 @@
       "titleField": "complaint_type",
       "descriptionField": "descriptor",
       "categoryField": "complaint_type",
-      "includeCategories": ["Water System", "Sewer", "WATER LEAK", "Damaged Tree", "Traffic Signal Condition", "Street Light Condition"],
+      "includeCategories": [
+        "Water System",
+        "Sewer",
+        "WATER LEAK",
+        "Damaged Tree",
+        "Traffic Signal Condition",
+        "Street Light Condition"
+      ],
       "areaField": "borough",
       "days": 7,
       "limit": 10,
@@ -227,7 +234,14 @@
       "titleField": "notification_title",
       "descriptionField": "email_body",
       "categoryField": "notificationtype",
-      "includeCategories": ["Emergency", "Weather", "Public Health", "Utility", "Missing Person", "Hazard"],
+      "includeCategories": [
+        "Emergency",
+        "Weather",
+        "Public Health",
+        "Utility",
+        "Missing Person",
+        "Hazard"
+      ],
       "days": 7,
       "limit": 8
     }
@@ -267,7 +281,12 @@
     "ttlSeconds": 3600,
     "enabled": true,
     "notes": "Recent FEMA disaster/emergency declarations designated for LA County (state of emergency signal). Independent of the unscoped NewsTicker FEMA feed.",
-    "adapter": { "stateFips": "06", "countyFips": "037", "days": 365, "limit": 10 }
+    "adapter": {
+      "stateFips": "06",
+      "countyFips": "037",
+      "days": 365,
+      "limit": 10
+    }
   },
   {
     "id": "fema-declarations-cook-county",
@@ -280,7 +299,12 @@
     "ttlSeconds": 3600,
     "enabled": true,
     "notes": "Recent FEMA disaster/emergency declarations designated for Cook County (Chicago).",
-    "adapter": { "stateFips": "17", "countyFips": "031", "days": 365, "limit": 10 }
+    "adapter": {
+      "stateFips": "17",
+      "countyFips": "031",
+      "days": 365,
+      "limit": 10
+    }
   },
   {
     "id": "fema-declarations-nyc",

@@ -36,7 +36,7 @@ export const PanelHeader: FC<PanelHeaderProps> = ({
           alignItems: dense ? 'stretch' : 'center',
           justifyContent: 'space-between',
           height: dense ? 42 : undefined,
-          padding: dense ? 0 : '1rem 1.4rem',
+          padding: dense ? 0 : '1rem 1rem',
           borderBottom: `1px solid ${divider}`,
           backgroundColor: hovered ? '#fbbf24' : 'transparent',
           color: hovered ? (isDark ? '#121212' : '#ffffff') : undefined,

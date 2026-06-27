@@ -60,7 +60,10 @@ export interface SourceMetaLite {
 
 const MILES_PER_DEG_LAT = 69.0;
 
-function pickStr(row: Record<string, unknown>, key?: string): string | undefined {
+function pickStr(
+  row: Record<string, unknown>,
+  key?: string,
+): string | undefined {
   if (!key) return undefined;
   const v = row[key];
   if (v === null || v === undefined) return undefined;
@@ -75,7 +78,10 @@ function pickStr(row: Record<string, unknown>, key?: string): string | undefined
   return s.length > 0 ? s : undefined;
 }
 
-function pickNum(row: Record<string, unknown>, key?: string): number | undefined {
+function pickNum(
+  row: Record<string, unknown>,
+  key?: string,
+): number | undefined {
   if (!key) return undefined;
   const v = row[key];
   if (v === null || v === undefined) return undefined;

@@ -282,9 +282,9 @@ const MeetTheFounders: React.FC<MeetTheFoundersProps> = ({ isVisible }) => {
           textAlign: 'center',
         }}
       >
-        Help Nearby is independently built and uses official public data
-        sources with attribution. It is not an official government emergency
-        alert system.
+        Help Nearby is independently built and uses official public data sources
+        with attribution. It is not an official government emergency alert
+        system.
       </p>
     </motion.div>
   );

@@ -26,7 +26,9 @@ function res(p: Partial<NearbyResource>): NearbyResource {
 describe('normalization', () => {
   it('canonicalizes names (case, punctuation, suffixes, &)', () => {
     expect(normalizeName("St. Mary's Church, Inc.")).toBe('st marys church');
-    expect(normalizeName('The Food & Help Center')).toBe('food and help center');
+    expect(normalizeName('The Food & Help Center')).toBe(
+      'food and help center',
+    );
   });
 
   it('canonicalizes addresses (street types, directionals, ordinals, units)', () => {
@@ -63,7 +65,11 @@ describe('isSameEntity (any two of three signals)', () => {
   });
 
   it('does NOT match on a single signal alone', () => {
-    const onlyName = res({ name: 'HRA Benefits Center', latitude: 41, longitude: -73 });
+    const onlyName = res({
+      name: 'HRA Benefits Center',
+      latitude: 41,
+      longitude: -73,
+    });
     expect(isSameEntity(base, onlyName)).toBe(false);
   });
 
@@ -116,8 +122,18 @@ describe('reconcileResources (trust-ranked merge + provenance)', () => {
   });
 
   it('leaves genuinely distinct resources untouched', () => {
-    const a = res({ name: 'Alpha Center', address: '1 A St', latitude: 40.1, longitude: -73.1 });
-    const b = res({ name: 'Beta House', address: '2 B Ave', latitude: 41.2, longitude: -74.2 });
+    const a = res({
+      name: 'Alpha Center',
+      address: '1 A St',
+      latitude: 40.1,
+      longitude: -73.1,
+    });
+    const b = res({
+      name: 'Beta House',
+      address: '2 B Ave',
+      latitude: 41.2,
+      longitude: -74.2,
+    });
     expect(reconcileResources([a, b])).toHaveLength(2);
   });
 });

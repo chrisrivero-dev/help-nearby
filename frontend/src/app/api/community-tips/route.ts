@@ -14,7 +14,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (!keys) {
     return NextResponse.json({ tips: {} });
   }
-  const keySet = new Set(keys.split(',').map((k) => k.trim()).filter(Boolean));
+  const keySet = new Set(
+    keys
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean),
+  );
   const store = await readStore();
   const result: Record<string, CommunityTip[]> = {};
   for (const tip of store.tips) {
@@ -58,10 +63,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     payload;
 
   if (!resourceSnapshot?.name || !body?.trim()) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Missing required fields' },
+      { status: 400 },
+    );
   }
   if (body.length > 280) {
-    return NextResponse.json({ error: 'Tip too long (max 280 characters)' }, { status: 422 });
+    return NextResponse.json(
+      { error: 'Tip too long (max 280 characters)' },
+      { status: 422 },
+    );
   }
 
   const check = autoCheck(body);

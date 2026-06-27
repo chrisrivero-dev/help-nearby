@@ -48,7 +48,10 @@ const FORBIDDEN_PATTERNS = [
   { re: /Food Bank Volunteers Needed/i, label: 'sample community string' },
   { re: /Emergency Shelter Activated/i, label: 'sample update string' },
   { re: /Nonprofit Resource Drive/i, label: 'sample community string' },
-  { re: /Example content showing how this panel/i, label: 'preview disclaimer' },
+  {
+    re: /Example content showing how this panel/i,
+    label: 'preview disclaimer',
+  },
 ];
 
 for (const file of walk(HELP_DIR)) {
@@ -62,7 +65,9 @@ for (const file of walk(HELP_DIR)) {
 }
 
 // 2. nearby-resources must not fall back to a demo/mock array.
-const nearby = read(path.join(SRC, 'app', 'api', 'nearby-resources', 'route.ts'));
+const nearby = read(
+  path.join(SRC, 'app', 'api', 'nearby-resources', 'route.ts'),
+);
 if (!nearby) {
   fail('api/nearby-resources/route.ts is missing');
 } else {

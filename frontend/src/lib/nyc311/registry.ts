@@ -50,7 +50,8 @@ function toSelected(
     ttlSeconds: row.ttlSeconds,
     autoApprove: row.autoApprove === true,
     requiresLocation: row.requiresLocation === true,
-    fetch: () => runCommunityAdapter(applyLocationTokens(row.adapter, lat, lng)),
+    fetch: () =>
+      runCommunityAdapter(applyLocationTokens(row.adapter, lat, lng)),
   };
 }
 

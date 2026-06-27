@@ -29,7 +29,9 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  if (!VALID_STATUSES.includes(payload.status as (typeof VALID_STATUSES)[number])) {
+  if (
+    !VALID_STATUSES.includes(payload.status as (typeof VALID_STATUSES)[number])
+  ) {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
   }
 

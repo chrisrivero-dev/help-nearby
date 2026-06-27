@@ -39,10 +39,7 @@ const formatCategory = (c: ResourceCategory): string =>
 // Diversity-aware picker for the "All" view (same approach as the Where
 // Nearby panel): one nearest resource per category first, then fill the
 // remaining slots with the nearest leftovers. Input is sorted by distance.
-const pickDiverse = (
-  list: NearbyResource[],
-  max: number,
-): NearbyResource[] => {
+const pickDiverse = (list: NearbyResource[], max: number): NearbyResource[] => {
   const picked: NearbyResource[] = [];
   const usedIds = new Set<string>();
   const usedCategories = new Set<ResourceCategory>();
@@ -97,37 +94,32 @@ const EmbedWidget: FC = () => {
   const inputBorder = isDark ? '#2a2a2a' : '#d8d8d8';
   const chipBg = isDark ? '#1a1a1a' : '#f5f5f5';
 
-  const resolveAndSearch = useCallback(
-    async (query: string) => {
-      const cleaned = query.trim();
-      if (!cleaned) {
-        setError('Enter a ZIP code to find nearby resources.');
-        return;
-      }
-      setLoading(true);
-      setError(null);
-      try {
-        const loc = await lookupLocation(cleaned);
-        if (!loc.isValid) {
-          setError('Location not found. Try a 5-digit ZIP code.');
-          setResources(null);
-          setCoords(null);
-          return;
-        }
-        setCoords({ lat: loc.latitude, lng: loc.longitude });
-        setPlaceLabel(
-          [loc.city, loc.stateCode].filter(Boolean).join(', '),
-        );
-      } catch {
-        setError('Location lookup failed. Please try again.');
+  const resolveAndSearch = useCallback(async (query: string) => {
+    const cleaned = query.trim();
+    if (!cleaned) {
+      setError('Enter a ZIP code to find nearby resources.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const loc = await lookupLocation(cleaned);
+      if (!loc.isValid) {
+        setError('Location not found. Try a 5-digit ZIP code.');
         setResources(null);
         setCoords(null);
-      } finally {
-        setLoading(false);
+        return;
       }
-    },
-    [],
-  );
+      setCoords({ lat: loc.latitude, lng: loc.longitude });
+      setPlaceLabel([loc.city, loc.stateCode].filter(Boolean).join(', '));
+    } catch {
+      setError('Location lookup failed. Please try again.');
+      setResources(null);
+      setCoords(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Fetch resources whenever coordinates or the selected category change.
   useEffect(() => {
@@ -239,9 +231,7 @@ const EmbedWidget: FC = () => {
         >
           {partnerLabel || 'Find Help Nearby'}
         </span>
-        <span
-          style={{ fontSize: '0.6rem', color: mutedText, flexShrink: 0 }}
-        >
+        <span style={{ fontSize: '0.6rem', color: mutedText, flexShrink: 0 }}>
           {placeLabel ? `Near ${placeLabel}` : ''}
         </span>
       </div>
@@ -345,7 +335,7 @@ const EmbedWidget: FC = () => {
           const label =
             cat === null
               ? 'All'
-              : EMBED_CATEGORIES.find((c) => c.id === cat)?.label ?? cat;
+              : (EMBED_CATEGORIES.find((c) => c.id === cat)?.label ?? cat);
           return (
             <button
               key={cat ?? 'all'}

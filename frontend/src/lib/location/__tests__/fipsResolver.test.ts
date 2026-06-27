@@ -1,10 +1,7 @@
 /**
  * @jest-environment node
  */
-import {
-  resolveJurisdictions,
-  _clearResolverCache,
-} from '../fipsResolver';
+import { resolveJurisdictions, _clearResolverCache } from '../fipsResolver';
 import { countyId, placeId, stateId } from '../jurisdiction';
 import {
   NYC_FIXTURES,

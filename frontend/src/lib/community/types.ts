@@ -36,7 +36,12 @@ export interface ListingIssueReport {
     | 'other';
   detail?: string;
   submitterHash: string;
-  status: 'open' | 'investigating' | 'resolved_fixed' | 'resolved_unverified' | 'dismissed';
+  status:
+    | 'open'
+    | 'investigating'
+    | 'resolved_fixed'
+    | 'resolved_unverified'
+    | 'dismissed';
   resolvedBy?: string;
   resolvedAt?: string;
   createdAt: string;

@@ -10,7 +10,9 @@ export interface NormalizedLocation {
 // In-memory cache — avoids repeated network calls for the same ZIP
 const _cache = new Map<string, NormalizedLocation>();
 
-export async function normalizeLocation(zip: string): Promise<NormalizedLocation> {
+export async function normalizeLocation(
+  zip: string,
+): Promise<NormalizedLocation> {
   const cleanZip = zip.replace(/\D/g, '').slice(0, 5);
 
   const fallback: NormalizedLocation = {
@@ -37,16 +39,23 @@ export async function normalizeLocation(zip: string): Promise<NormalizedLocation
     const lng = parseFloat(place['longitude']);
 
     // Validate that we got valid coordinates
-    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    if (
+      isNaN(lat) ||
+      isNaN(lng) ||
+      lat < -90 ||
+      lat > 90 ||
+      lng < -180 ||
+      lng > 180
+    ) {
       return fallback;
     }
 
     const result: NormalizedLocation = {
       zipCode: cleanZip,
-      city:       place['place name']         ?? 'Unknown',
-      stateCode:  place['state abbreviation'] ?? 'US',
-      latitude:   lat,
-      longitude:  lng,
+      city: place['place name'] ?? 'Unknown',
+      stateCode: place['state abbreviation'] ?? 'US',
+      latitude: lat,
+      longitude: lng,
       isValid: true,
     };
 

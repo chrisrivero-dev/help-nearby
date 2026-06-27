@@ -317,7 +317,7 @@ export const NewsTicker: FC = () => {
               whiteSpace: 'nowrap',
             }}
           >
-            Enter your location above to see what's happening near you.
+            Enter your location above to see what is happening near you.
           </motion.span>
         )}
       </div>

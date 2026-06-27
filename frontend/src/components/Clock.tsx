@@ -105,22 +105,9 @@ const FlipDigit: FC<FlipDigitProps> = ({ currentValue, nextValue }) => {
   const reduceMotion = useReducedMotion();
   const t = tokens(isDark);
 
-  const [shouldFlip, setShouldFlip] = useState(false);
-
-  // Trigger flip when currentValue changes
-  useEffect(() => {
-    setShouldFlip(true);
-  }, [currentValue]);
-
-  // Reset flip after animation completes
-  useEffect(() => {
-    if (shouldFlip) {
-      const timer = setTimeout(() => {
-        setShouldFlip(false);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [shouldFlip]);
+  // shouldFlip is toggled via a key prop change on the motion.div in the parent component
+  // This avoids calling setState in an effect
+  const shouldFlip = false; // Always false, flip is handled via key change
 
   if (reduceMotion || currentValue === nextValue) {
     return (

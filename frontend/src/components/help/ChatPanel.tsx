@@ -441,325 +441,319 @@ export const ChatPanel: FC<ChatPanelProps> = ({
         </div>
       </PanelHeader>
 
-      <AnimatePresence initial={false}>
-        {isExpanded && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: fill ? '100%' : 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
+      {isExpanded && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.2 }}
+          style={{
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+          }}
+        >
+          <div
             style={{
               overflow: 'hidden',
-              flex: fill ? '1 1 auto' : undefined,
-              minHeight: fill ? 0 : undefined,
               display: 'flex',
               flexDirection: 'column',
+              flex: 1,
             }}
           >
-            <div
-              style={{
-                minHeight: 0,
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                flex: fill ? '1 1 auto' : undefined,
-              }}
-            >
-              {/* Error message */}
-              {error && (
-                <div
-                  style={{
-                    padding: '0.9rem 1.4rem',
-                    borderBottom: `1px solid ${isDark ? '#b91c1c' : '#ef4444'}`,
-                    background: isDark ? '#7f1d1d' : '#fee2e2',
-                    color: isDark ? '#fca5a5' : '#991b1b',
-                    fontFamily: "'Poppins', sans-serif",
-                    fontSize: '0.68rem',
-                    fontWeight: 600,
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  {error}
-                </div>
-              )}
+            {/* Error message */}
+            {error && (
+              <div
+                style={{
+                  padding: '0.9rem 1.4rem',
+                  borderBottom: `1px solid ${isDark ? '#b91c1c' : '#ef4444'}`,
+                  background: isDark ? '#7f1d1d' : '#fee2e2',
+                  color: isDark ? '#fca5a5' : '#991b1b',
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: '0.68rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {error}
+              </div>
+            )}
 
-              {/* Chat history - scrollable area. In fill mode minHeight drops to 0
+            {/* Chat history - scrollable area. In fill mode minHeight drops to 0
                 so this region can shrink and keep the input pinned; otherwise a
                 200px floor preserves the natural standalone/mobile look. */}
-              <div
-                style={{
-                  flex: 1,
-                  overflowY: 'auto',
-                  padding: '1rem 1.4rem',
-                  minHeight: fill ? 0 : '200px',
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: `${isDark ? mutedText : '#d1d5db'} transparent`,
-                }}
-              >
-                {messages.length === 0 ? (
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '1rem 1.4rem',
+                minHeight: fill ? 0 : '200px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: `${isDark ? mutedText : '#d1d5db'} transparent`,
+              }}
+            >
+              {messages.length === 0 ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
+                    minHeight: '200px',
+                    textAlign: 'center',
+                    padding: '2rem 1rem',
+                    color: mutedText,
+                  }}
+                >
                   <div
                     style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '100%',
-                      minHeight: '200px',
-                      textAlign: 'center',
-                      padding: '2rem 1rem',
-                      color: mutedText,
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      marginBottom: '0.8rem',
                     }}
                   >
+                    Type a message below to start a conversation
+                  </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem',
+                  }}
+                >
+                  {messages.map((msg) => (
                     <div
+                      key={msg.id}
                       style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontSize: '0.7rem',
-                        fontWeight: 600,
-                        marginBottom: '0.8rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.3rem',
                       }}
                     >
-                      Type a message below to start a conversation
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '1rem',
-                    }}
-                  >
-                    {messages.map((msg) => (
                       <div
-                        key={msg.id}
                         style={{
                           display: 'flex',
-                          flexDirection: 'column',
-                          gap: '0.3rem',
+                          alignItems: 'center',
+                          gap: '0.4rem',
                         }}
                       >
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.6rem',
-                              fontWeight: 800,
-                              letterSpacing: '0.06em',
-                              textTransform: 'uppercase',
-                              color:
-                                msg.role === 'user'
-                                  ? highlightColor
-                                  : mutedText,
-                            }}
-                          >
-                            {msg.role === 'user' ? 'You' : 'AI Assistant'}
-                          </span>
-                          <span
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.54rem',
-                              color: mutedText,
-                            }}
-                          >
-                            {new Date(msg.timestamp).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        </div>
-                        <div
+                        <span
                           style={{
                             fontFamily: "'Poppins', sans-serif",
-                            fontSize: '0.74rem',
-                            lineHeight: 1.6,
-                            color: cardText,
-                            padding: '0.8rem 1rem',
-                            background:
-                              msg.role === 'user'
-                                ? inputBg
-                                : isDark
-                                  ? '#1a1a1a'
-                                  : '#f9f9f9',
-                            border: `1px solid ${msg.role === 'user' ? inputBorder : divider}`,
-                            borderRadius: 4,
+                            fontSize: '0.6rem',
+                            fontWeight: 800,
+                            letterSpacing: '0.06em',
+                            textTransform: 'uppercase',
+                            color:
+                              msg.role === 'user' ? highlightColor : mutedText,
                           }}
                         >
-                          {msg.content}
-                        </div>
+                          {msg.role === 'user' ? 'You' : 'AI Assistant'}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontSize: '0.54rem',
+                            color: mutedText,
+                          }}
+                        >
+                          {new Date(msg.timestamp).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
                       </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
-                )}
-              </div>
+                      <div
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: '0.74rem',
+                          lineHeight: 1.6,
+                          color: cardText,
+                          padding: '0.8rem 1rem',
+                          background:
+                            msg.role === 'user'
+                              ? inputBg
+                              : isDark
+                                ? '#1a1a1a'
+                                : '#f9f9f9',
+                          border: `1px solid ${msg.role === 'user' ? inputBorder : divider}`,
+                          borderRadius: 4,
+                        }}
+                      >
+                        {msg.content}
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </div>
 
-              {/* Input cell - anchored in-flow at the bottom of the panel while
+            {/* Input cell - anchored in-flow at the bottom of the panel while
                 the messages area above scrolls. */}
-              <div
+            <div
+              style={{
+                flexShrink: 0,
+                padding: '0.75rem 1rem',
+                borderTop: `2px solid ${divider}`,
+                background: inputBg,
+              }}
+            >
+              <form
+                onSubmit={handleSubmit}
                 style={{
-                  flexShrink: 0,
-                  padding: '0.75rem 1rem',
-                  borderTop: `2px solid ${divider}`,
-                  background: inputBg,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
                 }}
               >
-                <form
-                  onSubmit={handleSubmit}
+                <div
                   style={{
+                    flex: 1,
+                    minWidth: 0,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
                   }}
                 >
-                  <div
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder={
+                      models.length === 0
+                        ? 'No Ollama models available'
+                        : 'Type your message...'
+                    }
+                    disabled={isChatLoading || models.length === 0}
                     style={{
                       flex: 1,
                       minWidth: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.74rem',
+                      color: cardText,
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      padding: '0.3rem 0',
                     }}
-                  >
-                    <input
-                      type="text"
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      placeholder={
-                        models.length === 0
-                          ? 'No Ollama models available'
-                          : 'Type your message...'
-                      }
-                      disabled={isChatLoading || models.length === 0}
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        fontFamily: "'Poppins', sans-serif",
-                        fontSize: '0.74rem',
-                        color: cardText,
-                        background: 'transparent',
-                        border: 'none',
-                        outline: 'none',
-                        padding: '0.3rem 0',
-                      }}
-                    />
-                    <button
-                      type="submit"
-                      disabled={
+                  />
+                  <button
+                    type="submit"
+                    disabled={
+                      !inputMessage.trim() ||
+                      isChatLoading ||
+                      models.length === 0
+                    }
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 28,
+                      height: 28,
+                      padding: 0,
+                      border: `2px solid ${isDark ? '#fbbf24' : '#fbbf24'}`,
+                      background:
+                        isChatLoading || models.length === 0
+                          ? mutedText
+                          : highlightColor,
+                      borderRadius: 0,
+                      cursor:
                         !inputMessage.trim() ||
                         isChatLoading ||
                         models.length === 0
-                      }
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 28,
-                        height: 28,
-                        padding: 0,
-                        border: `2px solid ${isDark ? '#fbbf24' : '#fbbf24'}`,
-                        background:
-                          isChatLoading || models.length === 0
-                            ? mutedText
-                            : highlightColor,
-                        borderRadius: 0,
-                        cursor:
-                          !inputMessage.trim() ||
-                          isChatLoading ||
-                          models.length === 0
-                            ? 'not-allowed'
-                            : 'pointer',
-                        opacity:
-                          !inputMessage.trim() ||
-                          isChatLoading ||
-                          models.length === 0
-                            ? 0.5
-                            : 1,
-                        transition: 'all 0.2s',
-                      }}
+                          ? 'not-allowed'
+                          : 'pointer',
+                      opacity:
+                        !inputMessage.trim() ||
+                        isChatLoading ||
+                        models.length === 0
+                          ? 0.5
+                          : 1,
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={isDark ? '#000' : '#fff'}
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke={isDark ? '#000' : '#fff'}
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                      </svg>
-                    </button>
+                      <line x1="22" y1="2" x2="11" y2="13"></line>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                  </button>
+                </div>
+                {isChatLoading && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
+                      marginTop: '0.4rem',
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.62rem',
+                      color: mutedText,
+                    }}
+                  >
+                    <motion.div
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      style={{
+                        display: 'inline-block',
+                        width: 6,
+                        height: 6,
+                        borderRadius: 3,
+                        background: mutedText,
+                      }}
+                    />
+                    <motion.div
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        delay: 0.2,
+                      }}
+                      style={{
+                        display: 'inline-block',
+                        width: 6,
+                        height: 6,
+                        borderRadius: 3,
+                        background: mutedText,
+                      }}
+                    />
+                    <motion.div
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        delay: 0.4,
+                      }}
+                      style={{
+                        display: 'inline-block',
+                        width: 6,
+                        height: 6,
+                        borderRadius: 3,
+                        background: mutedText,
+                      }}
+                    />
+                    <span>Thinking...</span>
                   </div>
-                  {isChatLoading && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.3rem',
-                        marginTop: '0.4rem',
-                        fontFamily: "'Poppins', sans-serif",
-                        fontSize: '0.62rem',
-                        color: mutedText,
-                      }}
-                    >
-                      <motion.div
-                        animate={{ opacity: [0.3, 1, 0.3] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                        style={{
-                          display: 'inline-block',
-                          width: 6,
-                          height: 6,
-                          borderRadius: 3,
-                          background: mutedText,
-                        }}
-                      />
-                      <motion.div
-                        animate={{ opacity: [0.3, 1, 0.3] }}
-                        transition={{
-                          duration: 1.5,
-                          repeat: Infinity,
-                          delay: 0.2,
-                        }}
-                        style={{
-                          display: 'inline-block',
-                          width: 6,
-                          height: 6,
-                          borderRadius: 3,
-                          background: mutedText,
-                        }}
-                      />
-                      <motion.div
-                        animate={{ opacity: [0.3, 1, 0.3] }}
-                        transition={{
-                          duration: 1.5,
-                          repeat: Infinity,
-                          delay: 0.4,
-                        }}
-                        style={{
-                          display: 'inline-block',
-                          width: 6,
-                          height: 6,
-                          borderRadius: 3,
-                          background: mutedText,
-                        }}
-                      />
-                      <span>Thinking...</span>
-                    </div>
-                  )}
-                </form>
-              </div>
+                )}
+              </form>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </motion.div>
+      )}
     </NeoPanel>
   );
 };

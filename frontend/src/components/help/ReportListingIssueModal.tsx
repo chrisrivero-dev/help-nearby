@@ -82,163 +82,179 @@ export const ReportListingIssueModal: FC<Props> = ({ resource, onClose }) => {
       role="group"
       aria-labelledby="report-title"
     >
-        <h2
-          id="report-title"
-          style={{
-            fontFamily: "'Poppins', sans-serif",
-            fontWeight: 800,
-            fontSize: '0.72rem',
-            letterSpacing: '0.12em',
-            color: cardText,
-            margin: '0 0 0.25rem 0',
-          }}
-        >
-          REPORT LISTING ISSUE
-        </h2>
-        <p
-          style={{
-            fontFamily: "'Poppins', sans-serif",
-            fontSize: '0.68rem',
-            color: mutedText,
-            margin: '0 0 1rem 0',
-          }}
-        >
-          {resource.name}
-        </p>
+      <h2
+        id="report-title"
+        style={{
+          fontFamily: "'Poppins', sans-serif",
+          fontWeight: 800,
+          fontSize: '0.72rem',
+          letterSpacing: '0.12em',
+          color: cardText,
+          margin: '0 0 0.25rem 0',
+        }}
+      >
+        REPORT LISTING ISSUE
+      </h2>
+      <p
+        style={{
+          fontFamily: "'Poppins', sans-serif",
+          fontSize: '0.68rem',
+          color: mutedText,
+          margin: '0 0 1rem 0',
+        }}
+      >
+        {resource.name}
+      </p>
 
-        {formState === 'success' ? (
-          <div>
+      {formState === 'success' ? (
+        <div>
+          <p
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: '0.72rem',
+              color: cardText,
+              margin: '0 0 1rem 0',
+              lineHeight: 1.6,
+            }}
+          >
+            Thanks — a Help Nearby admin will review this report.
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 700,
+              fontSize: '0.65rem',
+              letterSpacing: '0.08em',
+              color: cardText,
+              background: 'none',
+              border: `1px solid ${border}`,
+              padding: '0.35rem 0.8rem',
+              cursor: 'pointer',
+            }}
+          >
+            CLOSE
+          </button>
+        </div>
+      ) : (
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
+        >
+          <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
+            <legend
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: '0.65rem',
+                color: mutedText,
+                marginBottom: '0.4rem',
+                letterSpacing: '0.06em',
+              }}
+            >
+              WHAT IS THE ISSUE?
+            </legend>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem',
+              }}
+            >
+              {ISSUE_TYPES.map((it) => (
+                <label
+                  key={it.value}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.7rem',
+                    color: cardText,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="issueType"
+                    value={it.value}
+                    checked={issueType === it.value}
+                    onChange={() => setIssueType(it.value)}
+                    style={{ accentColor: '#fbbf24' }}
+                  />
+                  {it.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <textarea
+            value={detail}
+            onChange={(e) => setDetail(e.target.value.slice(0, 500))}
+            placeholder="Optional details (what you observed, when)"
+            rows={3}
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: '0.68rem',
+              color: cardText,
+              background: isDark ? '#111' : '#fff',
+              border: `1px solid ${border}`,
+              padding: '0.4rem 0.6rem',
+              resize: 'vertical',
+              outline: 'none',
+            }}
+          />
+
+          {errorMsg && (
             <p
               style={{
                 fontFamily: "'Poppins', sans-serif",
-                fontSize: '0.72rem',
-                color: cardText,
-                margin: '0 0 1rem 0',
-                lineHeight: 1.6,
+                fontSize: '0.68rem',
+                color: '#ef4444',
+                margin: 0,
               }}
             >
-              Thanks — a Help Nearby admin will review this report.
+              {errorMsg}
             </p>
+          )}
+
+          <div style={{ display: 'flex', gap: '0.6rem' }}>
             <button
-              type="button"
-              onClick={onClose}
+              type="submit"
+              disabled={!issueType || formState === 'submitting'}
               style={{
                 fontFamily: "'Poppins', sans-serif",
                 fontWeight: 700,
                 fontSize: '0.65rem',
                 letterSpacing: '0.08em',
-                color: cardText,
-                background: 'none',
-                border: `1px solid ${border}`,
+                color: '#000',
+                background: '#fbbf24',
+                border: 'none',
                 padding: '0.35rem 0.8rem',
-                cursor: 'pointer',
+                cursor: !issueType ? 'default' : 'pointer',
+                opacity: !issueType ? 0.5 : 1,
               }}
             >
-              CLOSE
+              {formState === 'submitting' ? 'SENDING…' : 'REPORT'}
             </button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-              <legend
-                style={{
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: '0.65rem',
-                  color: mutedText,
-                  marginBottom: '0.4rem',
-                  letterSpacing: '0.06em',
-                }}
-              >
-                WHAT IS THE ISSUE?
-              </legend>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                {ISSUE_TYPES.map((it) => (
-                  <label
-                    key={it.value}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      fontFamily: "'Poppins', sans-serif",
-                      fontSize: '0.7rem',
-                      color: cardText,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="issueType"
-                      value={it.value}
-                      checked={issueType === it.value}
-                      onChange={() => setIssueType(it.value)}
-                      style={{ accentColor: '#fbbf24' }}
-                    />
-                    {it.label}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <textarea
-              value={detail}
-              onChange={(e) => setDetail(e.target.value.slice(0, 500))}
-              placeholder="Optional details (what you observed, when)"
-              rows={3}
+            <button
+              type="button"
+              onClick={onClose}
               style={{
                 fontFamily: "'Poppins', sans-serif",
-                fontSize: '0.68rem',
-                color: cardText,
-                background: isDark ? '#111' : '#fff',
-                border: `1px solid ${border}`,
-                padding: '0.4rem 0.6rem',
-                resize: 'vertical',
-                outline: 'none',
+                fontSize: '0.65rem',
+                color: mutedText,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
               }}
-            />
-
-            {errorMsg && (
-              <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: '0.68rem', color: '#ef4444', margin: 0 }}>
-                {errorMsg}
-              </p>
-            )}
-
-            <div style={{ display: 'flex', gap: '0.6rem' }}>
-              <button
-                type="submit"
-                disabled={!issueType || formState === 'submitting'}
-                style={{
-                  fontFamily: "'Poppins', sans-serif",
-                  fontWeight: 700,
-                  fontSize: '0.65rem',
-                  letterSpacing: '0.08em',
-                  color: '#000',
-                  background: '#fbbf24',
-                  border: 'none',
-                  padding: '0.35rem 0.8rem',
-                  cursor: !issueType ? 'default' : 'pointer',
-                  opacity: !issueType ? 0.5 : 1,
-                }}
-              >
-                {formState === 'submitting' ? 'SENDING…' : 'REPORT'}
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                style={{
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: '0.65rem',
-                  color: mutedText,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 };

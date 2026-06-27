@@ -26,11 +26,7 @@ const initialState = {
   websiteHoneypot: '',
 };
 
-export const AddSource: FC<AddSourceProps> = ({
-  isDark,
-  onClose,
-  onAdded,
-}) => {
+export const AddSource: FC<AddSourceProps> = ({ isDark, onClose, onAdded }) => {
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>(
     'idle',

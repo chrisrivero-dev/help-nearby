@@ -22,11 +22,12 @@ const BuilderPage: FC = () => {
   const [label, setLabel] = useState('');
   const [height, setHeight] = useState(DEFAULT_HEIGHT);
   const [copied, setCopied] = useState(false);
-  const [origin, setOrigin] = useState('https://helpnearby.co');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') setOrigin(window.location.origin);
-  }, []);
+  const [origin, setOrigin] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    return 'https://helpnearby.co';
+  });
 
   const query = useMemo(() => {
     const qs = new URLSearchParams();
@@ -125,8 +126,8 @@ const BuilderPage: FC = () => {
             Configure a source-backed resource widget for your organization’s
             website, preview it live, and copy the embed code. Data comes from
             public datasets where available, with source attribution on every
-            listing. Strongest current coverage: Southern California — check
-            the preview for your area before embedding.
+            listing. Strongest current coverage: Southern California — check the
+            preview for your area before embedding.
           </p>
         </header>
 

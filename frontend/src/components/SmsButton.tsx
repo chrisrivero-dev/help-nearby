@@ -10,7 +10,10 @@ interface SmsButtonProps {
 
 type Status = 'idle' | 'entering' | 'sending' | 'sent' | 'error';
 
-export default function SmsButton({ resourceName, resourceAddress }: SmsButtonProps) {
+export default function SmsButton({
+  resourceName,
+  resourceAddress,
+}: SmsButtonProps) {
   const t = useI18n();
   const [status, setStatus] = useState<Status>('idle');
   const [phone, setPhone] = useState('');
@@ -60,7 +63,10 @@ export default function SmsButton({ resourceName, resourceAddress }: SmsButtonPr
       <input
         type="tel"
         value={phone}
-        onChange={(e) => { setPhone(e.target.value); if (status === 'error') setStatus('entering'); }}
+        onChange={(e) => {
+          setPhone(e.target.value);
+          if (status === 'error') setStatus('entering');
+        }}
         placeholder={t.phone_placeholder}
         className="text-xs border-2 border-black px-2 py-1 outline-none focus:ring-0 w-36 font-mono"
         onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -74,7 +80,10 @@ export default function SmsButton({ resourceName, resourceAddress }: SmsButtonPr
         {status === 'sending' ? t.sending : status === 'error' ? t.error : '→'}
       </button>
       <button
-        onClick={() => { setStatus('idle'); setPhone(''); }}
+        onClick={() => {
+          setStatus('idle');
+          setPhone('');
+        }}
         className="text-xs border-2 border-black px-2 py-1 bg-white hover:bg-neutral-100"
       >
         ✕

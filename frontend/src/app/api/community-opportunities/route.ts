@@ -24,7 +24,10 @@ function isNonExpired(o: CommunityOpportunity, now: number): boolean {
   return true;
 }
 
-function numberParam(request: NextRequest, names: string[]): number | undefined {
+function numberParam(
+  request: NextRequest,
+  names: string[],
+): number | undefined {
   for (const name of names) {
     const raw = request.nextUrl.searchParams.get(name);
     if (!raw) continue;
@@ -94,7 +97,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const visible = store.opportunities.filter(
     (o) =>
       isNonExpired(o, now) &&
-      (!selectedSourceIds || !o.sourceId || selectedSourceIds.has(o.sourceId)) &&
+      (!selectedSourceIds ||
+        !o.sourceId ||
+        selectedSourceIds.has(o.sourceId)) &&
       (!o.sourceId ||
         (selectedSourceIds && !selectedSourceIds.has(o.sourceId)) ||
         requiresLocationBySource.get(o.sourceId) === false ||
@@ -138,7 +143,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     description: payload.description?.trim() || undefined,
     venueName: payload.venueName?.trim() || undefined,
     address: payload.address?.trim() || undefined,
-    latitude: typeof payload.latitude === 'number' ? payload.latitude : undefined,
+    latitude:
+      typeof payload.latitude === 'number' ? payload.latitude : undefined,
     longitude:
       typeof payload.longitude === 'number' ? payload.longitude : undefined,
     startAt: payload.startAt || undefined,

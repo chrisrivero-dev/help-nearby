@@ -24,14 +24,18 @@ const pir = (lng, lat, ring) => {
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
     const [xi, yi] = ring[i];
     const [xj, yj] = ring[j];
-    if (yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi)
+    if (
+      yi > lat !== yj > lat &&
+      lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi
+    )
       inside = !inside;
   }
   return inside;
 };
 const pip = (lng, lat, poly) => {
   if (!pir(lng, lat, poly[0])) return false;
-  for (let h = 1; h < poly.length; h++) if (pir(lng, lat, poly[h])) return false;
+  for (let h = 1; h < poly.length; h++)
+    if (pir(lng, lat, poly[h])) return false;
   return true;
 };
 const pif = (lng, lat, f) => {
@@ -39,7 +43,8 @@ const pif = (lng, lat, f) => {
   if (g.type === 'Polygon') return pip(lng, lat, g.coordinates);
   return g.coordinates.some((p) => pip(lng, lat, p));
 };
-const find = (lng, lat, fc) => fc.features.find((f) => pif(lng, lat, f)) ?? null;
+const find = (lng, lat, fc) =>
+  fc.features.find((f) => pif(lng, lat, f)) ?? null;
 
 // Load fixtures without a TS toolchain by extracting the two arrays.
 const src = fs.readFileSync(
@@ -79,4 +84,6 @@ if (failures.length) {
   for (const f of failures) console.error('  ' + f);
   process.exit(1);
 }
-console.log(`✓ ${pass}/${total} gold-standard fixtures passed (NYC + LA + Chicago)`);
+console.log(
+  `✓ ${pass}/${total} gold-standard fixtures passed (NYC + LA + Chicago)`,
+);

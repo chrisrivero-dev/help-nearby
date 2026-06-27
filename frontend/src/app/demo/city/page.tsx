@@ -107,7 +107,9 @@ const DemoCityPage: FC = () => {
       </header>
 
       {/* Page body */}
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '2.2rem 1.5rem 0' }}>
+      <div
+        style={{ maxWidth: 960, margin: '0 auto', padding: '2.2rem 1.5rem 0' }}
+      >
         <h1
           style={{
             ...serif,
@@ -129,9 +131,9 @@ const DemoCityPage: FC = () => {
           }}
         >
           Residents can use the search tool below to find nearby food
-          assistance, health centers, cooling centers, and warming centers. Listings come from
-          public datasets where available and include directions and a link to
-          the original source.
+          assistance, health centers, cooling centers, and warming centers.
+          Listings come from public datasets where available and include
+          directions and a link to the original source.
         </p>
 
         <div
@@ -189,9 +191,10 @@ const DemoCityPage: FC = () => {
               >
                 This resource finder is powered by Help Nearby, an independent
                 source-backed local aid discovery tool. It draws on public
-                datasets — health centers, food banks, cooling centers, warming centers, and
-                parks — and shows source attribution where available. It is
-                not an official government emergency alert system.
+                datasets — health centers, food banks, cooling centers, warming
+                centers, and parks — and shows source attribution where
+                available. It is not an official government emergency alert
+                system.
               </p>
             </div>
             <div
@@ -220,8 +223,8 @@ const DemoCityPage: FC = () => {
                 }}
               >
                 Any city, nonprofit, clinic, school, or community organization
-                can configure and embed this widget with a single iframe
-                snippet — no account, no API keys.
+                can configure and embed this widget with a single iframe snippet
+                — no account, no API keys.
               </p>
               <a
                 href="/embed/builder"
@@ -257,10 +260,10 @@ const DemoCityPage: FC = () => {
             textAlign: 'center',
           }}
         >
-          This page is a demonstration created by Help Nearby. “City of
-          Example” is fictional. No partnership, endorsement, or government
-          affiliation is implied. Resource data shown is live and comes from
-          public datasets where available.
+          This page is a demonstration created by Help Nearby. “City of Example”
+          is fictional. No partnership, endorsement, or government affiliation
+          is implied. Resource data shown is live and comes from public datasets
+          where available.
         </p>
       </div>
     </main>

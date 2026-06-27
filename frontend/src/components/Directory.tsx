@@ -46,7 +46,10 @@ const DOMAIN_LABELS: Record<DirectoryDomain, string> = {
   alerts: 'Alerts',
 };
 
-function normalizeSource(row: RawSource, domain: DirectoryDomain): DirectorySource {
+function normalizeSource(
+  row: RawSource,
+  domain: DirectoryDomain,
+): DirectorySource {
   const category = row.category ?? row.domain;
   const parts = [
     row.name,
@@ -301,7 +304,9 @@ const Directory: FC = () => {
 
             <div style={metaStyle}>
               <span style={metaPillStyle}>{DOMAIN_LABELS[source.domain]}</span>
-              {source.category && <span style={metaPillStyle}>{source.category}</span>}
+              {source.category && (
+                <span style={metaPillStyle}>{source.category}</span>
+              )}
               <span style={metaPillStyle}>{source.sourceType}</span>
               <span style={metaPillStyle}>{source.jurisdictionId}</span>
               {typeof source.trust === 'number' && (
@@ -351,4 +356,3 @@ const Directory: FC = () => {
 };
 
 export default Directory;
-

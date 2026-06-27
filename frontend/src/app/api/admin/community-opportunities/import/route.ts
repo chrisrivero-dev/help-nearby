@@ -27,7 +27,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const body =
-    payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {};
+    payload && typeof payload === 'object'
+      ? (payload as Record<string, unknown>)
+      : {};
   const latitude = numberFrom(body.latitude ?? body.lat);
   const longitude = numberFrom(body.longitude ?? body.lng);
   if (latitude === undefined || longitude === undefined) {
@@ -38,7 +40,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const store = await readStore();
-  const result = await importCommunityOpportunities(store, { latitude, longitude });
+  const result = await importCommunityOpportunities(store, {
+    latitude,
+    longitude,
+  });
   await writeStore(store);
 
   return NextResponse.json({
@@ -51,4 +56,3 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     imported: result.opportunities.length,
   });
 }
-

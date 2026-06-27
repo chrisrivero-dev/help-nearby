@@ -52,7 +52,9 @@ jest.mock('@/lib/community/moderation', () => ({
 
 describe('/api/community-opportunities', () => {
   it('returns only approved, non-expired opportunities to public callers', async () => {
-    const res = await GET(new NextRequest('https://example.test/api/community-opportunities'));
+    const res = await GET(
+      new NextRequest('https://example.test/api/community-opportunities'),
+    );
     const json = (await res.json()) as { opportunities: Array<{ id: string }> };
     expect(json.opportunities.map((o) => o.id)).toEqual(['approved']);
   });
@@ -71,4 +73,3 @@ describe('/api/community-opportunities', () => {
     ]);
   });
 });
-

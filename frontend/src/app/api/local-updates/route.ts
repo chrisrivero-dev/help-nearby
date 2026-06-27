@@ -74,7 +74,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     updateType: payload.updateType as UpdateType,
     description: payload.description.trim(),
     address: payload.address?.trim() || undefined,
-    latitude: typeof payload.latitude === 'number' ? payload.latitude : undefined,
+    latitude:
+      typeof payload.latitude === 'number' ? payload.latitude : undefined,
     longitude:
       typeof payload.longitude === 'number' ? payload.longitude : undefined,
     sourceName: payload.sourceName.trim(),

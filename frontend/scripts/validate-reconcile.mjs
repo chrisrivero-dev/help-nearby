@@ -20,7 +20,15 @@ const haversine = (a1, o1, a2, o2) => {
   return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
 };
 
-const NAME_DROP = new Set(['the', 'inc', 'incorporated', 'llc', 'corp', 'co', 'ltd']);
+const NAME_DROP = new Set([
+  'the',
+  'inc',
+  'incorporated',
+  'llc',
+  'corp',
+  'co',
+  'ltd',
+]);
 const normalizeName = (raw) =>
   raw
     .toLowerCase()
@@ -33,10 +41,18 @@ const normalizeName = (raw) =>
     .trim();
 
 const ADDR = [
-  [/\bstreet\b/g, 'st'], [/\bavenue\b/g, 'ave'], [/\bboulevard\b/g, 'blvd'],
-  [/\bdrive\b/g, 'dr'], [/\broad\b/g, 'rd'], [/\blane\b/g, 'ln'],
-  [/\bplace\b/g, 'pl'], [/\bcourt\b/g, 'ct'], [/\bnorth\b/g, 'n'],
-  [/\bsouth\b/g, 's'], [/\beast\b/g, 'e'], [/\bwest\b/g, 'w'],
+  [/\bstreet\b/g, 'st'],
+  [/\bavenue\b/g, 'ave'],
+  [/\bboulevard\b/g, 'blvd'],
+  [/\bdrive\b/g, 'dr'],
+  [/\broad\b/g, 'rd'],
+  [/\blane\b/g, 'ln'],
+  [/\bplace\b/g, 'pl'],
+  [/\bcourt\b/g, 'ct'],
+  [/\bnorth\b/g, 'n'],
+  [/\bsouth\b/g, 's'],
+  [/\beast\b/g, 'e'],
+  [/\bwest\b/g, 'w'],
 ];
 const normalizeAddress = (raw) => {
   let s = raw
@@ -58,18 +74,33 @@ const dice = (a, b) => {
   return (2 * inter) / (ta.size + tb.size);
 };
 
-const hasVal = (v) => v !== undefined && v !== null && !(typeof v === 'string' && !v.trim());
+const hasVal = (v) =>
+  v !== undefined && v !== null && !(typeof v === 'string' && !v.trim());
 
 const isSameEntity = (a, b) => {
   const nameMatch = dice(normalizeName(a.name), normalizeName(b.name)) >= 0.8;
-  const addrMatch = !!a.address && !!b.address && normalizeAddress(a.address) === normalizeAddress(b.address);
+  const addrMatch =
+    !!a.address &&
+    !!b.address &&
+    normalizeAddress(a.address) === normalizeAddress(b.address);
   const geoMatch =
-    [a.latitude, a.longitude, b.latitude, b.longitude].every((n) => typeof n === 'number') &&
-    haversine(a.latitude, a.longitude, b.latitude, b.longitude) <= 0.0311;
+    [a.latitude, a.longitude, b.latitude, b.longitude].every(
+      (n) => typeof n === 'number',
+    ) && haversine(a.latitude, a.longitude, b.latitude, b.longitude) <= 0.0311;
   return Number(nameMatch) + Number(addrMatch) + Number(geoMatch) >= 2;
 };
 
-const FIELDS = ['name', 'address', 'city', 'state', 'zip', 'phone', 'website', 'latitude', 'longitude'];
+const FIELDS = [
+  'name',
+  'address',
+  'city',
+  'state',
+  'zip',
+  'phone',
+  'website',
+  'latitude',
+  'longitude',
+];
 const trustOf = (r) => r.trust ?? 0;
 
 const mergeCluster = (cluster) => {
@@ -105,27 +136,100 @@ const check = (cond, msg) => {
 };
 
 console.log('normalization');
-check(normalizeName("St. Mary's Church, Inc.") === 'st marys church', "name: St. Mary's Church, Inc. → st marys church");
-check(normalizeAddress('123 West 42nd Street') === '123 w 42 st', 'addr: 123 West 42nd Street → 123 w 42 st');
+check(
+  normalizeName("St. Mary's Church, Inc.") === 'st marys church',
+  "name: St. Mary's Church, Inc. → st marys church",
+);
+check(
+  normalizeAddress('123 West 42nd Street') === '123 w 42 st',
+  'addr: 123 West 42nd Street → 123 w 42 st',
+);
 
 console.log('entity matching (2 of 3)');
-const a = { name: 'HRA Benefits Center', address: '123 West 42nd Street', latitude: 40.758, longitude: -73.9855 };
-check(isSameEntity(a, { name: 'HRA Benefits Center', address: '123 W 42 St', latitude: 41, longitude: -73 }), 'name+address match despite bad geo');
-check(isSameEntity(a, { name: 'HRA Benefits Center', latitude: 40.7581, longitude: -73.9856 }), 'name+geo match despite missing address');
-check(!isSameEntity(a, { name: 'HRA Benefits Center', latitude: 41, longitude: -73 }), 'single signal does NOT match');
-check(!isSameEntity(a, { name: 'Other Pantry', address: '999 Other Ave', latitude: 40.9, longitude: -73.8 }), 'distinct facility not merged');
+const a = {
+  name: 'HRA Benefits Center',
+  address: '123 West 42nd Street',
+  latitude: 40.758,
+  longitude: -73.9855,
+};
+check(
+  isSameEntity(a, {
+    name: 'HRA Benefits Center',
+    address: '123 W 42 St',
+    latitude: 41,
+    longitude: -73,
+  }),
+  'name+address match despite bad geo',
+);
+check(
+  isSameEntity(a, {
+    name: 'HRA Benefits Center',
+    latitude: 40.7581,
+    longitude: -73.9856,
+  }),
+  'name+geo match despite missing address',
+);
+check(
+  !isSameEntity(a, {
+    name: 'HRA Benefits Center',
+    latitude: 41,
+    longitude: -73,
+  }),
+  'single signal does NOT match',
+);
+check(
+  !isSameEntity(a, {
+    name: 'Other Pantry',
+    address: '999 Other Ave',
+    latitude: 40.9,
+    longitude: -73.8,
+  }),
+  'distinct facility not merged',
+);
 
 console.log('merge + provenance');
 const merged = reconcile([
-  { id: 'city:1', name: 'HRA Benefits Center', address: '123 West 42nd Street', latitude: 40.758, longitude: -73.9855, sourceName: 'NYC HRA', trust: 80 },
-  { id: 'np:1', name: 'HRA Benefits Ctr', address: '123 W 42 St', phone: '212-555-1234', latitude: 40.7581, longitude: -73.9856, sourceName: 'Helper Nonprofit', trust: 40 },
+  {
+    id: 'city:1',
+    name: 'HRA Benefits Center',
+    address: '123 West 42nd Street',
+    latitude: 40.758,
+    longitude: -73.9855,
+    sourceName: 'NYC HRA',
+    trust: 80,
+  },
+  {
+    id: 'np:1',
+    name: 'HRA Benefits Ctr',
+    address: '123 W 42 St',
+    phone: '212-555-1234',
+    latitude: 40.7581,
+    longitude: -73.9856,
+    sourceName: 'Helper Nonprofit',
+    trust: 40,
+  },
 ]);
 check(merged.length === 1, 'two feeds of one entity → 1 record');
 check(merged[0].name === 'HRA Benefits Center', 'higher-trust name wins');
-check(merged[0].fieldProvenance?.name?.sourceName === 'NYC HRA', 'name provenance = NYC HRA');
-check(merged[0].phone === '212-555-1234', 'phone falls through to the only feed with it');
-check(merged[0].fieldProvenance?.phone?.sourceName === 'Helper Nonprofit', 'phone provenance = Helper Nonprofit');
-check(JSON.stringify(merged[0].contributingSources) === JSON.stringify(['NYC HRA', 'Helper Nonprofit']), 'contributors recorded, highest trust first');
+check(
+  merged[0].fieldProvenance?.name?.sourceName === 'NYC HRA',
+  'name provenance = NYC HRA',
+);
+check(
+  merged[0].phone === '212-555-1234',
+  'phone falls through to the only feed with it',
+);
+check(
+  merged[0].fieldProvenance?.phone?.sourceName === 'Helper Nonprofit',
+  'phone provenance = Helper Nonprofit',
+);
+check(
+  JSON.stringify(merged[0].contributingSources) ===
+    JSON.stringify(['NYC HRA', 'Helper Nonprofit']),
+  'contributors recorded, highest trust first',
+);
 
-console.log(ok ? '\n✓ reconciliation verified' : '\n✗ reconciliation checks failed');
+console.log(
+  ok ? '\n✓ reconciliation verified' : '\n✗ reconciliation checks failed',
+);
 process.exit(ok ? 0 : 1);

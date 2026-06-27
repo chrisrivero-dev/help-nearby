@@ -43,7 +43,11 @@ export function mapCommunityType(value: unknown): CommunityOpportunityType {
   if (/donat|drive|coat|food collection|in-kind/.test(raw)) return 'donation';
   if (/meal|pantr|food|grocery|produce/.test(raw)) return 'food';
   if (/shelter|warming|cooling|overnight/.test(raw)) return 'shelter';
-  if (/event|meeting|calendar|festival|parade|ceremony|celebration|workshop|class/.test(raw)) {
+  if (
+    /event|meeting|calendar|festival|parade|ceremony|celebration|workshop|class/.test(
+      raw,
+    )
+  ) {
     return 'event';
   }
   return 'other';
@@ -56,16 +60,18 @@ export function normalizeIsoDate(value: unknown): string | undefined {
   return Number.isNaN(time) ? undefined : new Date(time).toISOString();
 }
 
-export function importedOpportunityKey(item: Pick<
-  CommunityOpportunity,
-  | 'sourceId'
-  | 'externalId'
-  | 'title'
-  | 'organizationName'
-  | 'startAt'
-  | 'address'
-  | 'sourceUrl'
->): string {
+export function importedOpportunityKey(
+  item: Pick<
+    CommunityOpportunity,
+    | 'sourceId'
+    | 'externalId'
+    | 'title'
+    | 'organizationName'
+    | 'startAt'
+    | 'address'
+    | 'sourceUrl'
+  >,
+): string {
   if (item.sourceId && item.externalId) {
     return `${item.sourceId}:${item.externalId}`;
   }

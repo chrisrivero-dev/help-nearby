@@ -759,9 +759,7 @@ function consolidateAlerts(alerts: WeatherAlert[]): WeatherAlert[] {
       typeof a.longitude === 'number' &&
       kept.some(({ alert: k }) => {
         if (k.sourceName === a.sourceName) return false; // never merge a source with itself
-        if (
-          canonicalHazardTitle(k.title) !== canonicalHazardTitle(a.title)
-        )
+        if (canonicalHazardTitle(k.title) !== canonicalHazardTitle(a.title))
           return false;
         if (typeof k.latitude !== 'number' || typeof k.longitude !== 'number')
           return false;

@@ -13,7 +13,11 @@
     "adapter": {
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/9d9t-bmk7.json",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude"
+      },
       "fieldMap": {
         "name": "facility_name",
         "address": "street_address",
@@ -40,7 +44,11 @@
     "adapter": {
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/bmxf-3rd4.json",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude"
+      },
       "fieldMap": {
         "name": "center_name",
         "address": "address",
@@ -162,7 +170,11 @@
     "adapter": {
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/tc6u-8rnp.json",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude"
+      },
       "fieldMap": {
         "name": "facility_name",
         "address": "street_address",
@@ -190,7 +202,11 @@
     "adapter": {
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/gfej-by6h.json",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude"
+      },
       "fieldMap": {
         "name": "health_center",
         "address": "street_address",
@@ -217,7 +233,11 @@
     "adapter": {
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/dt2z-amuf.json",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude"
+      },
       "fieldMap": {
         "name": "provider",
         "address": "site_location_address",
@@ -294,7 +314,11 @@
     "adapter": {
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/sejx-2gn3.json",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude"
+      },
       "fieldMap": {
         "name": "location_name",
         "address": "address_street",
@@ -321,7 +345,11 @@
     "adapter": {
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/kh3d-xhq7.json",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude"
+      },
       "fieldMap": {
         "name": "name",
         "address": "address",
@@ -348,7 +376,11 @@
     "adapter": {
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/ygfr-ij6t.json",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude"
+      },
       "fieldMap": {
         "name": "provider_name",
         "address": "address1",
@@ -374,7 +406,11 @@
     "adapter": {
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/ntcm-2w4k.json",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude"
+      },
       "fieldMap": {
         "name": "homebase_office",
         "address": "address",
@@ -400,7 +436,11 @@
     "adapter": {
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/xggi-kgx9.json",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude"
+      },
       "fieldMap": {
         "name": "facility_name",
         "address": "street_address",
@@ -518,7 +558,11 @@
     "adapter": {
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/dy27-rrad.json",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude" },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude"
+      },
       "fieldMap": {
         "name": "board_number",
         "address": "address",
@@ -565,7 +609,12 @@
       "kind": "socrata",
       "endpoint": "https://data.cityofnewyork.us/resource/67g2-p84d.json",
       "where": "facsubgrp='SOUP KITCHENS AND FOOD PANTRIES'",
-      "geo": { "kind": "latlng", "latField": "latitude", "lngField": "longitude", "cast": true },
+      "geo": {
+        "kind": "latlng",
+        "latField": "latitude",
+        "lngField": "longitude",
+        "cast": true
+      },
       "fieldMap": {
         "name": "facname",
         "address": "address",

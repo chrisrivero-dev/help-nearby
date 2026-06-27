@@ -1,10 +1,7 @@
 import { fanOut } from '@/lib/registry/core';
 import { reliableRun } from '@/lib/registry/reliability';
 import type { CommunityOpportunity, CommunityStore } from '../types';
-import {
-  importedOpportunityKey,
-  normalizeCommunityItem,
-} from './normalize';
+import { importedOpportunityKey, normalizeCommunityItem } from './normalize';
 import { selectCommunitySources } from './registry';
 import type { SelectedCommunitySource } from './types';
 

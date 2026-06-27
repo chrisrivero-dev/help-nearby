@@ -54,13 +54,28 @@ async function main() {
     COUNTY_LAYER,
     "STATE='36' AND (COUNTY='061' OR COUNTY='047' OR COUNTY='081' OR COUNTY='005' OR COUNTY='085')",
   );
-  const laCounty = await fetchGeoJson(COUNTY_LAYER, "STATE='06' AND COUNTY='037'");
-  const cookCounty = await fetchGeoJson(COUNTY_LAYER, "STATE='17' AND COUNTY='031'");
+  const laCounty = await fetchGeoJson(
+    COUNTY_LAYER,
+    "STATE='06' AND COUNTY='037'",
+  );
+  const cookCounty = await fetchGeoJson(
+    COUNTY_LAYER,
+    "STATE='17' AND COUNTY='031'",
+  );
 
   // City of NYC + City of LA + City of Chicago.
-  const nycPlace = await fetchGeoJson(PLACE_LAYER, "STATE='36' AND PLACE='51000'");
-  const laPlace = await fetchGeoJson(PLACE_LAYER, "STATE='06' AND PLACE='44000'");
-  const chicagoPlace = await fetchGeoJson(PLACE_LAYER, "STATE='17' AND PLACE='14000'");
+  const nycPlace = await fetchGeoJson(
+    PLACE_LAYER,
+    "STATE='36' AND PLACE='51000'",
+  );
+  const laPlace = await fetchGeoJson(
+    PLACE_LAYER,
+    "STATE='06' AND PLACE='44000'",
+  );
+  const chicagoPlace = await fetchGeoJson(
+    PLACE_LAYER,
+    "STATE='17' AND PLACE='14000'",
+  );
 
   fs.mkdirSync(OUT, { recursive: true });
   const counties = norm([...nycCounties, ...laCounty, ...cookCounty], 'county');

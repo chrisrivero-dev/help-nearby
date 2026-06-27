@@ -25,7 +25,10 @@ const pir = (lng, lat, r) => {
   for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
     const [xi, yi] = r[i];
     const [xj, yj] = r[j];
-    if (yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi)
+    if (
+      yi > lat !== yj > lat &&
+      lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi
+    )
       inside = !inside;
   }
   return inside;
@@ -36,7 +39,8 @@ const pif = (lng, lat, f) =>
   f.geometry.type === 'Polygon'
     ? pip(lng, lat, f.geometry.coordinates)
     : f.geometry.coordinates.some((p) => pip(lng, lat, p));
-const find = (lng, lat, fc) => fc.features.find((f) => pif(lng, lat, f)) ?? null;
+const find = (lng, lat, fc) =>
+  fc.features.find((f) => pif(lng, lat, f)) ?? null;
 
 // ── resolver stack (mirror of fipsResolver.ts) ──────────────────────────────
 function resolve(lat, lng) {
@@ -64,7 +68,8 @@ function socrataWhere(adapter, lat, lng, radiusMiles) {
     spatial = `within_circle(${adapter.geo.field}, ${lat}, ${lng}, ${radiusMiles * 1609.34})`;
   } else {
     const dLat = radiusMiles / 69;
-    const dLng = radiusMiles / (69 * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
+    const dLng =
+      radiusMiles / (69 * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
     const cast = adapter.geo.cast ? '::number' : '';
     const latF = `${adapter.geo.latField}${cast}`;
     const lngF = `${adapter.geo.lngField}${cast}`;
@@ -103,15 +108,17 @@ async function main() {
     console.log('  stack:   ', resolve(pt.lat, pt.lng).join(' → '));
     console.log(
       '  selected:',
-      selected.map((s) => `${s.id} [${s.sourceType}/${s.category}]`).join(', ') ||
-        '(none)',
+      selected
+        .map((s) => `${s.id} [${s.sourceType}/${s.category}]`)
+        .join(', ') || '(none)',
     );
 
     for (const s of selected.filter((s) => s.sourceType === 'socrata')) {
       try {
         const rows = await fetchSocrata(s, pt.lat, pt.lng, 5);
         console.log(`  ↳ ${s.id}: ${rows.length} live rows`);
-        if (rows[0]) console.log(`      e.g. ${rows[0].name} — ${rows[0].address}`);
+        if (rows[0])
+          console.log(`      e.g. ${rows[0].name} — ${rows[0].address}`);
         if (rows.length === 0) {
           console.warn(`      ⚠ expected >0 rows for a 5mi NYC radius`);
           ok = false;
@@ -133,11 +140,26 @@ async function main() {
       ok = false;
     }
   };
-  expect(nyc.includes('nyc-benefits-access-centers'), 'NYC should select NYC benefits centers');
-  expect(!nyc.includes('la-city-rec-parks-facilities'), 'NYC must NOT select LA city sources');
-  expect(nyc.includes('hrsa-health-center-sites'), 'NYC should still get national HRSA');
-  expect(la.includes('la-city-rec-parks-facilities'), 'LA should select LA city rec/parks');
-  expect(!la.some((id) => id.startsWith('nyc-')), 'LA must NOT select NYC sources');
+  expect(
+    nyc.includes('nyc-benefits-access-centers'),
+    'NYC should select NYC benefits centers',
+  );
+  expect(
+    !nyc.includes('la-city-rec-parks-facilities'),
+    'NYC must NOT select LA city sources',
+  );
+  expect(
+    nyc.includes('hrsa-health-center-sites'),
+    'NYC should still get national HRSA',
+  );
+  expect(
+    la.includes('la-city-rec-parks-facilities'),
+    'LA should select LA city rec/parks',
+  );
+  expect(
+    !la.some((id) => id.startsWith('nyc-')),
+    'LA must NOT select NYC sources',
+  );
   expect(
     chicago.includes('chicago-public-library-branches'),
     'Chicago should select Chicago library branches',
@@ -150,10 +172,20 @@ async function main() {
     chicago.includes('hrsa-health-center-sites'),
     'Chicago should still get national HRSA',
   );
-  expect(!chicago.some((id) => id.startsWith('nyc-')), 'Chicago must NOT select NYC sources');
-  expect(!chicago.some((id) => id.startsWith('la-')), 'Chicago must NOT select LA sources');
+  expect(
+    !chicago.some((id) => id.startsWith('nyc-')),
+    'Chicago must NOT select NYC sources',
+  );
+  expect(
+    !chicago.some((id) => id.startsWith('la-')),
+    'Chicago must NOT select LA sources',
+  );
 
-  console.log(ok ? '\n✓ registry selection + live Socrata fetch verified' : '\n✗ checks failed');
+  console.log(
+    ok
+      ? '\n✓ registry selection + live Socrata fetch verified'
+      : '\n✗ checks failed',
+  );
   process.exit(ok ? 0 : 1);
 }
 

@@ -103,7 +103,10 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
       }}
     >
       {/* Multiselect panel picker (grows to fill width) */}
-      <div ref={menuWrapRef} style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+      <div
+        ref={menuWrapRef}
+        style={{ position: 'relative', flex: 1, minWidth: 0 }}
+      >
         <button
           type="button"
           aria-haspopup="listbox"
@@ -195,7 +198,9 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
                       justifyContent: 'center',
                     }}
                   >
-                    {isSelected && <Check size={9} strokeWidth={3} color={bg} />}
+                    {isSelected && (
+                      <Check size={9} strokeWidth={3} color={bg} />
+                    )}
                   </span>
                   <span style={{ ...LABEL_STYLE, flex: 1, color: cardText }}>
                     {label}
@@ -244,7 +249,9 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
         aria-checked={showNonLive}
         onClick={onToggleShowNonLive}
         title={showNonLive ? 'Hide non-live panels' : 'Show non-live panels'}
-        aria-label={showNonLive ? 'Hide non-live panels' : 'Show non-live panels'}
+        aria-label={
+          showNonLive ? 'Hide non-live panels' : 'Show non-live panels'
+        }
         style={{
           display: 'inline-flex',
           alignItems: 'center',

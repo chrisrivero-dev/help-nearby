@@ -49,7 +49,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const { resourceSnapshot, issueType, detail } = payload;
   if (!resourceSnapshot?.name || !VALID_ISSUE_TYPES.includes(issueType)) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Missing required fields' },
+      { status: 400 },
+    );
   }
 
   const ip =
@@ -63,12 +66,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     .slice(0, 16);
 
   if (!checkRateLimit(submitterHash, 5)) {
-    return NextResponse.json({ error: 'Too many submissions.' }, { status: 429 });
+    return NextResponse.json(
+      { error: 'Too many submissions.' },
+      { status: 429 },
+    );
   }
 
   const report: ListingIssueReport = {
     id: randomUUID(),
-    resourceKey: computeResourceKey(resourceSnapshot.name, resourceSnapshot.address),
+    resourceKey: computeResourceKey(
+      resourceSnapshot.name,
+      resourceSnapshot.address,
+    ),
     resourceSnapshot: {
       name: resourceSnapshot.name,
       address: resourceSnapshot.address,

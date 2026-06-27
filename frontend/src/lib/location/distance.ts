@@ -1,10 +1,12 @@
 /** Returns the great-circle distance in miles between two lat/lng points. */
 export function haversineDistanceMiles(
-  lat1: number, lng1: number,
-  lat2: number, lng2: number,
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
 ): number {
   const R = 3958.8;
-  const toRad = (d: number) => d * Math.PI / 180;
+  const toRad = (d: number) => (d * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
   const dLng = toRad(lng2 - lng1);
   const a =

@@ -193,9 +193,7 @@ const TitleBase: FC<TitleProps> = ({
   // Get colors based on variant
   const colors = variantColors[variant] || variantColors['about'];
   const textColor = isDark ? '#e8e8e8' : '#111111';
-  const locationCellMinWidth = titleTextWidth
-    ? `${titleTextWidth}px`
-    : '16ch';
+  const locationCellMinWidth = titleTextWidth ? `${titleTextWidth}px` : '16ch';
 
   const handleRadarClick = () => {
     setIsClicked(true);
