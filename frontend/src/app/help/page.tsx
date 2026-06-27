@@ -343,19 +343,6 @@ const HelpDashboard: FC = () => {
       <NewsTicker />
 
       <PanelControlProvider value={panelControlValue}>
-        {/* Full-width OverviewPanel - above the 2-column grid. Wrapped in a
-            relatively-positioned, elevated layer so its upward hover-lift paints
-            over the NewsTicker above it instead of sliding behind it. The -2px
-            top margin overlaps the panel's top border onto the ticker's bottom
-            border so they collapse into one line at rest, while keeping the
-            border present so it shows when the panel lifts. */}
-        <div style={{ position: 'relative', zIndex: 2, marginTop: -2 }}>
-          <OverviewPanel
-            isExpanded={isOverviewExpanded}
-            onToggle={() => setIsOverviewExpanded((v) => !v)}
-          />
-        </div>
-
         {/* Left sidebar + Right main area */}
         <div
           ref={gridRef}
@@ -398,6 +385,17 @@ const HelpDashboard: FC = () => {
             }}
           >
             <PanelLayout className="panel-stack">
+              {/* Overview sits at the very top of the stack, above the control
+                  cell. When the sidebar collapses to the rail it shrinks to just
+                  its radar icon; clicking that re-expands the sidebar. */}
+              <div className="panel-slot">
+                <OverviewPanel
+                  isExpanded={isOverviewExpanded}
+                  onToggle={() => setIsOverviewExpanded((v) => !v)}
+                  collapsed={sidebarCollapsed}
+                  onExpandSidebar={() => setSidebarCollapsed(false)}
+                />
+              </div>
               {/* Static control cell. It elevates its own stacking only while
                   its dropdown is open, so the panel below can still hover-lift
                   over the control row. */}

@@ -10,11 +10,17 @@ import { PanelHeader } from './PanelHeader';
 interface OverviewPanelProps {
   isExpanded: boolean;
   onToggle: () => void;
+  /** Whether the whole sidebar is collapsed to the narrow rail. */
+  collapsed?: boolean;
+  /** Re-expand the sidebar — fired when the collapsed radar cell is clicked. */
+  onExpandSidebar?: () => void;
 }
 
 export const OverviewPanel: FC<OverviewPanelProps> = ({
   isExpanded,
   onToggle,
+  collapsed = false,
+  onExpandSidebar,
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -31,10 +37,60 @@ export const OverviewPanel: FC<OverviewPanelProps> = ({
       ? [city, state, zip].filter(Boolean).join(', ')
       : null;
 
-  // Keep NeoPanel's full default border on all four sides. The top border is
-  // collapsed onto the NewsTicker's bottom edge with a -2px wrapper margin
-  // (see page.tsx) so it doesn't double at rest, but stays present so it
-  // reappears cleanly when the panel lifts on hover.
+  // Static radar mark from the title bar (TitleBase) — the gold dot with a dark
+  // border, minus the pulsing sweep. Doubles as the entire panel body when
+  // collapsed.
+  const radarIcon = (size: number) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle
+        cx={12}
+        cy={12}
+        r={9}
+        fill="#fbbf24"
+        stroke={isDark ? '#1e1e1e' : '#000000'}
+        strokeWidth={2}
+      />
+    </svg>
+  );
+
+  // When the whole sidebar is collapsed to the rail, the panel shrinks to just
+  // the radar icon — mirroring the inert status squares the rail shows for the
+  // other panels. Clicking it re-expands the sidebar. Hover-lift is disabled:
+  // as the top entry in the sidebar's overflow:auto scroll column, an upward
+  // lift here pushes the cell's top edge above the scroll box (flush under the
+  // NewsTicker) where it gets clipped.
+  if (collapsed) {
+    const rowBg = isDark ? '#0e0e0e' : '#fafafa';
+    return (
+      <NeoPanel disableHoverLift>
+        <button
+          type="button"
+          onClick={onExpandSidebar}
+          title="Expand overview"
+          aria-label="Expand sidebar to overview"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            padding: '0.75rem 0',
+            background: rowBg,
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          {radarIcon(20)}
+        </button>
+      </NeoPanel>
+    );
+  }
+
+  // Expanded sidebar: full panel. The header always shows the OVERVIEW label
+  // left-aligned next to the radar icon; the chevron toggles only the body.
+  // Keep NeoPanel's full default border on all four sides. As the top entry in
+  // the left panel stack, its top border collapses onto the control cell below
+  // via the `.panel-stack > * + *` -2px margin rule (see globals.css) so borders
+  // never double up, while staying present so it shows when the panel lifts.
   return (
     <NeoPanel isExpanded={isExpanded}>
       <PanelHeader divider={divider} isDark={isDark} onClick={onToggle}>
@@ -45,6 +101,7 @@ export const OverviewPanel: FC<OverviewPanelProps> = ({
             gap: '0.6rem',
           }}
         >
+          {radarIcon(18)}
           <span
             style={{
               fontFamily: "'Poppins', sans-serif",
