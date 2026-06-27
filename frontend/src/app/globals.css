@@ -322,10 +322,37 @@ html.no-transitions * {
   display: flex;
   flex-direction: column;
   gap: 0;
+  /* Stretch to the full column height so the trailing filler has room to grow
+     into the space left below the panels (no effect on mobile, where the column
+     height is auto). */
+  min-height: 100%;
+}
+
+/* Filler that extends the stacked panel box down to the bottom of the sidebar
+   when the panels don't fill it. Borders match NeoPanel (dark default; light
+   override below); the top border collapses with the panel above via the
+   `.panel-stack > * + *` -2px margin rule, so borders never double up. Shrinks
+   to nothing (min-height: 0) once the panels overflow and the column scrolls. */
+.panel-stack-filler {
+  flex: 1 1 0;
+  min-height: 0;
+  background: #121212;
+  border: 2px solid #404040;
+}
+
+:root[data-theme='light'] .panel-stack-filler {
+  background: #ffffff;
+  border-color: #111111;
 }
 
 .panel-masonry.panel-stack > * {
   margin-bottom: 0;
+}
+
+/* Overlap stacked panels by their border width so adjacent 2px borders collapse
+   onto a single 2px line instead of stacking into a 4px seam. */
+.panel-masonry.panel-stack > * + * {
+  margin-top: -2px;
 }
 
 /* Mobile: 1 column */
@@ -361,8 +388,9 @@ html.no-transitions * {
   border-bottom-color: #fbbf24 !important;
 }
 
-.help-panel-header:hover *,
-.help-panel-header:hover svg {
+.help-panel-header:hover
+  *:not(.help-panel-header-controls):not(.help-panel-header-controls *),
+.help-panel-header:hover svg:not(.help-panel-header-controls svg) {
   color: var(--help-panel-header-hover-color) !important;
 }
 

@@ -25,21 +25,18 @@ export const OverviewPanel: FC<OverviewPanelProps> = ({
   const mutedText = isDark ? '#7a7a7a' : '#888888';
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
 
-  // Border color for OverviewPanel - always black like NewsTicker
-  const overviewBorder = '#000000';
-
   const locationLabel = isResolvingLocation
     ? 'Resolving location…'
     : isValid && city
       ? [city, state, zip].filter(Boolean).join(', ')
       : null;
 
+  // Keep NeoPanel's full default border on all four sides. The top border is
+  // collapsed onto the NewsTicker's bottom edge with a -2px wrapper margin
+  // (see page.tsx) so it doesn't double at rest, but stays present so it
+  // reappears cleanly when the panel lifts on hover.
   return (
-    <NeoPanel
-      style={{
-        border: `2px solid ${overviewBorder}`,
-      }}
-    >
+    <NeoPanel>
       <PanelHeader divider={divider} isDark={isDark} onClick={onToggle}>
         <div
           style={{

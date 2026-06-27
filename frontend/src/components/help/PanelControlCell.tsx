@@ -88,7 +88,10 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
     <div
       style={{
         background: bg,
-        border: `3px solid ${border}`,
+        border: `2px solid ${border}`,
+        // Drop the top border so it doesn't double against the OverviewPanel's
+        // bottom border above — the overview's edge serves as the single seam.
+        borderTop: 'none',
         padding: '0.5rem',
         display: 'flex',
         alignItems: 'center',

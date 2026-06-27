@@ -21,6 +21,7 @@ import { NYC311Panel } from '@/components/help/nyc311';
 import { UpdatesPanel } from '@/components/help/UpdatesPanel';
 import { OverviewPanel } from '@/components/help/OverviewPanel';
 import { ResourceDetailView } from '@/components/help/ResourceDetailView';
+import { ChatPanel } from '@/components/help/ChatPanel';
 import type { NearbyResource } from '@/lib/resources/schema';
 
 const HelpDashboard: FC = () => {
@@ -56,8 +57,6 @@ const HelpDashboard: FC = () => {
   }, [isMobile]);
 
   const paddingTop = `${navHeight}px`;
-  // Height of the fixed NewsTicker strip at the bottom of the viewport.
-  const tickerHeight = '42px';
 
   // ── Sidebar panel controls (driven by the top control cell) ──
   // Which panels are selected to view.
@@ -141,15 +140,15 @@ const HelpDashboard: FC = () => {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        // Full-page (desktop): fill the viewport between the fixed NavBar and
-        // the fixed NewsTicker, with no outer page scroll. Mobile falls back to
-        // a normal scrolling column.
+        // Full-page (desktop): fill the viewport below the fixed NavBar, with no
+        // outer page scroll. The NewsTicker now sits in-flow at the top (just
+        // under the NavBar). Mobile falls back to a normal scrolling column.
         height: isMobile ? 'auto' : '100vh',
         minHeight: isMobile ? '100vh' : undefined,
         overflow: isMobile ? undefined : 'hidden',
         width: '100%',
         paddingTop: paddingTop,
-        paddingBottom: isMobile ? '4rem' : tickerHeight,
+        paddingBottom: isMobile ? '1rem' : 0,
         backgroundColor: 'var(--color-bg)',
         color: 'var(--color-text)',
         boxSizing: 'border-box',
@@ -165,11 +164,18 @@ const HelpDashboard: FC = () => {
       <NewsTicker />
 
       <PanelControlProvider value={panelControlValue}>
-        {/* Full-width OverviewPanel - above the 2-column grid */}
-        <OverviewPanel
-          isExpanded={isOverviewExpanded}
-          onToggle={() => setIsOverviewExpanded((v) => !v)}
-        />
+        {/* Full-width OverviewPanel - above the 2-column grid. Wrapped in a
+            relatively-positioned, elevated layer so its upward hover-lift paints
+            over the NewsTicker above it instead of sliding behind it. The -2px
+            top margin overlaps the panel's top border onto the ticker's bottom
+            border so they collapse into one line at rest, while keeping the
+            border present so it shows when the panel lifts. */}
+        <div style={{ position: 'relative', zIndex: 2, marginTop: -2 }}>
+          <OverviewPanel
+            isExpanded={isOverviewExpanded}
+            onToggle={() => setIsOverviewExpanded((v) => !v)}
+          />
+        </div>
 
         {/* Left sidebar + Right main area */}
         <div
@@ -179,10 +185,13 @@ const HelpDashboard: FC = () => {
               ? 'minmax(0, 1fr)'
               : 'clamp(320px, 32%, 440px) minmax(0, 1fr)',
             gap: 0,
-            alignItems: 'stretch',
             width: '100%',
-            height: isMobile ? 'auto' : '100%',
+            // Desktop: grow to fill the space between the OverviewPanel and the
+            // viewport bottom, clipping so each column owns its own scroll.
+            // Mobile: natural height, scrolls with the page.
+            flex: isMobile ? undefined : '1 1 auto',
             minHeight: 0,
+            overflow: isMobile ? undefined : 'hidden',
           }}
         >
           {/* Left sidebar — control cell + all panels, tiled, with its own
@@ -242,25 +251,62 @@ const HelpDashboard: FC = () => {
               >
                 <UpdatesPanel />
               </div>
+              {/* Filler: continues the panel box's left/right/bottom borders
+                  down to the bottom of the column when the panels don't fill it,
+                  so the sidebar reads as one bordered region. Its top border
+                  collapses with the last panel via the shared -2px stack rule.
+                  Desktop only — on mobile the page scrolls and there is no gap
+                  to fill. */}
+              {!isMobile && <div className="panel-stack-filler" />}
             </PanelLayout>
           </div>
 
-          {/* Right main area — Resource Detail only (no Overview on right) */}
-          {!isMobile && selectedResource && (
+          {/* Right main area — Resource Detail scrolls in the flexible top
+              region; the Chat panel stays anchored at the bottom (above the
+              NewsTicker) and opens/closes upward with its own fluid animation.
+              Always present on desktop so the chat has a home even when no
+              resource is selected. */}
+          {!isMobile && (
             <div
               style={{
+                display: 'flex',
+                flexDirection: 'column',
                 height: '100%',
-                overflowY: 'auto',
                 minHeight: 0,
               }}
             >
-              <ResourceDetailView
-                resource={selectedResource}
-                onClose={() => setSelectedResource(null)}
-              />
+              {/* Flexible top region: grows to push the chat to the bottom and
+                  shrinks as the chat expands. Holds the detail view when a
+                  resource is selected, otherwise stays empty. */}
+              <div
+                style={{
+                  flex: '1 1 auto',
+                  overflowY: 'auto',
+                  minHeight: 0,
+                }}
+              >
+                {selectedResource && (
+                  <ResourceDetailView
+                    resource={selectedResource}
+                    onClose={() => setSelectedResource(null)}
+                  />
+                )}
+              </div>
+              {/* Bottom-anchored chat. flex-shrink keeps it bounded by the
+                  column; its messages area scrolls internally. The -2px left
+                  margin overlaps the chat's left border onto the sidebar's
+                  right border so the two 2px borders collapse into one line
+                  instead of doubling into a 4px seam (align-items: stretch
+                  keeps the right edge flush with the column). */}
+              <div style={{ flex: '0 1 auto', minHeight: 0, marginLeft: -2 }}>
+                <ChatPanel />
+              </div>
             </div>
           )}
         </div>
+
+        {/* Mobile: chat stacks at the bottom of the page at natural height. */}
+        {isMobile && <ChatPanel />}
       </PanelControlProvider>
     </motion.main>
   );

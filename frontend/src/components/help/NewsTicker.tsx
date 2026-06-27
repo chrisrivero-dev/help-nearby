@@ -99,7 +99,9 @@ export const NewsTicker: FC = () => {
   const tickerBg = isDark
     ? 'linear-gradient(90deg, #111314 0%, #0d0f12 100%)'
     : 'linear-gradient(90deg, #f7f8fa 0%, #f4f5f7 100%)';
-  const tickerBorder = '#000000';
+  // Match NeoPanel's theme-aware border so the ticker blends with every other
+  // panel (dark: #404040, light: #111111).
+  const tickerBorder = isDark ? '#404040' : '#111111';
   const tickerShadow = isDark
     ? '2px 2px 0px rgba(0,0,0,0.5)'
     : '2px 2px 0px rgba(0,0,0,0.04)';
@@ -107,16 +109,15 @@ export const NewsTicker: FC = () => {
   return (
     <div
       style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1001,
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
         height: 42,
         background: tickerBg,
         border: `2px solid ${tickerBorder}`,
+        // Drop the top border so it doesn't double against the NavBar's bottom
+        // border above — the NavBar edge serves as the single seam.
+        borderTop: 'none',
         boxShadow: tickerShadow,
         flexShrink: 0,
         whiteSpace: 'nowrap',

@@ -21,18 +21,20 @@ export const PanelHeader: FC<PanelHeaderProps> = ({
   return (
     <div
       className="help-panel-header"
-      style={{
-        '--help-panel-header-hover-color': isDark ? '#121212' : '#ffffff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '1rem 1.4rem',
-        borderBottom: `1px solid ${divider}`,
-        backgroundColor: hovered ? '#fbbf24' : 'transparent',
-        color: hovered ? (isDark ? '#121212' : '#ffffff') : undefined,
-        cursor: 'pointer',
-        transition: 'background-color 0.2s ease, color 0.2s ease',
-      } as CSSProperties}
+      style={
+        {
+          '--help-panel-header-hover-color': isDark ? '#121212' : '#ffffff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '1rem 1.4rem',
+          borderBottom: `1px solid ${divider}`,
+          backgroundColor: hovered ? '#fbbf24' : 'transparent',
+          color: hovered ? (isDark ? '#121212' : '#ffffff') : undefined,
+          cursor: 'pointer',
+          transition: 'background-color 0.2s ease, color 0.2s ease',
+        } as CSSProperties
+      }
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
