@@ -1,17 +1,28 @@
 'use client';
 
 import type { FC, FormEvent } from 'react';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useTheme } from '@/components/useTheme';
 import { NeoPanel } from './NeoPanel';
 import { PanelHeader } from './PanelHeader';
 import { OllamaMessage } from '@/app/api/ollama/route';
+import { useLocationContext } from './LocationContext';
+import { useDetail, useGrounding } from './DashboardContext';
+import type { DetailDescriptor } from './DashboardContext';
+import {
+  buildGroundingSystemPrompt,
+  summarizeGrounding,
+} from '@/lib/chat/buildGroundingPrompt';
+import { parseDetailMarkers } from '@/lib/chat/parseDetailMarkers';
 
 // Chat message interface
 interface ChatMessage extends OllamaMessage {
   id: string;
   timestamp: number;
+  /** Locally-generated (e.g. grounding check) — shown in the UI but not sent to
+   *  the model as conversation history. */
+  local?: boolean;
 }
 
 // Model info interface
@@ -59,6 +70,9 @@ export const ChatPanel: FC<ChatPanelProps> = ({
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const location = useLocationContext();
+  const { detail, openDetail } = useDetail();
+  const { panelGrounding } = useGrounding();
   const [isModelLoading, setIsModelLoading] = useState(true);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
@@ -74,6 +88,18 @@ export const ChatPanel: FC<ChatPanelProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Map every openable item (across all panels) by id, so `[[open:<id>]]`
+  // markers in assistant replies resolve back to a real detail descriptor.
+  const descriptorsById = useMemo(() => {
+    const map = new Map<string, DetailDescriptor>();
+    for (const panel of Object.values(panelGrounding)) {
+      for (const item of panel.items) {
+        map.set(item.descriptor.id, item.descriptor);
+      }
+    }
+    return map;
+  }, [panelGrounding]);
 
   // Load available models on mount
   useEffect(() => {
@@ -129,24 +155,33 @@ export const ChatPanel: FC<ChatPanelProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle form submission
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!inputMessage.trim() || !selectedModel || isChatLoading) return;
+  // Core send path for the input form.
+  const sendMessage = async (content: string) => {
+    const trimmed = content.trim();
+    if (!trimmed || !selectedModel || isChatLoading) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputMessage.trim(),
+      content: trimmed,
       timestamp: Date.now(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputMessage('');
     setError(null);
+    setIsChatLoading(true);
 
     // Create new abort controller for this request
     abortControllerRef.current = new AbortController();
+
+    // Ground the model in the current page context (location → open detail →
+    // panel lists). Rebuilt per send so it always reflects the latest state, and
+    // kept out of the visible `messages` history.
+    const systemPrompt = buildGroundingSystemPrompt({
+      location,
+      detail,
+      panelGrounding,
+    });
 
     try {
       const res = await fetch('/api/ollama/chat', {
@@ -155,8 +190,13 @@ export const ChatPanel: FC<ChatPanelProps> = ({
         body: JSON.stringify({
           model: selectedModel,
           messages: [
-            ...messages,
-            { role: 'user', content: userMessage.content },
+            ...(systemPrompt
+              ? [{ role: 'system' as const, content: systemPrompt }]
+              : []),
+            ...messages
+              .filter((m) => !m.local)
+              .map((m) => ({ role: m.role, content: m.content })),
+            { role: 'user', content: trimmed },
           ],
           stream: false,
         }),
@@ -194,6 +234,32 @@ export const ChatPanel: FC<ChatPanelProps> = ({
     }
   };
 
+  // Handle form submission
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    const content = inputMessage.trim();
+    if (!content) return;
+    setInputMessage('');
+    void sendMessage(content);
+  };
+
+  // Verify grounding deterministically — no model round-trip. Appends a local
+  // readout of the location + active panels the chat is currently grounded in,
+  // so grounding can be confirmed instantly without taxing a small model.
+  const verifyGrounding = useCallback(() => {
+    const digest = summarizeGrounding({ location, detail, panelGrounding });
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `verify-${Date.now()}`,
+        role: 'assistant',
+        content: digest,
+        timestamp: Date.now(),
+        local: true,
+      },
+    ]);
+  }, [location, detail, panelGrounding]);
+
   // Stop the current LLM request
   const handleStop = useCallback(() => {
     if (abortControllerRef.current) {
@@ -211,6 +277,41 @@ export const ChatPanel: FC<ChatPanelProps> = ({
 
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#7a7a7a' : '#888';
+
+  // Render an assistant message, turning [[open:<id>]] markers into clickable
+  // chips that open the referenced item in the DetailView. Unknown ids (e.g. a
+  // model citing a stale id) fall back to plain text so nothing breaks.
+  const renderAssistantContent = (content: string) =>
+    parseDetailMarkers(content).map((seg, i) => {
+      if (seg.type === 'text') return <span key={i}>{seg.text}</span>;
+      const descriptor = descriptorsById.get(seg.id);
+      if (!descriptor) return null;
+      return (
+        <button
+          key={i}
+          type="button"
+          onClick={() => openDetail(descriptor)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            margin: '0 0.15rem',
+            padding: '0.1rem 0.4rem',
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            color: '#000',
+            background: '#fbbf24',
+            border: `1px solid ${isDark ? '#a16207' : '#111111'}`,
+            borderRadius: 4,
+            cursor: 'pointer',
+            verticalAlign: 'baseline',
+          }}
+          title={`Open ${descriptor.title}`}
+        >
+          {descriptor.title}
+        </button>
+      );
+    });
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
   const inputBg = isDark ? '#0a0a0a' : '#fafafa';
   const inputBorder = isDark ? '#252525' : '#e4e4e4';
@@ -394,6 +495,43 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                   <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                 </svg>
               )}
+            </button>
+            {/* Verify context — appends a local, model-free readout of the
+                location + active panels the chat is currently grounded in. */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                verifyGrounding();
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 24,
+                height: 24,
+                padding: 0,
+                border: `2px solid ${isDark ? '#fbbf24' : '#fbbf24'}`,
+                background: isDark ? inputBg : '#f9f9f9',
+                borderRadius: 4,
+                cursor: 'pointer',
+                transition: 'background-color 0.2s ease',
+              }}
+              title="Verify grounding — show the location and panels the chat can see"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={isDark ? '#fbbf24' : '#fbbf24'}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 12l2 2 4-4" />
+                <path d="M12 3a9 9 0 1 0 9 9" />
+              </svg>
             </button>
             {/* Clear chat — resets the conversation to start fresh context */}
             <button
@@ -633,6 +771,26 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                   >
                     Type a message below to start a conversation
                   </div>
+                  <button
+                    type="button"
+                    onClick={verifyGrounding}
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.62rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: isDark ? '#fbbf24' : '#92400e',
+                      background: 'transparent',
+                      border: `1px solid ${isDark ? '#a16207' : '#fbbf24'}`,
+                      borderRadius: 4,
+                      padding: '0.4rem 0.7rem',
+                      cursor: 'pointer',
+                    }}
+                    title="Show the location and panels the chat can see"
+                  >
+                    Verify context
+                  </button>
                 </div>
               ) : (
                 <div
@@ -669,7 +827,11 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                               msg.role === 'user' ? highlightColor : mutedText,
                           }}
                         >
-                          {msg.role === 'user' ? 'You' : 'AI Assistant'}
+                          {msg.local
+                            ? 'Grounding'
+                            : msg.role === 'user'
+                              ? 'You'
+                              : 'AI Assistant'}
                         </span>
                         <span
                           style={{
@@ -699,9 +861,12 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                                 : '#f9f9f9',
                           border: `1px solid ${msg.role === 'user' ? inputBorder : divider}`,
                           borderRadius: 4,
+                          whiteSpace: 'pre-wrap',
                         }}
                       >
-                        {msg.content}
+                        {msg.role === 'assistant'
+                          ? renderAssistantContent(msg.content)
+                          : msg.content}
                       </div>
                     </div>
                   ))}

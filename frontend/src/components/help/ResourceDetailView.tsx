@@ -6,6 +6,7 @@ import { useTheme } from '@/components/useTheme';
 import type { NearbyResource, SourceType } from '@/lib/resources/schema';
 import { CATEGORY_LABELS } from '@/lib/resources/categories';
 import { useLocationContext } from './LocationContext';
+import type { DetailDescriptor } from './DashboardContext';
 
 // Intentionally duplicated from ResourcesPanel — do not consolidate without
 // Mike's sign-off; keeps this view independently reversible.
@@ -65,6 +66,11 @@ interface ResourceDetailViewProps {
   onClose: () => void;
 }
 
+interface ResourceDetailRendererProps {
+  descriptor: DetailDescriptor<NearbyResource>;
+  onClose: () => void;
+}
+
 const SectionLabel: FC<{ children: string }> = ({ children }) => (
   <p
     style={{
@@ -107,6 +113,14 @@ const ProvenanceRow: FC<{ label: string; sourceName: string }> = ({
     <span>{sourceName}</span>
   </div>
 );
+
+// Renderer registered with the universal DetailView for `kind === 'resource'`.
+// Unwraps the descriptor's payload into the existing resource view so the rich
+// resource-specific layout below stays intact.
+export const ResourceDetailRenderer: FC<ResourceDetailRendererProps> = ({
+  descriptor,
+  onClose,
+}) => <ResourceDetailView resource={descriptor.payload} onClose={onClose} />;
 
 export const ResourceDetailView: FC<ResourceDetailViewProps> = ({
   resource: r,

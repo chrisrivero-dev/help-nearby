@@ -20,9 +20,12 @@ import { CommunityPanel } from '@/components/help/CommunityPanel';
 import { NYC311Panel } from '@/components/help/nyc311';
 import { UpdatesPanel } from '@/components/help/UpdatesPanel';
 import { OverviewPanel } from '@/components/help/OverviewPanel';
-import { ResourceDetailView } from '@/components/help/ResourceDetailView';
+import { DetailView } from '@/components/help/DetailView';
 import { ChatPanel } from '@/components/help/ChatPanel';
-import type { NearbyResource } from '@/lib/resources/schema';
+import {
+  DashboardProvider,
+  useDetail,
+} from '@/components/help/DashboardContext';
 
 const MIN_SPLIT_PANE_HEIGHT = 220;
 const SPLIT_DIVIDER_HEIGHT = 0;
@@ -46,8 +49,8 @@ const HelpDashboard: FC = () => {
   const [isChatExpanded, setIsChatExpanded] = useState(true);
   // Detect mobile for responsive layout
   const [isMobile, setIsMobile] = useState(false);
-  const [selectedResource, setSelectedResource] =
-    useState<NearbyResource | null>(null);
+  // The item open in the universal DetailView, driven by any panel (or chat).
+  const { detail } = useDetail();
   const rightColumnRef = useRef<HTMLDivElement>(null);
   const [rightColumnHeight, setRightColumnHeight] = useState(0);
   const [chatPaneRatio, setChatPaneRatio] = useState(0.5);
@@ -172,7 +175,7 @@ const HelpDashboard: FC = () => {
     isPanelVisible(id) ? undefined : 'none';
 
   const showDesktopSplitDivider =
-    !isMobile && !!selectedResource && isChatExpanded;
+    !isMobile && !!detail && isChatExpanded;
   const chatPaneHeight =
     showDesktopSplitDivider && rightColumnHeight > 0
       ? clampChatPaneHeight(
@@ -315,10 +318,7 @@ const HelpDashboard: FC = () => {
                 className="panel-slot"
                 style={{ display: panelDisplay('resources') }}
               >
-                <ResourcesPanel
-                  onSelectResource={isMobile ? undefined : setSelectedResource}
-                  selectedResourceId={selectedResource?.id}
-                />
+                <ResourcesPanel detailEnabled={!isMobile} />
               </div>
               <div
                 className="panel-slot"
@@ -366,19 +366,12 @@ const HelpDashboard: FC = () => {
               <div
                 style={{
                   flex:
-                    !selectedResource && isChatExpanded
-                      ? '0 0 auto'
-                      : '1 1 auto',
+                    !detail && isChatExpanded ? '0 0 auto' : '1 1 auto',
                   overflowY: 'auto',
                   minHeight: 0,
                 }}
               >
-                {selectedResource && (
-                  <ResourceDetailView
-                    resource={selectedResource}
-                    onClose={() => setSelectedResource(null)}
-                  />
-                )}
+                <DetailView />
               </div>
               {showDesktopSplitDivider && (
                 <div
@@ -458,7 +451,11 @@ const HelpDashboard: FC = () => {
 };
 
 const HelpPage: FC = () => {
-  return <HelpDashboard />;
+  return (
+    <DashboardProvider>
+      <HelpDashboard />
+    </DashboardProvider>
+  );
 };
 
 export default HelpPage;

@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Plus, Search, X } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
+import { useDetail, useGrounding } from './DashboardContext';
+import type { DetailDescriptor, GroundingItem } from './DashboardContext';
 import { NeoPanel } from './NeoPanel';
 import { PanelHeader } from './PanelHeader';
 import { usePanelControl } from './PanelControlContext';
@@ -67,6 +69,36 @@ const formatChecked = (iso?: string) => {
     minute: '2-digit',
   });
 };
+
+// Cap on how many filtered resources we expose to the chat grounding bus, to
+// bound the system-prompt token cost.
+const GROUNDING_ITEM_CAP = 25;
+
+// One-line summary of a resource for the chat (and the detail descriptor's
+// groundingSummary). Reuses the same address/distance formatting as the cards.
+const resourceGroundingText = (r: NearbyResource): string => {
+  const parts = [r.name];
+  const categoryLabel = CATEGORY_LABELS[r.category] ?? r.category;
+  if (categoryLabel) parts.push(categoryLabel);
+  if (typeof r.distanceMiles === 'number')
+    parts.push(formatDist(r.distanceMiles));
+  const address = formatResourceAddress(r);
+  if (address) parts.push(address);
+  if (r.phone) parts.push(r.phone);
+  return parts.join(' · ');
+};
+
+// Build the panel-agnostic detail descriptor for a resource row, so opening from
+// a card click and opening from a chat marker produce identical detail items.
+const toResourceDescriptor = (
+  r: NearbyResource,
+): DetailDescriptor<NearbyResource> => ({
+  kind: 'resource',
+  id: r.id,
+  title: r.name,
+  payload: r,
+  groundingSummary: resourceGroundingText(r),
+});
 
 interface ResourceCardProps {
   r: NearbyResource;
@@ -449,8 +481,8 @@ const PaginationControls: FC<PaginationControlsProps> = ({
 );
 
 interface ResourcesPanelProps {
-  onSelectResource?: (r: NearbyResource) => void;
-  selectedResourceId?: string;
+  /** When false (mobile, no detail column), rows don't open the DetailView. */
+  detailEnabled?: boolean;
 }
 
 interface ResourcesPanelFiltersState {
@@ -461,13 +493,16 @@ interface ResourcesPanelFiltersState {
 }
 
 export const ResourcesPanel: FC<ResourcesPanelProps> = ({
-  onSelectResource,
-  selectedResourceId,
+  detailEnabled = true,
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const { latitude, longitude, isValid, isResolvingLocation } =
     useLocationContext();
+  const { detail, openDetail } = useDetail();
+  const { publishPanelGrounding } = useGrounding();
+  const selectedResourceId =
+    detail?.kind === 'resource' ? detail.id : undefined;
 
   const [expandedState, setExpandedState] = useState({
     value: true,
@@ -655,6 +690,45 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
   );
 
   const filtersActive = query.trim().length > 0 || activeCategories.length > 0;
+
+  // Publish a grounding snapshot of the filtered list so the chat panel can see
+  // the resources currently shown here. Capped to bound prompt size; publishes
+  // null when there's nothing usable so stale context clears.
+  useEffect(() => {
+    if (!filteredResources || filteredResources.length === 0) {
+      publishPanelGrounding('resources', null);
+      return;
+    }
+    const items: GroundingItem[] = filteredResources
+      .slice(0, GROUNDING_ITEM_CAP)
+      .map((r) => ({
+        descriptor: toResourceDescriptor(r),
+        groundingText: resourceGroundingText(r),
+      }));
+    publishPanelGrounding('resources', {
+      panelId: 'resources',
+      label: 'Resources',
+      items,
+      totalCount: filteredResources.length,
+      filters: {
+        query: query.trim() || undefined,
+        categories: activeCategories.length
+          ? activeCategories.map((c) => CATEGORY_LABELS[c] ?? c)
+          : undefined,
+      },
+    });
+  }, [
+    filteredResources,
+    query,
+    activeCategories,
+    publishPanelGrounding,
+  ]);
+
+  // Clear this panel's grounding when it unmounts.
+  useEffect(
+    () => () => publishPanelGrounding('resources', null),
+    [publishPanelGrounding],
+  );
 
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#7a7a7a' : '#888';
@@ -1048,7 +1122,9 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
                       }
                       isSelected={selectedResourceId === r.id}
                       onSelect={
-                        onSelectResource ? () => onSelectResource(r) : undefined
+                        detailEnabled
+                          ? () => openDetail(toResourceDescriptor(r))
+                          : undefined
                       }
                     />
                   ))
