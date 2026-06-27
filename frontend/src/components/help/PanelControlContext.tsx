@@ -32,6 +32,12 @@ export interface PanelStatus {
   available: boolean;
   /** Whether the panel's source is live (green / connected API). */
   live: boolean;
+  /** Whether the panel is currently fetching. Mirrors what the panel feeds its
+   *  header PanelStatusSquare so the collapsed rail renders the same indicator. */
+  loading: boolean;
+  /** Whether the panel's data is healthy (green) vs failed (red), same as the
+   *  `ok` it passes to its header PanelStatusSquare. */
+  ok: boolean;
 }
 
 export interface PanelControlValue {

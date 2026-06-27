@@ -103,8 +103,13 @@ export const UpdatesPanel: FC = () => {
   const panelControl = usePanelControl();
   const panelLive = isLive && !loading;
   useEffect(() => {
-    panelControl?.reportStatus('updates', { available: true, live: panelLive });
-  }, [panelControl, panelLive]);
+    panelControl?.reportStatus('updates', {
+      available: true,
+      live: panelLive,
+      loading,
+      ok: isLive,
+    });
+  }, [panelControl, panelLive, loading, isLive]);
   const expandNonce = panelControl?.expandSignal.nonce ?? 0;
   const expandValue = panelControl?.expandSignal.value ?? true;
   useEffect(() => {

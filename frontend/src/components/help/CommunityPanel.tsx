@@ -340,8 +340,10 @@ export const CommunityPanel: FC = () => {
     panelControl?.reportStatus('community', {
       available: true,
       live: panelLive,
+      loading: busy,
+      ok: communityOk,
     });
-  }, [panelControl, panelLive]);
+  }, [panelControl, panelLive, busy, communityOk]);
   const expandNonce = panelControl?.expandSignal.nonce ?? 0;
   const expandValue = panelControl?.expandSignal.value ?? true;
   useEffect(() => {

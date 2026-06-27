@@ -294,8 +294,13 @@ export const NYC311Panel: FC = () => {
   const available = maybeNyc && (!loaded || applies);
   const panelLive = available && sources.length > 0 && !busy && !error;
   useEffect(() => {
-    panelControl?.reportStatus('nyc311', { available, live: panelLive });
-  }, [panelControl, available, panelLive]);
+    panelControl?.reportStatus('nyc311', {
+      available,
+      live: panelLive,
+      loading: busy,
+      ok: !error,
+    });
+  }, [panelControl, available, panelLive, busy, error]);
   const expandNonce = panelControl?.expandSignal.nonce ?? 0;
   const expandValue = panelControl?.expandSignal.value ?? true;
   useEffect(() => {

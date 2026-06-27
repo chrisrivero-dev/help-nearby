@@ -2,7 +2,7 @@
 
 import type { CSSProperties, FC } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { type HelpPanelId } from './PanelControlContext';
 
@@ -20,6 +20,9 @@ interface PanelControlCellProps {
   /** When false, non-live panels are hidden. */
   showNonLive: boolean;
   onToggleShowNonLive: () => void;
+  /** Whether the whole sidebar is collapsed to the status rail. */
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
 }
 
 const LABEL_STYLE: CSSProperties = {
@@ -43,6 +46,8 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
   onToggleExpandAll,
   showNonLive,
   onToggleShowNonLive,
+  collapsed,
+  onToggleCollapsed,
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -84,6 +89,34 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
     cursor: 'pointer',
   });
 
+  // Collapsed: only the expand chevron fits in the narrow rail width. The rail
+  // of per-panel status indicators renders below this (in page.tsx).
+  if (collapsed) {
+    return (
+      <div
+        style={{
+          background: bg,
+          border: `2px solid ${border}`,
+          borderTop: 'none',
+          padding: '0.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          title="Expand sidebar"
+          aria-label="Expand sidebar"
+          style={iconBtn(false)}
+        >
+          <ChevronRight size={18} strokeWidth={3} color={cardText} />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
@@ -102,6 +135,17 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
         zIndex: menuOpen ? 40 : undefined,
       }}
     >
+      {/* Collapse the whole sidebar to the status rail */}
+      <button
+        type="button"
+        onClick={onToggleCollapsed}
+        title="Collapse sidebar"
+        aria-label="Collapse sidebar"
+        style={iconBtn(false)}
+      >
+        <ChevronLeft size={18} strokeWidth={3} color={cardText} />
+      </button>
+
       {/* Multiselect panel picker (grows to fill width) */}
       <div
         ref={menuWrapRef}

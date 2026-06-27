@@ -742,8 +742,10 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
     panelControl?.reportStatus('resources', {
       available: true,
       live: panelLive,
+      loading: nearbyRefreshing,
+      ok: sources.some((s) => s.ok),
     });
-  }, [panelControl, panelLive]);
+  }, [panelControl, panelLive, nearbyRefreshing, sources]);
   const expandNonce = panelControl?.expandSignal.nonce ?? 0;
   const expandValue = panelControl?.expandSignal.value ?? true;
   const isExpanded =

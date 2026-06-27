@@ -22,6 +22,7 @@ import { UpdatesPanel } from '@/components/help/UpdatesPanel';
 import { OverviewPanel } from '@/components/help/OverviewPanel';
 import { DetailView } from '@/components/help/DetailView';
 import { ChatPanel } from '@/components/help/ChatPanel';
+import { SidebarRail } from '@/components/help/SidebarRail';
 import {
   DashboardProvider,
   useDetail,
@@ -29,6 +30,22 @@ import {
 
 const MIN_SPLIT_PANE_HEIGHT = 220;
 const SPLIT_DIVIDER_HEIGHT = 0;
+
+// Vertical (left/right column) split.
+const MIN_SIDEBAR_WIDTH = 300;
+const MIN_MAIN_WIDTH = 360;
+const COLUMN_DIVIDER_WIDTH = 0;
+const DEFAULT_SIDEBAR_WIDTH = 360;
+// Width of the sidebar when collapsed to the status rail.
+const COLLAPSED_SIDEBAR_WIDTH = 52;
+
+const clampSidebarWidth = (width: number, containerWidth: number) => {
+  const max = Math.max(
+    MIN_SIDEBAR_WIDTH,
+    containerWidth - MIN_MAIN_WIDTH - COLUMN_DIVIDER_WIDTH,
+  );
+  return Math.min(Math.max(width, MIN_SIDEBAR_WIDTH), max);
+};
 
 const clampChatPaneHeight = (height: number, columnHeight: number) => {
   const availableHeight = Math.max(
@@ -54,6 +71,11 @@ const HelpDashboard: FC = () => {
   const rightColumnRef = useRef<HTMLDivElement>(null);
   const [rightColumnHeight, setRightColumnHeight] = useState(0);
   const [chatPaneRatio, setChatPaneRatio] = useState(0.5);
+  // Left/right column split — width of the sidebar in px, drag-resizable.
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+  // Whether the whole sidebar is collapsed to the narrow status rail.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -97,6 +119,21 @@ const HelpDashboard: FC = () => {
     return () => ro.disconnect();
   }, [isMobile]);
 
+  // Keep the sidebar width within bounds as the grid container resizes.
+  useEffect(() => {
+    if (isMobile) return;
+    const grid = gridRef.current;
+    if (!grid) return;
+    const clamp = () => {
+      const width = grid.getBoundingClientRect().width;
+      setSidebarWidth((prev) => clampSidebarWidth(prev, width));
+    };
+    clamp();
+    const ro = new ResizeObserver(clamp);
+    ro.observe(grid);
+    return () => ro.disconnect();
+  }, [isMobile]);
+
   // ── Sidebar panel controls (driven by the top control cell) ──
   // Which panels are selected to view.
   const [selectedPanels, setSelectedPanels] = useState<Set<HelpPanelId>>(
@@ -110,7 +147,12 @@ const HelpDashboard: FC = () => {
     () => {
       const init = {} as Record<HelpPanelId, PanelStatus>;
       for (const p of HELP_PANELS) {
-        init[p.id] = { available: p.id !== 'nyc311', live: false };
+        init[p.id] = {
+          available: p.id !== 'nyc311',
+          live: false,
+          loading: true,
+          ok: false,
+        };
       }
       return init;
     },
@@ -128,7 +170,9 @@ const HelpDashboard: FC = () => {
       if (
         cur &&
         cur.available === status.available &&
-        cur.live === status.live
+        cur.live === status.live &&
+        cur.loading === status.loading &&
+        cur.ok === status.ok
       ) {
         return prev;
       }
@@ -171,11 +215,26 @@ const HelpDashboard: FC = () => {
     !!statuses[id]?.available &&
     selectedPanels.has(id) &&
     (showNonLive || !!statuses[id]?.live);
+  // When collapsed, every slot is hidden (but kept mounted so panels keep
+  // reporting status) — the rail renders the visible content instead.
   const panelDisplay = (id: HelpPanelId) =>
-    isPanelVisible(id) ? undefined : 'none';
+    !sidebarCollapsed && isPanelVisible(id) ? undefined : 'none';
 
-  const showDesktopSplitDivider =
-    !isMobile && !!detail && isChatExpanded;
+  // Expand the sidebar and scroll a panel into view. Slots are display:none
+  // while collapsed, so wait two frames for the expand to lay them out before
+  // scrolling.
+  const expandToPanel = useCallback((id: HelpPanelId) => {
+    setSidebarCollapsed(false);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document
+          .getElementById(`panel-slot-${id}`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  }, []);
+
+  const showDesktopSplitDivider = !isMobile && !!detail && isChatExpanded;
   const chatPaneHeight =
     showDesktopSplitDivider && rightColumnHeight > 0
       ? clampChatPaneHeight(
@@ -218,6 +277,41 @@ const HelpDashboard: FC = () => {
       window.addEventListener('pointercancel', stopDragging);
     },
     [rightColumnHeight],
+  );
+
+  const handleColumnPointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      const grid = gridRef.current;
+      if (!grid) return;
+
+      event.preventDefault();
+      event.currentTarget.setPointerCapture(event.pointerId);
+
+      const gridRect = grid.getBoundingClientRect();
+
+      const updateFromPointer = (clientX: number) => {
+        setSidebarWidth(
+          clampSidebarWidth(clientX - gridRect.left, gridRect.width),
+        );
+      };
+
+      updateFromPointer(event.clientX);
+
+      const handlePointerMove = (moveEvent: PointerEvent) => {
+        updateFromPointer(moveEvent.clientX);
+      };
+
+      const stopDragging = () => {
+        window.removeEventListener('pointermove', handlePointerMove);
+        window.removeEventListener('pointerup', stopDragging);
+        window.removeEventListener('pointercancel', stopDragging);
+      };
+
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerup', stopDragging);
+      window.addEventListener('pointercancel', stopDragging);
+    },
+    [],
   );
 
   return (
@@ -264,11 +358,17 @@ const HelpDashboard: FC = () => {
 
         {/* Left sidebar + Right main area */}
         <div
+          ref={gridRef}
           style={{
             display: 'grid',
+            // Collapsed: two tracks (rail + main) — the drag divider isn't
+            // rendered, so omitting its track keeps the main column from being
+            // auto-placed into an empty 0px track (which zeroed its width).
             gridTemplateColumns: isMobile
               ? 'minmax(0, 1fr)'
-              : 'clamp(320px, 32%, 440px) minmax(0, 1fr)',
+              : sidebarCollapsed
+                ? `${COLLAPSED_SIDEBAR_WIDTH}px minmax(0, 1fr)`
+                : `${sidebarWidth}px ${COLUMN_DIVIDER_WIDTH}px minmax(0, 1fr)`,
             gap: 0,
             width: '100%',
             // Desktop: grow to fill the space between the OverviewPanel and the
@@ -286,8 +386,11 @@ const HelpDashboard: FC = () => {
         >
           {/* Left sidebar — control cell + all panels, tiled, with its own
               scroll. The container clips at the flush NavBar edge so an upward
-              hover-lift on the top panel slides under the bar, not over it. */}
+              hover-lift on the top panel slides under the bar, not over it. The
+              `empty-region` class darkens the area below the last panel so the
+              empty space reads as inert. */}
           <div
+            className="empty-region"
             style={{
               height: isMobile ? 'auto' : '100%',
               overflowY: isMobile ? 'visible' : 'auto',
@@ -307,46 +410,104 @@ const HelpDashboard: FC = () => {
                 onToggleExpandAll={toggleExpandAll}
                 showNonLive={showNonLive}
                 onToggleShowNonLive={() => setShowNonLive((v) => !v)}
+                collapsed={sidebarCollapsed}
+                onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
               />
               <div
+                id="panel-slot-alerts"
                 className="panel-slot"
                 style={{ display: panelDisplay('alerts') }}
               >
                 <AlertPanel />
               </div>
               <div
+                id="panel-slot-resources"
                 className="panel-slot"
                 style={{ display: panelDisplay('resources') }}
               >
                 <ResourcesPanel detailEnabled={!isMobile} />
               </div>
               <div
+                id="panel-slot-community"
                 className="panel-slot"
                 style={{ display: panelDisplay('community') }}
               >
                 <CommunityPanel />
               </div>
               <div
+                id="panel-slot-nyc311"
                 className="panel-slot"
                 style={{ display: panelDisplay('nyc311') }}
               >
                 <NYC311Panel />
               </div>
               <div
+                id="panel-slot-updates"
                 className="panel-slot"
                 style={{ display: panelDisplay('updates') }}
               >
                 <UpdatesPanel />
               </div>
-              {/* Filler: continues the panel box's left/right/bottom borders
-                  down to the bottom of the column when the panels don't fill it,
-                  so the sidebar reads as one bordered region. Its top border
-                  collapses with the last panel via the shared -2px stack rule.
-                  Desktop only — on mobile the page scrolls and there is no gap
-                  to fill. */}
-              {!isMobile && <div className="panel-stack-filler" />}
+              {/* Collapsed: the status rail is the visible body (panels above
+                  stay mounted but display:none so they keep reporting status).
+                  Expanded desktop: a filler continues the panel box's borders to
+                  the bottom of the column when the panels don't fill it. Both
+                  collapse their top border onto the cell above via the -2px rule.
+                  Mobile: the page scrolls, no gap to fill. */}
+              {sidebarCollapsed ? (
+                <SidebarRail
+                  panels={availablePanels}
+                  statuses={statuses}
+                  onExpandToPanel={expandToPanel}
+                />
+              ) : (
+                !isMobile && <div className="panel-stack-filler" />
+              )}
             </PanelLayout>
           </div>
+
+          {/* Vertical split handle — drag to resize the sidebar / main columns.
+              Occupies the grid's middle track and draws a single seam line with
+              a yellow grip, mirroring the horizontal pane divider. Hidden while
+              the sidebar is collapsed to the fixed-width rail. */}
+          {!isMobile && !sidebarCollapsed && (
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize sidebar and main panes"
+              onPointerDown={handleColumnPointerDown}
+              style={{
+                position: 'relative',
+                // Above the right column's horizontal split divider (zIndex 4) so
+                // the sidebar grip paints over it where the two seams cross.
+                zIndex: 6,
+                cursor: 'col-resize',
+                touchAction: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--color-bg)',
+              }}
+            >
+              <div
+                style={{
+                  width: 2,
+                  height: '100%',
+                  background: 'var(--color-text)',
+                  opacity: 0.9,
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  width: 4,
+                  height: 42,
+                  background: '#fbbf24',
+                  border: '1px solid var(--color-text)',
+                }}
+              />
+            </div>
+          )}
 
           {/* Right main area — Resource Detail and Chat share this desktop
               workspace. When both are open, a horizontal split handle lets the
@@ -364,9 +525,9 @@ const HelpDashboard: FC = () => {
               }}
             >
               <div
+                className="empty-region"
                 style={{
-                  flex:
-                    !detail && isChatExpanded ? '0 0 auto' : '1 1 auto',
+                  flex: !detail && isChatExpanded ? '0 0 auto' : '1 1 auto',
                   overflowY: 'auto',
                   minHeight: 0,
                 }}
@@ -396,8 +557,8 @@ const HelpDashboard: FC = () => {
                   <div
                     style={{
                       width: '100%',
-                      height: 2,
-                      background: 'var(--color-text)',
+                      // height: 2,
+                      // background: 'var(--color-text)',
                       opacity: 0.9,
                     }}
                   />

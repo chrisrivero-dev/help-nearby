@@ -332,17 +332,31 @@ html.no-transitions * {
    when the panels don't fill it. Borders match NeoPanel (dark default; light
    override below); the top border collapses with the panel above via the
    `.panel-stack > * + *` -2px margin rule, so borders never double up. Shrinks
-   to nothing (min-height: 0) once the panels overflow and the column scrolls. */
+   to nothing (min-height: 0) once the panels overflow and the column scrolls.
+   Its fill is darker than the panel surface to read as inert "empty space". */
 .panel-stack-filler {
   flex: 1 1 0;
   min-height: 0;
-  background: #121212;
+  background: #0a0a0a;
   border: 2px solid #404040;
 }
 
 :root[data-theme='light'] .panel-stack-filler {
-  background: #ffffff;
+  background: #ececec;
   border-color: #111111;
+}
+
+/* Darkened backdrop for a content region (the sidebar scroll column and the
+   right-side detail pane). The panels / detail content paint their own opaque
+   surfaces on top, so this only shows in the empty area — marking it as inert
+   "empty space" even when a filler has collapsed or content doesn't reach the
+   bottom. */
+.empty-region {
+  background: #0a0a0a;
+}
+
+:root[data-theme='light'] .empty-region {
+  background: #ececec;
 }
 
 .panel-masonry.panel-stack > * {

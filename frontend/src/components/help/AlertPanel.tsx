@@ -212,8 +212,13 @@ export const AlertPanel: FC = () => {
   const panelLive =
     sources.length > 0 && !weatherAlertsError && !weatherAlertsLoading;
   useEffect(() => {
-    panelControl?.reportStatus('alerts', { available: true, live: panelLive });
-  }, [panelControl, panelLive]);
+    panelControl?.reportStatus('alerts', {
+      available: true,
+      live: panelLive,
+      loading: weatherAlertsLoading,
+      ok: !weatherAlertsError,
+    });
+  }, [panelControl, panelLive, weatherAlertsLoading, weatherAlertsError]);
   const expandNonce = panelControl?.expandSignal.nonce ?? 0;
   const expandValue = panelControl?.expandSignal.value ?? true;
   useEffect(() => {
