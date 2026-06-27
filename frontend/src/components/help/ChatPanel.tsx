@@ -73,6 +73,7 @@ export const ChatPanel: FC<ChatPanelProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Load available models on mount
   useEffect(() => {
@@ -142,8 +143,10 @@ export const ChatPanel: FC<ChatPanelProps> = ({
 
     setMessages((prev) => [...prev, userMessage]);
     setInputMessage('');
-    setIsChatLoading(true);
     setError(null);
+
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
 
     try {
       const res = await fetch('/api/ollama/chat', {
@@ -157,6 +160,7 @@ export const ChatPanel: FC<ChatPanelProps> = ({
           ],
           stream: false,
         }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!res.ok) {
@@ -176,13 +180,28 @@ export const ChatPanel: FC<ChatPanelProps> = ({
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
       console.error('Chat error:', err);
+      if (err instanceof Error && (err as Error).name === 'AbortError') {
+        console.log('Chat request was aborted by user');
+        setError(null);
+        return;
+      }
       setError(
         'Ollama not available. Please ensure Ollama is running on localhost:11434',
       );
     } finally {
       setIsChatLoading(false);
+      abortControllerRef.current = null;
     }
   };
+
+  // Stop the current LLM request
+  const handleStop = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsChatLoading(false);
+    }
+  }, []);
 
   // Reset the conversation so the next message starts a fresh context.
   const clearChat = useCallback(() => {
@@ -480,6 +499,103 @@ export const ChatPanel: FC<ChatPanelProps> = ({
               </div>
             )}
 
+            {/* Thinking status - above the input row */}
+            {isChatLoading && (
+              <div
+                style={{
+                  padding: '0.6rem 1.4rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: '0.68rem',
+                  color: mutedText,
+                  borderTop: `1px solid ${divider}`,
+                  borderBottom: `1px solid ${divider}`,
+                  background: inputBg,
+                }}
+              >
+                <motion.div
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  style={{
+                    display: 'inline-block',
+                    width: 6,
+                    height: 6,
+                    borderRadius: 3,
+                    background: mutedText,
+                  }}
+                />
+                <motion.div
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    delay: 0.2,
+                  }}
+                  style={{
+                    display: 'inline-block',
+                    width: 6,
+                    height: 6,
+                    borderRadius: 3,
+                    background: mutedText,
+                  }}
+                />
+                <motion.div
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    delay: 0.4,
+                  }}
+                  style={{
+                    display: 'inline-block',
+                    width: 6,
+                    height: 6,
+                    borderRadius: 3,
+                    background: mutedText,
+                  }}
+                />
+                <span>Thinking...</span>
+                <button
+                  type="button"
+                  onClick={handleStop}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginLeft: 'auto',
+                    width: 18,
+                    height: 18,
+                    padding: 0,
+                    border: `2px solid ${isDark ? '#ef4444' : '#dc2626'}`,
+                    background: isDark ? '#7f1d1d' : '#fee2e2',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    fontSize: '0.5rem',
+                    fontWeight: 600,
+                    fontFamily: "'Poppins', sans-serif",
+                    color: isDark ? '#fca5a5' : '#b91c1c',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    transition: 'all 0.2s',
+                  }}
+                  title="Stop generating"
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                  >
+                    <rect x="6" y="6" width="12" height="12" rx="1" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
             {/* Chat history - scrollable area. In fill mode minHeight drops to 0
                 so this region can shrink and keep the input pinned; otherwise a
                 200px floor preserves the natural standalone/mobile look. */}
@@ -693,62 +809,6 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                     </svg>
                   </button>
                 </div>
-                {isChatLoading && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.3rem',
-                      marginTop: '0.4rem',
-                      fontFamily: "'Poppins', sans-serif",
-                      fontSize: '0.62rem',
-                      color: mutedText,
-                    }}
-                  >
-                    <motion.div
-                      animate={{ opacity: [0.3, 1, 0.3] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                      style={{
-                        display: 'inline-block',
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
-                        background: mutedText,
-                      }}
-                    />
-                    <motion.div
-                      animate={{ opacity: [0.3, 1, 0.3] }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        delay: 0.2,
-                      }}
-                      style={{
-                        display: 'inline-block',
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
-                        background: mutedText,
-                      }}
-                    />
-                    <motion.div
-                      animate={{ opacity: [0.3, 1, 0.3] }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        delay: 0.4,
-                      }}
-                      style={{
-                        display: 'inline-block',
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
-                        background: mutedText,
-                      }}
-                    />
-                    <span>Thinking...</span>
-                  </div>
-                )}
               </form>
             </div>
           </div>
