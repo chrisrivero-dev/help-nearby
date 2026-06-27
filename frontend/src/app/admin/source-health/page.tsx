@@ -11,7 +11,7 @@ const BORDER = '#232323';
 const TEXT = '#d4d4d4';
 const MUTED = '#555';
 const GREEN = '#22c55e';
-const AMBER = '#d97706';
+const AMBER = '#fbbf24';
 const RED = '#ef4444';
 
 type HealthStatus = 'healthy' | 'degraded' | 'circuit_open';
@@ -35,7 +35,12 @@ interface SourceHealthRow {
 
 interface HealthResponse {
   generatedAt: string;
-  summary: { total: number; healthy: number; degraded: number; circuitOpen: number };
+  summary: {
+    total: number;
+    healthy: number;
+    degraded: number;
+    circuitOpen: number;
+  };
   sources: SourceHealthRow[];
 }
 
@@ -63,7 +68,9 @@ function fmt(iso: string | null) {
 
 const AdminSourceHealth: FC = () => {
   const [token, setToken] = useState(() =>
-    typeof window !== 'undefined' ? sessionStorage.getItem('hn-admin-token') ?? '' : '',
+    typeof window !== 'undefined'
+      ? (sessionStorage.getItem('hn-admin-token') ?? '')
+      : '',
   );
   const [tokenInput, setTokenInput] = useState('');
   const [authed, setAuthed] = useState(false);
@@ -127,7 +134,9 @@ const AdminSourceHealth: FC = () => {
   if (!authed && !data) {
     return (
       <div style={wrap}>
-        <h1 style={{ fontSize: '1.4rem', marginBottom: '1rem' }}>Source Health</h1>
+        <h1 style={{ fontSize: '1.4rem', marginBottom: '1rem' }}>
+          Source Health
+        </h1>
         <p style={{ color: MUTED, marginBottom: '1rem' }}>Enter admin token.</p>
         <input
           type="password"
@@ -167,7 +176,14 @@ const AdminSourceHealth: FC = () => {
   const s = data?.summary;
   return (
     <div style={wrap}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem', marginBottom: '0.5rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: '1rem',
+          marginBottom: '0.5rem',
+        }}
+      >
         <h1 style={{ fontSize: '1.4rem' }}>Source Health</h1>
         <button
           onClick={load}
@@ -208,7 +224,13 @@ const AdminSourceHealth: FC = () => {
       )}
 
       {data && data.sources.length > 0 && (
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+        <table
+          style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            fontSize: '0.85rem',
+          }}
+        >
           <thead>
             <tr style={{ textAlign: 'left', color: MUTED }}>
               <th style={{ padding: '0.5rem' }}>Status</th>
@@ -239,16 +261,26 @@ const AdminSourceHealth: FC = () => {
                 </td>
                 <td style={{ padding: '0.5rem' }}>
                   <div>{src.name}</div>
-                  <div style={{ color: MUTED, fontSize: '0.75rem' }}>{src.id}</div>
+                  <div style={{ color: MUTED, fontSize: '0.75rem' }}>
+                    {src.id}
+                  </div>
                 </td>
-                <td style={{ padding: '0.5rem', color: MUTED }}>{src.sourceType}</td>
+                <td style={{ padding: '0.5rem', color: MUTED }}>
+                  {src.sourceType}
+                </td>
                 <td style={{ padding: '0.5rem' }}>{fmt(src.lastOkAt)}</td>
                 <td style={{ padding: '0.5rem' }}>{fmt(src.lastCheckedAt)}</td>
-                <td style={{ padding: '0.5rem', color: src.consecutiveFailures ? AMBER : MUTED }}>
+                <td
+                  style={{
+                    padding: '0.5rem',
+                    color: src.consecutiveFailures ? AMBER : MUTED,
+                  }}
+                >
                   {src.consecutiveFailures}
                 </td>
                 <td style={{ padding: '0.5rem', color: MUTED }}>
-                  {(src.failureRate * 100).toFixed(0)}% ({src.totalFailures}/{src.totalChecks})
+                  {(src.failureRate * 100).toFixed(0)}% ({src.totalFailures}/
+                  {src.totalChecks})
                 </td>
               </tr>
             ))}

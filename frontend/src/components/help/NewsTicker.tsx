@@ -150,7 +150,7 @@ export const NewsTicker: FC = () => {
             background: 'transparent',
             border: 'none',
             cursor: 'pointer',
-            color: isDark ? '#555' : '#aaa',
+            color: isDark ? '#dedede' : '#111111',
             lineHeight: 0,
           }}
         >
@@ -166,7 +166,7 @@ export const NewsTicker: FC = () => {
             fontWeight: 800,
             fontSize: '0.6rem',
             letterSpacing: '0.15em',
-            color: isDark ? '#444' : '#bbb',
+            color: isDark ? '#dedede' : '#111111',
             whiteSpace: 'nowrap',
           }}
         >

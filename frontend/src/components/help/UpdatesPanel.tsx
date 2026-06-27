@@ -113,186 +113,186 @@ export const UpdatesPanel: FC = () => {
   }, [expandNonce, expandValue]);
 
   return (
-    <NeoPanel>
-        {/* Section Header */}
-        <PanelHeader
-          divider={divider}
-          isDark={isDark}
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <PanelStatusSquare loading={loading} ok={isLive} isDark={isDark} />
-            <span
+    <NeoPanel isExpanded={isExpanded}>
+      {/* Section Header */}
+      <PanelHeader
+        divider={divider}
+        isDark={isDark}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <PanelStatusSquare loading={loading} ok={isLive} isDark={isDark} />
+          <span
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 800,
+              fontSize: '0.72rem',
+              letterSpacing: '0.15em',
+              color: cardText,
+            }}
+          >
+            UPDATES! NEARBY
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+          {/* Manual refresh — left of the info icon */}
+          {hasLocation && (
+            <PanelRefreshButton
+              loading={loading}
+              onRefresh={handleRefresh}
+              isDark={isDark}
+              label="Refresh updates"
+            />
+          )}
+          <PanelInfoPopover isDark={isDark} title="VERIFIED UPDATES">
+            <ul
               style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 800,
-                fontSize: '0.72rem',
-                letterSpacing: '0.15em',
-                color: cardText,
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.22rem',
               }}
             >
-              UPDATES! NEARBY
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            {/* Manual refresh — left of the info icon */}
-            {hasLocation && (
-              <PanelRefreshButton
-                loading={loading}
-                onRefresh={handleRefresh}
-                isDark={isDark}
-                label="Refresh updates"
-              />
-            )}
-            <PanelInfoPopover isDark={isDark} title="VERIFIED UPDATES">
-              <ul
+              <li
                 style={{
-                  listStyle: 'none',
-                  padding: 0,
-                  margin: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.22rem',
+                  fontSize: '0.68rem',
+                  color: mutedText,
+                  lineHeight: 1.4,
                 }}
               >
-                <li
-                  style={{
-                    fontSize: '0.68rem',
-                    color: mutedText,
-                    lineHeight: 1.4,
-                  }}
-                >
-                  Only admin-verified, non-expired local updates appear here. Each
-                  carries a named source.
-                </li>
-              </ul>
-            </PanelInfoPopover>
-            <motion.div
-              style={{
-                width: 16,
-                height: 16,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: mutedText,
-              }}
-              animate={{ rotate: isExpanded ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
+                Only admin-verified, non-expired local updates appear here. Each
+                carries a named source.
+              </li>
+            </ul>
+          </PanelInfoPopover>
+          <motion.div
+            style={{
+              width: 16,
+              height: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: mutedText,
+            }}
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
             >
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M6 9L12 15L18 9" />
-              </svg>
-            </motion.div>
-          </div>
-        </PanelHeader>
+              <path d="M6 9L12 15L18 9" />
+            </svg>
+          </motion.div>
+        </div>
+      </PanelHeader>
 
-        <AnimatePresence mode="wait">
-          {isExpanded ? (
-            <motion.div
-              key="updates-content"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              {!hasLocation ? (
-                <EmptyOrLocked text="Enter your location to see latest updates." />
-              ) : loading ? (
-                <EmptyOrLocked text="Loading local updates…" />
-              ) : items.length === 0 ? (
-                <EmptyOrLocked text="No verified local updates are currently listed nearby." />
-              ) : (
-                <>
-                  {items.map((u, i) => {
-                    const ago = timeAgo(u.startsAt ?? u.updatedAt ?? u.createdAt);
-                    return (
-                      <div
-                        key={u.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '0.8rem',
-                          padding: '0.85rem 1.4rem',
-                          borderBottom:
-                            i < items.length - 1
-                              ? `1px solid ${divider}`
-                              : undefined,
-                        }}
-                      >
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontWeight: 700,
-                              fontSize: '0.8rem',
-                              color: cardText,
-                              marginBottom: '0.14rem',
-                            }}
-                          >
-                            {u.title}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.7rem',
-                              color: mutedText,
-                            }}
-                          >
-                            {u.description}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.62rem',
-                              color: mutedText,
-                              marginTop: '0.2rem',
-                            }}
-                          >
-                            Source:{' '}
-                            {u.sourceUrl ? (
-                              <a
-                                href={u.sourceUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                  color: GOLD_COLOR,
-                                  textDecoration: 'none',
-                                }}
-                              >
-                                {u.sourceName}
-                              </a>
-                            ) : (
-                              u.sourceName
-                            )}
-                          </div>
+      <AnimatePresence mode="wait">
+        {isExpanded ? (
+          <motion.div
+            key="updates-content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {!hasLocation ? (
+              <EmptyOrLocked text="Enter your location to see latest updates." />
+            ) : loading ? (
+              <EmptyOrLocked text="Loading local updates…" />
+            ) : items.length === 0 ? (
+              <EmptyOrLocked text="No verified local updates are currently listed nearby." />
+            ) : (
+              <>
+                {items.map((u, i) => {
+                  const ago = timeAgo(u.startsAt ?? u.updatedAt ?? u.createdAt);
+                  return (
+                    <div
+                      key={u.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '0.8rem',
+                        padding: '0.85rem 1.4rem',
+                        borderBottom:
+                          i < items.length - 1
+                            ? `1px solid ${divider}`
+                            : undefined,
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontWeight: 700,
+                            fontSize: '0.8rem',
+                            color: cardText,
+                            marginBottom: '0.14rem',
+                          }}
+                        >
+                          {u.title}
                         </div>
-                        {ago ? (
-                          <div
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.62rem',
-                              color: mutedText,
-                              flexShrink: 0,
-                              marginTop: 1,
-                            }}
-                          >
-                            {ago}
-                          </div>
-                        ) : null}
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontSize: '0.7rem',
+                            color: mutedText,
+                          }}
+                        >
+                          {u.description}
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontSize: '0.62rem',
+                            color: mutedText,
+                            marginTop: '0.2rem',
+                          }}
+                        >
+                          Source:{' '}
+                          {u.sourceUrl ? (
+                            <a
+                              href={u.sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: GOLD_COLOR,
+                                textDecoration: 'none',
+                              }}
+                            >
+                              {u.sourceName}
+                            </a>
+                          ) : (
+                            u.sourceName
+                          )}
+                        </div>
                       </div>
-                    );
-                  })}
-                </>
-              )}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+                      {ago ? (
+                        <div
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontSize: '0.62rem',
+                            color: mutedText,
+                            flexShrink: 0,
+                            marginTop: 1,
+                          }}
+                        >
+                          {ago}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </NeoPanel>
   );
 };

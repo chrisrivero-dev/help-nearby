@@ -36,7 +36,7 @@ export const OverviewPanel: FC<OverviewPanelProps> = ({
   // (see page.tsx) so it doesn't double at rest, but stays present so it
   // reappears cleanly when the panel lifts on hover.
   return (
-    <NeoPanel>
+    <NeoPanel isExpanded={isExpanded}>
       <PanelHeader divider={divider} isDark={isDark} onClick={onToggle}>
         <div
           style={{

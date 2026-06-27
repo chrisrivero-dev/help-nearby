@@ -8,6 +8,13 @@ interface PanelHeaderProps {
   divider: string;
   isDark: boolean;
   onClick: () => void;
+  /**
+   * Compact, NewsTicker-style header: fixed 42px height with no padding and
+   * stretch-aligned children, so a child cell can carry a full-height vertical
+   * divider. Children own their own horizontal padding in this mode. Default
+   * false keeps the standard padded header used by every other panel.
+   */
+  dense?: boolean;
 }
 
 export const PanelHeader: FC<PanelHeaderProps> = ({
@@ -15,6 +22,7 @@ export const PanelHeader: FC<PanelHeaderProps> = ({
   divider,
   isDark,
   onClick,
+  dense = false,
 }) => {
   const [hovered, setHovered] = useState(false);
 
@@ -25,9 +33,10 @@ export const PanelHeader: FC<PanelHeaderProps> = ({
         {
           '--help-panel-header-hover-color': isDark ? '#121212' : '#ffffff',
           display: 'flex',
-          alignItems: 'center',
+          alignItems: dense ? 'stretch' : 'center',
           justifyContent: 'space-between',
-          padding: '1rem 1.4rem',
+          height: dense ? 42 : undefined,
+          padding: dense ? 0 : '1rem 1.4rem',
           borderBottom: `1px solid ${divider}`,
           backgroundColor: hovered ? '#fbbf24' : 'transparent',
           color: hovered ? (isDark ? '#121212' : '#ffffff') : undefined,

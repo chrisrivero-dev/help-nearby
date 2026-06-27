@@ -222,494 +222,494 @@ export const AlertPanel: FC = () => {
   }, [expandNonce, expandValue]);
 
   return (
-    <NeoPanel>
-        {/* Section Header */}
-        <PanelHeader
-          divider={divider}
-          isDark={isDark}
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            {/* Status indicator - left of title */}
-            {(weatherAlertsLoading || sources.length > 0) && (
-              <PanelStatusSquare
-                loading={weatherAlertsLoading}
-                ok={!weatherAlertsError}
-                isDark={isDark}
-              />
-            )}
-            <span
+    <NeoPanel isExpanded={isExpanded}>
+      {/* Section Header */}
+      <PanelHeader
+        divider={divider}
+        isDark={isDark}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          {/* Status indicator - left of title */}
+          {(weatherAlertsLoading || sources.length > 0) && (
+            <PanelStatusSquare
+              loading={weatherAlertsLoading}
+              ok={!weatherAlertsError}
+              isDark={isDark}
+            />
+          )}
+          <span
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 800,
+              fontSize: '0.72rem',
+              letterSpacing: '0.15em',
+              color: cardText,
+            }}
+          >
+            ALERTS! NEARBY
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+          {/* Manual refresh — left of the info icon */}
+          {isValid && (
+            <PanelRefreshButton
+              loading={weatherAlertsLoading}
+              onRefresh={handleRefresh}
+              isDark={isDark}
+              label="Refresh alerts"
+            />
+          )}
+          {/* Info popover — live data sources */}
+          <PanelInfoPopover
+            isDark={isDark}
+            title="LIVE DATA SOURCES"
+            ariaLabel="Show live data sources"
+          >
+            <ul
               style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 800,
-                fontSize: '0.72rem',
-                letterSpacing: '0.15em',
-                color: cardText,
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.22rem',
               }}
             >
-              ALERTS! NEARBY
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            {/* Manual refresh — left of the info icon */}
-            {isValid && (
-              <PanelRefreshButton
-                loading={weatherAlertsLoading}
-                onRefresh={handleRefresh}
-                isDark={isDark}
-                label="Refresh alerts"
-              />
-            )}
-            {/* Info popover — live data sources */}
-            <PanelInfoPopover
-              isDark={isDark}
-              title="LIVE DATA SOURCES"
-              ariaLabel="Show live data sources"
+              {sources.map((s) => (
+                <li
+                  key={s.id}
+                  style={{
+                    fontSize: '0.68rem',
+                    color: mutedText,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {s.name} {s.ok ? '' : '(failed)'}
+                </li>
+              ))}
+            </ul>
+          </PanelInfoPopover>
+          {/* Collapse indicator */}
+          <motion.div
+            style={{
+              width: 16,
+              height: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: mutedText,
+            }}
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
             >
-              <ul
+              <path d="M6 9L12 15L18 9" />
+            </svg>
+          </motion.div>
+        </div>
+      </PanelHeader>
+
+      {/* Alert content */}
+      <AnimatePresence mode="wait">
+        {isExpanded ? (
+          <>
+            {/* Filter bar — keyword search + type toggles (multi-select) */}
+            {weatherAlerts !== null && weatherAlerts.length > 0 && (
+              <div
                 style={{
-                  listStyle: 'none',
-                  padding: 0,
-                  margin: 0,
+                  padding: '0.8rem 1.4rem',
+                  borderBottom: `1px solid ${divider}`,
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.22rem',
+                  gap: '0.6rem',
                 }}
               >
-                {sources.map((s) => (
-                  <li
-                    key={s.id}
-                    style={{
-                      fontSize: '0.68rem',
-                      color: mutedText,
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {s.name} {s.ok ? '' : '(failed)'}
-                  </li>
-                ))}
-              </ul>
-            </PanelInfoPopover>
-            {/* Collapse indicator */}
-            <motion.div
-              style={{
-                width: 16,
-                height: 16,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: mutedText,
-              }}
-              animate={{ rotate: isExpanded ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M6 9L12 15L18 9" />
-              </svg>
-            </motion.div>
-          </div>
-        </PanelHeader>
-
-        {/* Alert content */}
-        <AnimatePresence mode="wait">
-          {isExpanded ? (
-            <>
-              {/* Filter bar — keyword search + type toggles (multi-select) */}
-              {weatherAlerts !== null && weatherAlerts.length > 0 && (
                 <div
                   style={{
-                    padding: '0.8rem 1.4rem',
-                    borderBottom: `1px solid ${divider}`,
                     display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.6rem',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
+                    background: isDark ? '#0a0a0a' : '#fafafa',
+                    padding: '0.4rem 0.6rem',
                   }}
                 >
-                  <div
+                  <Search size={13} color={mutedText} />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Filter by type, area, or source…"
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
-                      background: isDark ? '#0a0a0a' : '#fafafa',
-                      padding: '0.4rem 0.6rem',
+                      flex: 1,
+                      minWidth: 0,
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.72rem',
+                      color: cardText,
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
                     }}
-                  >
-                    <Search size={13} color={mutedText} />
-                    <input
-                      type="text"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Filter by type, area, or source…"
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        fontFamily: "'Poppins', sans-serif",
-                        fontSize: '0.72rem',
-                        color: cardText,
-                        background: 'transparent',
-                        border: 'none',
-                        outline: 'none',
+                  />
+                  {filtersActive && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuery('');
+                        setActiveTypes([]);
                       }}
-                    />
-                    {filtersActive && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setQuery('');
-                          setActiveTypes([]);
-                        }}
-                        aria-label="Clear filters"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: 0,
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: mutedText,
-                          lineHeight: 0,
-                        }}
-                      >
-                        <X size={13} />
-                      </button>
-                    )}
-                  </div>
-                  {eventTypes.length > 1 && (
-                    <div
+                      aria-label="Clear filters"
                       style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: '0.35rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 0,
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: mutedText,
+                        lineHeight: 0,
                       }}
                     >
-                      {eventTypes.map((eventType) => {
-                        const active = activeTypes.includes(eventType);
-                        return (
-                          <button
-                            key={eventType}
-                            type="button"
-                            onClick={() => toggleType(eventType)}
-                            aria-pressed={active}
-                            style={{
-                              fontFamily: "'Poppins', sans-serif",
-                              fontSize: '0.62rem',
-                              fontWeight: 700,
-                              letterSpacing: '0.04em',
-                              padding: '0.22rem 0.55rem',
-                              cursor: 'pointer',
-                              border: `1px solid ${
-                                active
-                                  ? '#fbbf24'
-                                  : isDark
-                                    ? '#2a2a2a'
-                                    : '#e0e0e0'
-                              }`,
-                              background: active ? '#fbbf24' : 'transparent',
-                              color: active ? '#000' : mutedText,
-                            }}
-                          >
-                            {eventType}
-                          </button>
-                        );
-                      })}
-                    </div>
+                      <X size={13} />
+                    </button>
                   )}
                 </div>
-              )}
+                {eventTypes.length > 1 && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.35rem',
+                    }}
+                  >
+                    {eventTypes.map((eventType) => {
+                      const active = activeTypes.includes(eventType);
+                      return (
+                        <button
+                          key={eventType}
+                          type="button"
+                          onClick={() => toggleType(eventType)}
+                          aria-pressed={active}
+                          style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontSize: '0.62rem',
+                            fontWeight: 700,
+                            letterSpacing: '0.04em',
+                            padding: '0.22rem 0.55rem',
+                            cursor: 'pointer',
+                            border: `1px solid ${
+                              active
+                                ? '#fbbf24'
+                                : isDark
+                                  ? '#2a2a2a'
+                                  : '#e0e0e0'
+                            }`,
+                            background: active ? '#fbbf24' : 'transparent',
+                            color: active ? '#000' : mutedText,
+                          }}
+                        >
+                          {eventType}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
-              {weatherAlertsLoading ? (
-                <motion.div
-                  key="alerts-loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+            {weatherAlertsLoading ? (
+              <motion.div
+                key="alerts-loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                style={{
+                  padding: '0.9rem 1.4rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <span
                   style={{
-                    padding: '0.9rem 1.4rem',
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.78rem',
+                    color: mutedText,
+                  }}
+                >
+                  Checking official alert sources...
+                </span>
+              </motion.div>
+            ) : weatherAlertsError ? (
+              <motion.div
+                key="alerts-error"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                style={{
+                  padding: '0.85rem 1rem',
+                  borderLeft: `3px solid ${accentColor}`,
+                  background: isDark ? '#0d0d0d' : '#fafafa',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.78rem',
+                    color: mutedText,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Official alerts could not be loaded. Check{' '}
+                  <a
+                    href="https://www.weather.gov/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: accentColor,
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    weather.gov
+                  </a>{' '}
+                  or local emergency sources directly.
+                </span>
+              </motion.div>
+            ) : weatherAlerts !== null && weatherAlerts.length === 0 ? (
+              <motion.div
+                key="alerts-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: '150px',
+                  padding: '1.5rem',
+                  textAlign: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.88rem',
+                    color: mutedText,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  NO OFFICIAL ALERTS
+                </span>
+              </motion.div>
+            ) : filteredWeatherAlerts !== null &&
+              weatherAlerts !== null &&
+              weatherAlerts.length > 0 ? (
+              <motion.div
+                key="alerts-content"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                {/* Pagination — 10 alerts per page */}
+                <div
+                  style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.8rem',
+                    padding: '0.65rem 1.4rem',
+                    borderBottom: `1px solid ${divider}`,
                   }}
                 >
                   <span
                     style={{
                       fontFamily: "'Poppins', sans-serif",
-                      fontSize: '0.78rem',
+                      fontSize: '0.68rem',
                       color: mutedText,
                     }}
                   >
-                    Checking official alert sources...
+                    Page {Math.min(page, shownTotalPages)} of {shownTotalPages}
+                    {filteredTotal > 0 ? ` · ${filteredTotal} results` : ''}
                   </span>
-                </motion.div>
-              ) : weatherAlertsError ? (
-                <motion.div
-                  key="alerts-error"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  style={{
-                    padding: '0.85rem 1rem',
-                    borderLeft: `3px solid ${accentColor}`,
-                    background: isDark ? '#0d0d0d' : '#fafafa',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "'Poppins', sans-serif",
-                      fontSize: '0.78rem',
-                      color: mutedText,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    Official alerts could not be loaded. Check{' '}
-                    <a
-                      href="https://www.weather.gov/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        color: accentColor,
-                        textDecoration: 'underline',
-                      }}
-                    >
-                      weather.gov
-                    </a>{' '}
-                    or local emergency sources directly.
-                  </span>
-                </motion.div>
-              ) : weatherAlerts !== null && weatherAlerts.length === 0 ? (
-                <motion.div
-                  key="alerts-none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: '150px',
-                    padding: '1.5rem',
-                    textAlign: 'center',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "'Poppins', sans-serif",
-                      fontSize: '0.88rem',
-                      color: mutedText,
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    NO OFFICIAL ALERTS
-                  </span>
-                </motion.div>
-              ) : filteredWeatherAlerts !== null &&
-                weatherAlerts !== null &&
-                weatherAlerts.length > 0 ? (
-                <motion.div
-                  key="alerts-content"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  {/* Pagination — 10 alerts per page */}
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '0.8rem',
-                      padding: '0.65rem 1.4rem',
-                      borderBottom: `1px solid ${divider}`,
+                      gap: '0.35rem',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={!hasPreviousPage}
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        padding: '0.25rem 0.55rem',
+                        cursor: !hasPreviousPage ? 'not-allowed' : 'pointer',
+                        border: `1px solid ${isDark ? '#2a2a2a' : '#e0e0e0'}`,
+                        background: 'transparent',
+                        color: !hasPreviousPage ? mutedText : cardText,
+                        opacity: !hasPreviousPage ? 0.45 : 1,
+                      }}
+                    >
+                      Prev
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPage((p) => p + 1)}
+                      disabled={!hasNextPage}
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        padding: '0.25rem 0.55rem',
+                        cursor: !hasNextPage ? 'not-allowed' : 'pointer',
+                        border: `1px solid ${isDark ? '#2a2a2a' : '#e0e0e0'}`,
+                        background: 'transparent',
+                        color: !hasNextPage ? mutedText : cardText,
+                        opacity: !hasNextPage ? 0.45 : 1,
+                      }}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+                {(pagedAlerts ?? []).length === 0 ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minHeight: '120px',
+                      padding: '1.2rem',
+                      textAlign: 'center',
                     }}
                   >
                     <span
                       style={{
                         fontFamily: "'Poppins', sans-serif",
-                        fontSize: '0.68rem',
+                        fontSize: '0.78rem',
                         color: mutedText,
+                        lineHeight: 1.6,
                       }}
                     >
-                      Page {Math.min(page, shownTotalPages)} of {shownTotalPages}
-                      {filteredTotal > 0 ? ` · ${filteredTotal} results` : ''}
+                      No alerts match your filters.
                     </span>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.35rem',
-                      }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        disabled={!hasPreviousPage}
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.68rem',
-                          fontWeight: 800,
-                          padding: '0.25rem 0.55rem',
-                          cursor: !hasPreviousPage ? 'not-allowed' : 'pointer',
-                          border: `1px solid ${isDark ? '#2a2a2a' : '#e0e0e0'}`,
-                          background: 'transparent',
-                          color: !hasPreviousPage ? mutedText : cardText,
-                          opacity: !hasPreviousPage ? 0.45 : 1,
-                        }}
-                      >
-                        Prev
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPage((p) => p + 1)}
-                        disabled={!hasNextPage}
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.68rem',
-                          fontWeight: 800,
-                          padding: '0.25rem 0.55rem',
-                          cursor: !hasNextPage ? 'not-allowed' : 'pointer',
-                          border: `1px solid ${isDark ? '#2a2a2a' : '#e0e0e0'}`,
-                          background: 'transparent',
-                          color: !hasNextPage ? mutedText : cardText,
-                          opacity: !hasNextPage ? 0.45 : 1,
-                        }}
-                      >
-                        Next
-                      </button>
-                    </div>
                   </div>
-                  {(pagedAlerts ?? []).length === 0 ? (
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        minHeight: '120px',
-                        padding: '1.2rem',
-                        textAlign: 'center',
-                      }}
-                    >
-                      <span
+                ) : (
+                  (pagedAlerts ?? []).map((alert, index, arr) => {
+                    const isLast = index === arr.length - 1;
+                    const itemSourceName = alert.sourceName ?? alertSourceName;
+                    const sourceUrl =
+                      alert.sourceUrl ||
+                      alert.url ||
+                      'https://www.weather.gov/';
+                    return (
+                      <div
+                        key={alert.id}
                         style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: '0.78rem',
-                          color: mutedText,
-                          lineHeight: 1.6,
+                          padding: '0.9rem 1.4rem',
+                          borderBottom: isLast
+                            ? undefined
+                            : `1px solid ${divider}`,
                         }}
                       >
-                        No alerts match your filters.
-                      </span>
-                    </div>
-                  ) : (
-                    (pagedAlerts ?? []).map((alert, index, arr) => {
-                      const isLast = index === arr.length - 1;
-                      const itemSourceName = alert.sourceName ?? alertSourceName;
-                      const sourceUrl =
-                        alert.sourceUrl ||
-                        alert.url ||
-                        'https://www.weather.gov/';
-                      return (
                         <div
-                          key={alert.id}
                           style={{
-                            padding: '0.9rem 1.4rem',
-                            borderBottom: isLast
-                              ? undefined
-                              : `1px solid ${divider}`,
+                            fontFamily: "'Poppins', sans-serif",
+                            fontWeight: 700,
+                            fontSize: '0.83rem',
+                            color: cardText,
+                            marginBottom: '0.2rem',
                           }}
                         >
+                          {alert.title}
+                        </div>
+                        {alert.headline && (
                           <div
                             style={{
                               fontFamily: "'Poppins', sans-serif",
-                              fontWeight: 700,
-                              fontSize: '0.83rem',
-                              color: cardText,
-                              marginBottom: '0.2rem',
+                              fontSize: '0.77rem',
+                              color: detailText,
+                              lineHeight: 1.5,
+                              marginBottom: '0.3rem',
                             }}
                           >
-                            {alert.title}
+                            {alert.headline}
                           </div>
-                          {alert.headline && (
-                            <div
-                              style={{
-                                fontFamily: "'Poppins', sans-serif",
-                                fontSize: '0.77rem',
-                                color: detailText,
-                                lineHeight: 1.5,
-                                marginBottom: '0.3rem',
-                              }}
-                            >
-                              {alert.headline}
-                            </div>
-                          )}
-                          {alert.area && (
-                            <div
-                              style={{
-                                fontFamily: "'Poppins', sans-serif",
-                                fontSize: '0.64rem',
-                                color: mutedText,
-                                letterSpacing: '0.02em',
-                              }}
-                            >
-                              {alert.area}
-                            </div>
-                          )}
-                          {/* Footer: source above the last-checked timestamp */}
+                        )}
+                        {alert.area && (
                           <div
                             style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '0.16rem',
-                              marginTop: '0.7rem',
-                              paddingTop: '0.6rem',
-                              borderTop: `1px solid ${divider}`,
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: '0.64rem',
+                              color: mutedText,
+                              letterSpacing: '0.02em',
                             }}
                           >
-                            <a
-                              href={sourceUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            {alert.area}
+                          </div>
+                        )}
+                        {/* Footer: source above the last-checked timestamp */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.16rem',
+                            marginTop: '0.7rem',
+                            paddingTop: '0.6rem',
+                            borderTop: `1px solid ${divider}`,
+                          }}
+                        >
+                          <a
+                            href={sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.2rem',
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: '0.62rem',
+                              color: mutedText,
+                              textDecoration: 'underline',
+                              width: 'fit-content',
+                            }}
+                          >
+                            <ExternalLink size={9} /> Source: {itemSourceName}
+                          </a>
+                          {lastChecked && (
+                            <span
                               style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.2rem',
                                 fontFamily: "'Poppins', sans-serif",
                                 fontSize: '0.62rem',
                                 color: mutedText,
-                                textDecoration: 'underline',
-                                width: 'fit-content',
                               }}
                             >
-                              <ExternalLink size={9} /> Source: {itemSourceName}
-                            </a>
-                            {lastChecked && (
-                              <span
-                                style={{
-                                  fontFamily: "'Poppins', sans-serif",
-                                  fontSize: '0.62rem',
-                                  color: mutedText,
-                                }}
-                              >
-                                Last checked {formatChecked(lastChecked)}
-                              </span>
-                            )}
-                          </div>
+                              Last checked {formatChecked(lastChecked)}
+                            </span>
+                          )}
                         </div>
-                      );
-                    })
-                  )}
-                </motion.div>
-              ) : null}
-            </>
-          ) : null}
-        </AnimatePresence>
+                      </div>
+                    );
+                  })
+                )}
+              </motion.div>
+            ) : null}
+          </>
+        ) : null}
+      </AnimatePresence>
     </NeoPanel>
   );
 };

@@ -10,6 +10,18 @@ interface NeoPanelProps {
   className?: string;
   /** Extra styles merged onto the front (content) panel. */
   style?: CSSProperties;
+  /**
+   * When true the panel stretches to fill its parent's height instead of
+   * sizing to its content, and the front panel becomes a flex column so its
+   * children can distribute the available height. Used by the chat panel to
+   * fill its column / keep the input pinned. Default false preserves the
+   * fit-content behavior every other panel relies on.
+   */
+  fill?: boolean;
+  /** When true the panel is expanded and the hover lift effect is disabled. */
+  isExpanded?: boolean;
+  /** When true, keep the panel static on hover while preserving its shell. */
+  disableHoverLift?: boolean;
 }
 
 /**
@@ -20,10 +32,21 @@ interface NeoPanelProps {
  * offset shadow below it. When tiled flush with no gaps, the hovered wrapper
  * raises its stacking so the revealed offset is drawn over the panel below.
  */
-export const NeoPanel: FC<NeoPanelProps> = ({ children, className, style }) => {
+export const NeoPanel: FC<NeoPanelProps> = ({
+  children,
+  className,
+  style,
+  fill = false,
+  isExpanded,
+  disableHoverLift = false,
+}) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [hovered, setHovered] = useState(false);
+
+  // When isExpanded is provided, disable hover lift when expanded
+  // Otherwise, use the disableHoverLift prop
+  const shouldDisableHoverLift = isExpanded ? true : disableHoverLift;
 
   const borderColor = isDark ? '#404040' : '#111111';
   const shadowColor = isDark ? '#000000' : '#111111';
@@ -35,8 +58,9 @@ export const NeoPanel: FC<NeoPanelProps> = ({ children, className, style }) => {
       style={{
         position: 'relative',
         breakInside: 'avoid',
-        height: 'fit-content',
-        zIndex: hovered ? 3 : 1,
+        height: fill ? '100%' : 'fit-content',
+        minHeight: fill ? 0 : undefined,
+        zIndex: hovered && !shouldDisableHoverLift ? 3 : 1,
       }}
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
@@ -62,11 +86,23 @@ export const NeoPanel: FC<NeoPanelProps> = ({ children, className, style }) => {
           border: `2px solid ${borderColor}`,
           position: 'relative',
           zIndex: 2,
+          ...(fill
+            ? {
+                height: '100%',
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'column',
+              }
+            : {}),
           ...style,
         }}
-        whileHover={{ y: -6 }}
-        onHoverStart={() => setHovered(true)}
-        onHoverEnd={() => setHovered(false)}
+        whileHover={shouldDisableHoverLift ? undefined : { y: -6 }}
+        onHoverStart={() => {
+          if (!shouldDisableHoverLift) setHovered(true);
+        }}
+        onHoverEnd={() => {
+          if (!shouldDisableHoverLift) setHovered(false);
+        }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >
         {children}

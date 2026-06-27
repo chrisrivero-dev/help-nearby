@@ -1,7 +1,7 @@
 'use client';
 
-import type { FC } from 'react';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { FC, PointerEvent as ReactPointerEvent } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import NavBar from '@/components/NavBar';
 import { NewsTicker } from '@/components/help/NewsTicker';
@@ -24,13 +24,33 @@ import { ResourceDetailView } from '@/components/help/ResourceDetailView';
 import { ChatPanel } from '@/components/help/ChatPanel';
 import type { NearbyResource } from '@/lib/resources/schema';
 
+const MIN_SPLIT_PANE_HEIGHT = 220;
+const SPLIT_DIVIDER_HEIGHT = 14;
+
+const clampChatPaneHeight = (height: number, columnHeight: number) => {
+  const availableHeight = Math.max(
+    MIN_SPLIT_PANE_HEIGHT * 2,
+    columnHeight - SPLIT_DIVIDER_HEIGHT,
+  );
+  return Math.min(
+    Math.max(height, MIN_SPLIT_PANE_HEIGHT),
+    availableHeight - MIN_SPLIT_PANE_HEIGHT,
+  );
+};
+
 const HelpDashboard: FC = () => {
   // Overview panel state
   const [isOverviewExpanded, setIsOverviewExpanded] = useState(true);
+  // Chat panel expand state — owned here so the right column can size itself
+  // (an expanded chat fills the column / shares it 50-50 with the detail view).
+  const [isChatExpanded, setIsChatExpanded] = useState(true);
   // Detect mobile for responsive layout
   const [isMobile, setIsMobile] = useState(false);
   const [selectedResource, setSelectedResource] =
     useState<NearbyResource | null>(null);
+  const rightColumnRef = useRef<HTMLDivElement>(null);
+  const [rightColumnHeight, setRightColumnHeight] = useState(0);
+  const [chatPaneRatio, setChatPaneRatio] = useState(0.5);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -57,6 +77,22 @@ const HelpDashboard: FC = () => {
   }, [isMobile]);
 
   const paddingTop = `${navHeight}px`;
+
+  useEffect(() => {
+    if (isMobile) return;
+
+    const column = rightColumnRef.current;
+    if (!column) return;
+
+    const updateHeight = () => {
+      setRightColumnHeight(column.getBoundingClientRect().height);
+    };
+
+    updateHeight();
+    const ro = new ResizeObserver(updateHeight);
+    ro.observe(column);
+    return () => ro.disconnect();
+  }, [isMobile]);
 
   // ── Sidebar panel controls (driven by the top control cell) ──
   // Which panels are selected to view.
@@ -135,6 +171,52 @@ const HelpDashboard: FC = () => {
   const panelDisplay = (id: HelpPanelId) =>
     isPanelVisible(id) ? undefined : 'none';
 
+  const showDesktopSplitDivider =
+    !isMobile && !!selectedResource && isChatExpanded;
+  const chatPaneHeight =
+    showDesktopSplitDivider && rightColumnHeight > 0
+      ? clampChatPaneHeight(
+          rightColumnHeight * chatPaneRatio,
+          rightColumnHeight,
+        )
+      : null;
+
+  const handleSplitPointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!rightColumnRef.current || rightColumnHeight <= 0) return;
+
+      event.preventDefault();
+      event.currentTarget.setPointerCapture(event.pointerId);
+
+      const columnRect = rightColumnRef.current.getBoundingClientRect();
+
+      const updateFromPointer = (clientY: number) => {
+        const nextHeight = clampChatPaneHeight(
+          columnRect.bottom - clientY,
+          columnRect.height,
+        );
+        setChatPaneRatio(nextHeight / columnRect.height);
+      };
+
+      updateFromPointer(event.clientY);
+
+      const handlePointerMove = (moveEvent: PointerEvent) => {
+        updateFromPointer(moveEvent.clientY);
+      };
+
+      const stopDragging = () => {
+        window.removeEventListener('pointermove', handlePointerMove);
+        window.removeEventListener('pointerup', stopDragging);
+        window.removeEventListener('pointercancel', stopDragging);
+      };
+
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerup', stopDragging);
+      window.addEventListener('pointercancel', stopDragging);
+    },
+    [rightColumnHeight],
+  );
+
   return (
     <motion.main
       style={{
@@ -187,11 +269,16 @@ const HelpDashboard: FC = () => {
             gap: 0,
             width: '100%',
             // Desktop: grow to fill the space between the OverviewPanel and the
-            // viewport bottom, clipping so each column owns its own scroll.
+            // viewport bottom. Each column owns its own scroll, and page-scroll
+            // is already prevented by motion.main's overflow:hidden, so this
+            // stays `visible` — otherwise it would clip the chat panel's upward
+            // hover-lift where it sits flush under the OverviewPanel. The chat's
+            // NeoPanel raises its z-index above the OverviewPanel on hover so the
+            // lift paints over it cleanly.
             // Mobile: natural height, scrolls with the page.
             flex: isMobile ? undefined : '1 1 auto',
             minHeight: 0,
-            overflow: isMobile ? undefined : 'hidden',
+            overflow: isMobile ? undefined : 'visible',
           }}
         >
           {/* Left sidebar — control cell + all panels, tiled, with its own
@@ -261,26 +348,27 @@ const HelpDashboard: FC = () => {
             </PanelLayout>
           </div>
 
-          {/* Right main area — Resource Detail scrolls in the flexible top
-              region; the Chat panel stays anchored at the bottom (above the
-              NewsTicker) and opens/closes upward with its own fluid animation.
-              Always present on desktop so the chat has a home even when no
-              resource is selected. */}
+          {/* Right main area — Resource Detail and Chat share this desktop
+              workspace. When both are open, a horizontal split handle lets the
+              user resize the panes; otherwise the available pane claims the
+              workspace without the chat measuring itself. */}
           {!isMobile && (
             <div
+              ref={rightColumnRef}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
                 minHeight: 0,
+                overflow: 'visible',
               }}
             >
-              {/* Flexible top region: grows to push the chat to the bottom and
-                  shrinks as the chat expands. Holds the detail view when a
-                  resource is selected, otherwise stays empty. */}
               <div
                 style={{
-                  flex: '1 1 auto',
+                  flex:
+                    !selectedResource && isChatExpanded
+                      ? '0 0 auto'
+                      : '1 1 auto',
                   overflowY: 'auto',
                   minHeight: 0,
                 }}
@@ -292,21 +380,78 @@ const HelpDashboard: FC = () => {
                   />
                 )}
               </div>
-              {/* Bottom-anchored chat. flex-shrink keeps it bounded by the
-                  column; its messages area scrolls internally. The -2px left
-                  margin overlaps the chat's left border onto the sidebar's
-                  right border so the two 2px borders collapse into one line
-                  instead of doubling into a 4px seam (align-items: stretch
-                  keeps the right edge flush with the column). */}
-              <div style={{ flex: '0 1 auto', minHeight: 0, marginLeft: -2 }}>
-                <ChatPanel />
+              {showDesktopSplitDivider && (
+                <div
+                  role="separator"
+                  aria-orientation="horizontal"
+                  aria-label="Resize resource detail and chat panes"
+                  onPointerDown={handleSplitPointerDown}
+                  style={{
+                    position: 'relative',
+                    zIndex: 4,
+                    flex: `0 0 ${SPLIT_DIVIDER_HEIGHT}px`,
+                    marginLeft: -2,
+                    cursor: 'row-resize',
+                    touchAction: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'var(--color-bg)',
+                    borderLeft: '2px solid var(--color-text)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '100%',
+                      height: 2,
+                      background: 'var(--color-text)',
+                      opacity: 0.9,
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      width: 42,
+                      height: 4,
+                      background: '#fbbf24',
+                      border: '1px solid var(--color-text)',
+                    }}
+                  />
+                </div>
+              )}
+              <div
+                style={{
+                  flex:
+                    showDesktopSplitDivider && chatPaneHeight !== null
+                      ? `0 0 ${chatPaneHeight}px`
+                      : isChatExpanded
+                        ? '1 1 auto'
+                        : '0 0 auto',
+                  minHeight: 0,
+                  marginLeft: -2,
+                  marginTop: showDesktopSplitDivider ? 0 : -2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <ChatPanel
+                  isExpanded={isChatExpanded}
+                  onToggle={() => setIsChatExpanded((v) => !v)}
+                  fill={!isMobile && isChatExpanded}
+                />
               </div>
             </div>
           )}
         </div>
 
         {/* Mobile: chat stacks at the bottom of the page at natural height. */}
-        {isMobile && <ChatPanel />}
+        {isMobile && (
+          <ChatPanel
+            isExpanded={isChatExpanded}
+            onToggle={() => setIsChatExpanded((v) => !v)}
+            fill={false}
+          />
+        )}
       </PanelControlProvider>
     </motion.main>
   );

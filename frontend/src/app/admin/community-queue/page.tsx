@@ -35,11 +35,11 @@ const GREEN = '#22c55e';
 
 function badge(status: string) {
   const map: Record<string, string> = {
-    pending: '#d97706',
+    pending: '#fbbf24',
     approved: GREEN,
     rejected: RED,
     needs_review: '#6366f1',
-    open: '#d97706',
+    open: '#fbbf24',
     investigating: '#6366f1',
     resolved_fixed: GREEN,
     resolved_unverified: MUTED,
@@ -60,7 +60,9 @@ function fmt(iso: string) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 const AdminCommunityQueue: FC = () => {
   const [token, setToken] = useState(() =>
-    typeof window !== 'undefined' ? sessionStorage.getItem('hn-admin-token') ?? '' : '',
+    typeof window !== 'undefined'
+      ? (sessionStorage.getItem('hn-admin-token') ?? '')
+      : '',
   );
   const [tokenInput, setTokenInput] = useState('');
   const [authed, setAuthed] = useState(false);
@@ -71,11 +73,20 @@ const AdminCommunityQueue: FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const [editingTip, setEditingTip] = useState<{ id: string; body: string } | null>(null);
-  const [rejectingTip, setRejectingTip] = useState<{ id: string; reason: RejectionReason | '' } | null>(null);
+  const [editingTip, setEditingTip] = useState<{
+    id: string;
+    body: string;
+  } | null>(null);
+  const [rejectingTip, setRejectingTip] = useState<{
+    id: string;
+    reason: RejectionReason | '';
+  } | null>(null);
 
   const headers = useCallback(
-    () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }),
+    () => ({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    }),
     [token],
   );
 
@@ -195,7 +206,14 @@ const AdminCommunityQueue: FC = () => {
             HELP NEARBY · ADMIN
           </h1>
           {error && (
-            <p style={{ fontFamily: FONT, fontSize: '0.7rem', color: RED, margin: 0 }}>
+            <p
+              style={{
+                fontFamily: FONT,
+                fontSize: '0.7rem',
+                color: RED,
+                margin: 0,
+              }}
+            >
               {error}
             </p>
           )}
@@ -236,12 +254,23 @@ const AdminCommunityQueue: FC = () => {
     );
   }
 
-  const pendingTips = tips.filter((t) => t.status === 'pending' || t.status === 'needs_review');
-  const openReports = reports.filter((r) => r.status === 'open' || r.status === 'investigating');
+  const pendingTips = tips.filter(
+    (t) => t.status === 'pending' || t.status === 'needs_review',
+  );
+  const openReports = reports.filter(
+    (r) => r.status === 'open' || r.status === 'investigating',
+  );
 
   // ── Queue ────────────────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: BG, color: TEXT, fontFamily: FONT }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: BG,
+        color: TEXT,
+        fontFamily: FONT,
+      }}
+    >
       {/* Header */}
       <div
         style={{
@@ -252,7 +281,13 @@ const AdminCommunityQueue: FC = () => {
           justifyContent: 'space-between',
         }}
       >
-        <span style={{ fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.12em' }}>
+        <span
+          style={{
+            fontWeight: 800,
+            fontSize: '0.75rem',
+            letterSpacing: '0.12em',
+          }}
+        >
           HELP NEARBY · COMMUNITY QUEUE
         </span>
         <button
@@ -262,14 +297,28 @@ const AdminCommunityQueue: FC = () => {
             setAuthed(false);
             setToken('');
           }}
-          style={{ fontFamily: FONT, fontSize: '0.65rem', color: MUTED, background: 'none', border: 'none', cursor: 'pointer' }}
+          style={{
+            fontFamily: FONT,
+            fontSize: '0.65rem',
+            color: MUTED,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+          }}
         >
           Sign out
         </button>
       </div>
 
       {/* Tabs */}
-      <div style={{ borderBottom: `1px solid ${BORDER}`, padding: '0 2rem', display: 'flex', gap: '0' }}>
+      <div
+        style={{
+          borderBottom: `1px solid ${BORDER}`,
+          padding: '0 2rem',
+          display: 'flex',
+          gap: '0',
+        }}
+      >
         {(['tips', 'reports'] as const).map((t) => (
           <button
             key={t}
@@ -283,7 +332,8 @@ const AdminCommunityQueue: FC = () => {
               color: tab === t ? GOLD : MUTED,
               background: 'none',
               border: 'none',
-              borderBottom: tab === t ? `2px solid ${GOLD}` : '2px solid transparent',
+              borderBottom:
+                tab === t ? `2px solid ${GOLD}` : '2px solid transparent',
               padding: '0.75rem 1.25rem',
               cursor: 'pointer',
             }}
@@ -296,7 +346,15 @@ const AdminCommunityQueue: FC = () => {
         <button
           type="button"
           onClick={() => loadTips(token)}
-          style={{ fontFamily: FONT, fontSize: '0.65rem', color: MUTED, background: 'none', border: 'none', cursor: 'pointer', marginLeft: 'auto' }}
+          style={{
+            fontFamily: FONT,
+            fontSize: '0.65rem',
+            color: MUTED,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            marginLeft: 'auto',
+          }}
         >
           {loading ? 'Loading…' : 'Refresh'}
         </button>
@@ -306,7 +364,9 @@ const AdminCommunityQueue: FC = () => {
         {tab === 'tips' && (
           <>
             {tips.length === 0 && !loading && (
-              <p style={{ fontSize: '0.75rem', color: MUTED }}>No submissions yet.</p>
+              <p style={{ fontSize: '0.75rem', color: MUTED }}>
+                No submissions yet.
+              </p>
             )}
             {tips
               .slice()
@@ -321,9 +381,25 @@ const AdminCommunityQueue: FC = () => {
                     marginBottom: '0.75rem',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      justifyContent: 'space-between',
+                      gap: '1rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '0.5rem',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          marginBottom: '0.35rem',
+                        }}
+                      >
                         <span
                           style={{
                             fontFamily: FONT,
@@ -337,34 +413,69 @@ const AdminCommunityQueue: FC = () => {
                         >
                           {tip.status.toUpperCase()}
                         </span>
-                        <span style={{ fontSize: '0.65rem', color: MUTED }}>{fmt(tip.createdAt)}</span>
+                        <span style={{ fontSize: '0.65rem', color: MUTED }}>
+                          {fmt(tip.createdAt)}
+                        </span>
                         {tip.submitterName && (
-                          <span style={{ fontSize: '0.65rem', color: MUTED }}>· {tip.submitterName}</span>
+                          <span style={{ fontSize: '0.65rem', color: MUTED }}>
+                            · {tip.submitterName}
+                          </span>
                         )}
                         {tip.visitedOn && (
-                          <span style={{ fontSize: '0.65rem', color: MUTED }}>· visited {tip.visitedOn}</span>
+                          <span style={{ fontSize: '0.65rem', color: MUTED }}>
+                            · visited {tip.visitedOn}
+                          </span>
                         )}
                       </div>
-                      <p style={{ fontSize: '0.8rem', color: TEXT, margin: '0 0 0.35rem 0', lineHeight: 1.5 }}>
+                      <p
+                        style={{
+                          fontSize: '0.8rem',
+                          color: TEXT,
+                          margin: '0 0 0.35rem 0',
+                          lineHeight: 1.5,
+                        }}
+                      >
                         {tip.body}
                       </p>
                       {tip.originalBody && (
-                        <p style={{ fontSize: '0.65rem', color: MUTED, margin: '0 0 0.35rem 0', fontStyle: 'italic' }}>
+                        <p
+                          style={{
+                            fontSize: '0.65rem',
+                            color: MUTED,
+                            margin: '0 0 0.35rem 0',
+                            fontStyle: 'italic',
+                          }}
+                        >
                           Original: {tip.originalBody}
                         </p>
                       )}
-                      <p style={{ fontSize: '0.65rem', color: MUTED, margin: 0 }}>
+                      <p
+                        style={{ fontSize: '0.65rem', color: MUTED, margin: 0 }}
+                      >
                         <strong>{tip.resourceSnapshot.name}</strong>
-                        {tip.resourceSnapshot.address && ` · ${tip.resourceSnapshot.address}`}
+                        {tip.resourceSnapshot.address &&
+                          ` · ${tip.resourceSnapshot.address}`}
                         {' · '}source: {tip.resourceSnapshot.sourceName}
                       </p>
                       {tip.submitterEmail && (
-                        <p style={{ fontSize: '0.62rem', color: MUTED, margin: '0.2rem 0 0 0' }}>
+                        <p
+                          style={{
+                            fontSize: '0.62rem',
+                            color: MUTED,
+                            margin: '0.2rem 0 0 0',
+                          }}
+                        >
                           Contact: {tip.submitterEmail}
                         </p>
                       )}
                       {tip.rejectionReason && (
-                        <p style={{ fontSize: '0.62rem', color: RED, margin: '0.2rem 0 0 0' }}>
+                        <p
+                          style={{
+                            fontSize: '0.62rem',
+                            color: RED,
+                            margin: '0.2rem 0 0 0',
+                          }}
+                        >
                           Rejected: {tip.rejectionReason}
                         </p>
                       )}
@@ -372,8 +483,17 @@ const AdminCommunityQueue: FC = () => {
                   </div>
 
                   {/* Moderation actions */}
-                  {(tip.status === 'pending' || tip.status === 'needs_review') && (
-                    <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {(tip.status === 'pending' ||
+                    tip.status === 'needs_review') && (
+                    <div
+                      style={{
+                        marginTop: '0.75rem',
+                        display: 'flex',
+                        gap: '0.5rem',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={() => moderateTip(tip.id, 'approve')}
@@ -387,7 +507,10 @@ const AdminCommunityQueue: FC = () => {
                           <select
                             value={rejectingTip.reason}
                             onChange={(e) =>
-                              setRejectingTip({ id: tip.id, reason: e.target.value as RejectionReason })
+                              setRejectingTip({
+                                id: tip.id,
+                                reason: e.target.value as RejectionReason,
+                              })
                             }
                             style={selectStyle}
                           >
@@ -402,7 +525,11 @@ const AdminCommunityQueue: FC = () => {
                             type="button"
                             onClick={() => {
                               if (rejectingTip.reason) {
-                                moderateTip(tip.id, 'reject', rejectingTip.reason);
+                                moderateTip(
+                                  tip.id,
+                                  'reject',
+                                  rejectingTip.reason,
+                                );
                                 setRejectingTip(null);
                               }
                             }}
@@ -422,7 +549,9 @@ const AdminCommunityQueue: FC = () => {
                       ) : (
                         <button
                           type="button"
-                          onClick={() => setRejectingTip({ id: tip.id, reason: '' })}
+                          onClick={() =>
+                            setRejectingTip({ id: tip.id, reason: '' })
+                          }
                           style={actionBtn(RED)}
                         >
                           REJECT
@@ -442,7 +571,10 @@ const AdminCommunityQueue: FC = () => {
                           <textarea
                             value={editingTip.body}
                             onChange={(e) =>
-                              setEditingTip({ id: tip.id, body: e.target.value.slice(0, 280) })
+                              setEditingTip({
+                                id: tip.id,
+                                body: e.target.value.slice(0, 280),
+                              })
                             }
                             rows={2}
                             style={{ ...textareaStyle, minWidth: 240 }}
@@ -450,7 +582,12 @@ const AdminCommunityQueue: FC = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              moderateTip(tip.id, 'approve', undefined, editingTip.body);
+                              moderateTip(
+                                tip.id,
+                                'approve',
+                                undefined,
+                                editingTip.body,
+                              );
                               setEditingTip(null);
                             }}
                             style={actionBtn(GOLD)}
@@ -468,7 +605,9 @@ const AdminCommunityQueue: FC = () => {
                       ) : (
                         <button
                           type="button"
-                          onClick={() => setEditingTip({ id: tip.id, body: tip.body })}
+                          onClick={() =>
+                            setEditingTip({ id: tip.id, body: tip.body })
+                          }
                           style={ghostBtn}
                         >
                           Edit & approve
@@ -478,7 +617,13 @@ const AdminCommunityQueue: FC = () => {
                   )}
 
                   {tip.status === 'approved' && (
-                    <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                    <div
+                      style={{
+                        marginTop: '0.5rem',
+                        display: 'flex',
+                        gap: '0.5rem',
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={() => moderateTip(tip.id, 'reject', 'other')}
@@ -496,7 +641,9 @@ const AdminCommunityQueue: FC = () => {
         {tab === 'reports' && (
           <>
             {reports.length === 0 && !loading && (
-              <p style={{ fontSize: '0.75rem', color: MUTED }}>No issue reports yet.</p>
+              <p style={{ fontSize: '0.75rem', color: MUTED }}>
+                No issue reports yet.
+              </p>
             )}
             {reports
               .slice()
@@ -511,7 +658,15 @@ const AdminCommunityQueue: FC = () => {
                     marginBottom: '0.75rem',
                   }}
                 >
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.5rem',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      marginBottom: '0.35rem',
+                    }}
+                  >
                     <span
                       style={{
                         fontFamily: FONT,
@@ -525,7 +680,9 @@ const AdminCommunityQueue: FC = () => {
                     >
                       {report.status.toUpperCase()}
                     </span>
-                    <span style={{ fontSize: '0.65rem', color: MUTED }}>{fmt(report.createdAt)}</span>
+                    <span style={{ fontSize: '0.65rem', color: MUTED }}>
+                      {fmt(report.createdAt)}
+                    </span>
                     <span
                       style={{
                         fontSize: '0.65rem',
@@ -538,17 +695,35 @@ const AdminCommunityQueue: FC = () => {
                       {report.issueType.replace(/_/g, ' ')}
                     </span>
                   </div>
-                  <p style={{ fontSize: '0.78rem', color: TEXT, margin: '0 0 0.25rem 0' }}>
+                  <p
+                    style={{
+                      fontSize: '0.78rem',
+                      color: TEXT,
+                      margin: '0 0 0.25rem 0',
+                    }}
+                  >
                     <strong>{report.resourceSnapshot.name}</strong>
-                    {report.resourceSnapshot.address && ` · ${report.resourceSnapshot.address}`}
+                    {report.resourceSnapshot.address &&
+                      ` · ${report.resourceSnapshot.address}`}
                   </p>
                   {report.detail && (
-                    <p style={{ fontSize: '0.72rem', color: MUTED, margin: '0 0 0.5rem 0', lineHeight: 1.5 }}>
+                    <p
+                      style={{
+                        fontSize: '0.72rem',
+                        color: MUTED,
+                        margin: '0 0 0.5rem 0',
+                        lineHeight: 1.5,
+                      }}
+                    >
                       {report.detail}
                     </p>
                   )}
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {REPORT_STATUSES.filter((s) => s.value !== report.status).map((s) => (
+                  <div
+                    style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}
+                  >
+                    {REPORT_STATUSES.filter(
+                      (s) => s.value !== report.status,
+                    ).map((s) => (
                       <button
                         key={s.value}
                         type="button"

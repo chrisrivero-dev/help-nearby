@@ -687,7 +687,7 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
   );
 
   return (
-    <NeoPanel>
+    <NeoPanel isExpanded={isExpanded}>
       {/* Section Header */}
       <PanelHeader
         divider={divider}
@@ -977,7 +977,7 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
                       fontFamily: "'Poppins', sans-serif",
                       fontSize: '0.66rem',
                       letterSpacing: '0.06em',
-                      color: isDark ? '#d97706' : '#92400e',
+                      color: isDark ? '#fbbf24' : '#92400e',
                       background: isDark ? '#1a120a' : '#fff7ed',
                     }}
                   >
