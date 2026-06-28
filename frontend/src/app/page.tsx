@@ -2,7 +2,7 @@
 
 import type { FC, CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useTheme } from '@/components/useTheme';
 import { useRouter } from 'next/navigation';
 import LoginModal from '@/components/LoginModal';
@@ -786,9 +786,416 @@ const Landing: FC = () => {
         </motion.div>
       </section>
 
+      {/* How it works — motion demo */}
+      <HowItWorksSection isDark={isDark} isMobile={isMobile} />
+
       {/* Below the fold — credibility, audiences, and partner CTA */}
       <BelowFold isDark={isDark} isMobile={isMobile} />
     </div>
+  );
+};
+
+// ── How It Works section ─────────────────────────────────────────────────────
+
+const DEMO_CHIPS_HOME = [
+  { id: 'loc', text: '📍 90012', kind: 'location' },
+  { id: 'cat', text: 'Shelter', kind: 'filter' },
+  { id: 'res', text: 'Nearby resource · 0.5 mi', kind: 'result' },
+  { id: 'src', text: '✓ Source-backed', kind: 'source' },
+  { id: 'ask', text: '"Any food banks nearby?"', kind: 'chat' },
+] as const;
+
+const HOME_STEPS = [
+  'Enter your location',
+  'Filter by need',
+  'Open a source-backed result',
+  'Ask follow-up questions',
+];
+
+const CHIP_STEP_HOME: Record<string, number> = {
+  loc: 0, cat: 1, res: 2, src: 2, ask: 3,
+};
+
+const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
+  isDark,
+  isMobile,
+}) => {
+  const prefersReduced = useReducedMotion();
+  const [stage, setStage] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    if (!mounted || prefersReduced) return;
+    const t = setTimeout(() => setStage(1), 400);
+    return () => clearTimeout(t);
+  }, [mounted, prefersReduced]);
+
+  useEffect(() => {
+    if (!mounted || prefersReduced || stage === 0) return;
+    const isLast = stage >= DEMO_CHIPS_HOME.length;
+    const t = setTimeout(
+      () => setStage((s) => (s >= DEMO_CHIPS_HOME.length ? 0 : s + 1)),
+      isLast ? 1400 : 2200,
+    );
+    return () => clearTimeout(t);
+  }, [stage, mounted, prefersReduced]);
+
+  useEffect(() => {
+    if (!mounted || prefersReduced || stage !== 0) return;
+    const t = setTimeout(() => setStage(1), 400);
+    return () => clearTimeout(t);
+  }, [stage, mounted, prefersReduced]);
+
+  const borderColor = isDark ? '#404040' : '#111111';
+  const bg = isDark ? '#0f0f0f' : '#ffffff';
+  const textColor = isDark ? '#f4f4f4' : '#111111';
+  const mutedColor = isDark ? '#b8b8b8' : '#666666';
+  const dimBorder = isDark ? '#2a2a2a' : '#d0d0d0';
+  const amber = '#f59e0b';
+
+  const visibleCount = prefersReduced ? DEMO_CHIPS_HOME.length : stage;
+  const activeChipIdx = prefersReduced ? -1 : stage - 1;
+  const activeStepIdx =
+    prefersReduced || stage === 0
+      ? -1
+      : CHIP_STEP_HOME[
+          DEMO_CHIPS_HOME[Math.min(stage - 1, DEMO_CHIPS_HOME.length - 1)].id
+        ];
+
+  function chipStyles(chip: (typeof DEMO_CHIPS_HOME)[number], idx: number) {
+    const visible = prefersReduced || idx < visibleCount;
+    const isActive = !prefersReduced && idx === activeChipIdx;
+    let background = 'transparent';
+    let border = `2px solid ${dimBorder}`;
+    let color = mutedColor;
+    if (visible) { color = textColor; border = `2px solid ${isDark ? '#3a3a3a' : '#ccc'}`; }
+    if (isActive && visible) {
+      if (chip.kind === 'source') {
+        background = isDark ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.08)';
+        border = '2px solid #22c55e';
+        color = isDark ? '#86efac' : '#15803d';
+      } else if (chip.kind === 'chat') {
+        background = isDark ? '#1a1a1a' : '#f4f4f4';
+        border = `2px solid ${borderColor}`;
+        color = textColor;
+      } else {
+        background = amber; border = `2px solid ${amber}`; color = '#111';
+      }
+    }
+    return { background, border, color };
+  }
+
+  return (
+    <section
+      style={{
+        width: '100%',
+        background: bg,
+        borderTop: `2px solid ${borderColor}`,
+        borderBottom: `2px solid ${borderColor}`,
+        padding: isMobile ? '2.5rem 6vw' : '3.5rem 2rem',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1050,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: isMobile ? '2rem' : '4rem',
+          alignItems: isMobile ? 'flex-start' : 'center',
+        }}
+      >
+        {/* Left: headline + steps */}
+        <div
+          style={{
+            flex: '0 0 auto',
+            minWidth: isMobile ? 'auto' : 280,
+            maxWidth: isMobile ? '100%' : 340,
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 800,
+              fontSize: '0.66rem',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: amber,
+              margin: '0 0 1rem',
+            }}
+          >
+            How it works
+          </p>
+          <p
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 800,
+              fontSize: isMobile ? '1.5rem' : '1.75rem',
+              color: textColor,
+              margin: '0 0 0.75rem',
+              lineHeight: 1.15,
+            }}
+          >
+            Search local help.
+            <br />
+            See where it came from.
+          </p>
+          <p
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: '0.82rem',
+              color: mutedColor,
+              margin: '0 0 1.5rem',
+              lineHeight: 1.7,
+              maxWidth: 340,
+            }}
+          >
+            Help Nearby lets people search nearby resources by location, review
+            source-backed details, and ask follow-up questions with the local
+            context already attached.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+            {HOME_STEPS.map((label, i) => {
+              const isActive = prefersReduced || i === activeStepIdx;
+              return (
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.65rem',
+                    opacity: prefersReduced ? 1 : isActive ? 1 : 0.35,
+                    transition: prefersReduced ? undefined : 'opacity 0.4s ease',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: '50%',
+                      background: isActive ? amber : 'transparent',
+                      border: `2px solid ${isActive ? amber : dimBorder}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      transition: prefersReduced
+                        ? undefined
+                        : 'background 0.4s ease, border-color 0.4s ease',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.55rem',
+                        fontWeight: 800,
+                        color: isActive ? '#111' : mutedColor,
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.82rem',
+                      fontWeight: isActive ? 700 : 400,
+                      color: isActive ? textColor : mutedColor,
+                      transition: prefersReduced ? undefined : 'color 0.4s ease',
+                    }}
+                  >
+                    {label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ marginTop: '2rem' }}>
+            <a
+              href="/help"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.72rem',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: isDark ? '#111' : '#fff',
+                background: isDark ? '#e8e8e8' : '#111111',
+                border: `2px solid ${borderColor}`,
+                padding: '0.6rem 1.2rem',
+                textDecoration: 'none',
+              }}
+            >
+              Start searching →
+            </a>
+          </div>
+        </div>
+
+        {/* Vertical divider — desktop only */}
+        {!isMobile && (
+          <div
+            style={{
+              width: 2,
+              alignSelf: 'stretch',
+              background: borderColor,
+              opacity: 0.15,
+              flexShrink: 0,
+            }}
+          />
+        )}
+
+        {/* Right: animated chip demo */}
+        <div
+          style={{
+            flex: '1 1 auto',
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}
+        >
+          {/* Mock browser frame */}
+          <div
+            style={{
+              border: `2px solid ${borderColor}`,
+              background: isDark ? '#121212' : '#fafafa',
+              padding: isMobile ? '1.2rem' : '1.8rem 2rem',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                marginBottom: '1.2rem',
+                paddingBottom: '0.8rem',
+                borderBottom: `1px solid ${dimBorder}`,
+              }}
+            >
+              {['#3a3a3a', '#3a3a3a', '#3a3a3a'].map((c, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: isDark ? c : '#ddd',
+                  }}
+                />
+              ))}
+              <span
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: '0.6rem',
+                  color: mutedColor,
+                  marginLeft: '0.5rem',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                help-nearby.com/help
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.55rem',
+                alignItems: 'center',
+                minHeight: 52,
+              }}
+            >
+              {DEMO_CHIPS_HOME.map((chip, idx) => {
+                const visible = prefersReduced || idx < visibleCount;
+                const s = chipStyles(chip, idx);
+                return (
+                  <div
+                    key={chip.id}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}
+                  >
+                    <motion.div
+                      animate={{
+                        opacity: visible ? 1 : 0,
+                        y: visible ? 0 : 6,
+                        scale:
+                          (!prefersReduced && idx === activeChipIdx && visible)
+                            ? 1.04
+                            : 1,
+                      }}
+                      transition={
+                        prefersReduced
+                          ? { duration: 0 }
+                          : { duration: 0.38, ease: 'easeOut' }
+                      }
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: chip.kind === 'chat' ? '0.75rem' : '0.8rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.01em',
+                        padding:
+                          chip.kind === 'chat'
+                            ? '0.4rem 0.8rem'
+                            : '0.35rem 0.75rem',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth:
+                          chip.kind === 'result' || chip.kind === 'chat'
+                            ? 240
+                            : 160,
+                        fontStyle: chip.kind === 'chat' ? 'italic' : 'normal',
+                        ...s,
+                        transition: prefersReduced
+                          ? undefined
+                          : 'background 0.38s ease, border-color 0.38s ease, color 0.38s ease',
+                      }}
+                    >
+                      {chip.text}
+                    </motion.div>
+                    {idx < DEMO_CHIPS_HOME.length - 1 && (
+                      <span
+                        style={{
+                          color: dimBorder,
+                          fontSize: '0.8rem',
+                          opacity: visible ? 0.7 : 0.2,
+                          transition: 'opacity 0.38s ease',
+                          userSelect: 'none',
+                          flexShrink: 0,
+                        }}
+                      >
+                        →
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mobile — static summary */}
+          {isMobile && !prefersReduced && (
+            <p
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: '0.75rem',
+                color: mutedColor,
+                margin: 0,
+                lineHeight: 1.6,
+              }}
+            >
+              Location → Filter → Source-backed result → Ask follow-up
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
   );
 };
 
