@@ -19,10 +19,12 @@ export interface DetailDescriptor<T = unknown> {
   groundingSummary?: string;
 }
 
-/** One openable option a panel exposes to the chat ("the lists to the left"). */
+/** One option a panel exposes to the chat ("the lists to the left"). */
 export interface GroundingItem {
-  /** Full + openable, so chat markers resolve back to a real `openDetail`. */
-  descriptor: DetailDescriptor;
+  /** When present, the item is openable and chat markers resolve back to a real
+   *  `openDetail`. Omit for grounding-only items (the chat can see/reference
+   *  them, but there's no detail renderer to open). */
+  descriptor?: DetailDescriptor;
   /** One line the model sees (e.g. title · category · distance · address). */
   groundingText: string;
 }

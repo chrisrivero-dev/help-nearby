@@ -15,6 +15,8 @@ import {
   PanelInfoPopover,
 } from './PanelStatusControls';
 import type { CommunityOpportunity } from '@/lib/community/types';
+import type { GroundingItem } from './DashboardContext';
+import { usePublishGrounding } from '@/lib/chat/usePublishGrounding';
 
 const GOLD_COLOR = '#fbbf24';
 const COMMUNITY_CACHE_TTL_MS = 10 * 60 * 1000;
@@ -128,6 +130,13 @@ function formatChecked(iso: string): string {
   });
 }
 
+// One-line summary of an opportunity for the chat grounding bus.
+function communityGroundingText(o: CommunityOpportunity): string {
+  return [tagOf(o), o.title, o.organizationName, formatWhen(o), formatWhere(o)]
+    .filter(Boolean)
+    .join(' · ');
+}
+
 export const CommunityPanel: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -181,6 +190,24 @@ export const CommunityPanel: FC = () => {
   }, [items, query, activeTypes]);
 
   const filtersActive = query.trim().length > 0 || activeTypes.length > 0;
+
+  // Publish the filtered events to the chat so it can see what's shown here.
+  const groundingItems = useMemo<GroundingItem[] | null>(
+    () =>
+      filteredItems.length > 0
+        ? filteredItems.map((o) => ({ groundingText: communityGroundingText(o) }))
+        : null,
+    [filteredItems],
+  );
+  const groundingFilters = useMemo(
+    () => ({
+      query: query.trim() || undefined,
+      categories: activeTypes.length ? activeTypes : undefined,
+    }),
+    [query, activeTypes],
+  );
+  usePublishGrounding('community', 'Community', groundingItems, groundingFilters);
+
   const toggleType = (t: string) =>
     setActiveTypes((prev) =>
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],

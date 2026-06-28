@@ -14,7 +14,7 @@ import {
   buildGroundingSystemPrompt,
   summarizeGrounding,
 } from '@/lib/chat/buildGroundingPrompt';
-import { parseDetailMarkers } from '@/lib/chat/parseDetailMarkers';
+import { ChatMarkdown } from './ChatMarkdown';
 
 // Chat message interface
 interface ChatMessage extends OllamaMessage {
@@ -87,6 +87,11 @@ export const ChatPanel: FC<ChatPanelProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // Whether the view is pinned to the bottom. While true, new content
+  // auto-scrolls; once the user scrolls up (e.g. to read mid-stream) it goes
+  // false so streaming tokens don't yank them back down.
+  const pinnedToBottomRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Map every openable item (across all panels) by id, so `[[open:<id>]]`
@@ -95,7 +100,9 @@ export const ChatPanel: FC<ChatPanelProps> = ({
     const map = new Map<string, DetailDescriptor>();
     for (const panel of Object.values(panelGrounding)) {
       for (const item of panel.items) {
-        map.set(item.descriptor.id, item.descriptor);
+        // Grounding-only items carry no descriptor — skip them so they never
+        // produce a broken (unopenable) chip.
+        if (item.descriptor) map.set(item.descriptor.id, item.descriptor);
       }
     }
     return map;
@@ -150,8 +157,19 @@ export const ChatPanel: FC<ChatPanelProps> = ({
     }
   }, [selectedModel]);
 
-  // Auto-scroll to bottom of chat
+  // Track whether the user is parked at the bottom. A small threshold absorbs
+  // sub-pixel rounding and the in-flight growth of a streaming message.
+  const handleMessagesScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    pinnedToBottomRef.current = distanceFromBottom < 48;
+  }, []);
+
+  // Auto-scroll to the latest content only while pinned to the bottom, so a user
+  // who scrolls up mid-stream isn't dragged back down on every token.
   useEffect(() => {
+    if (!pinnedToBottomRef.current) return;
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -167,6 +185,8 @@ export const ChatPanel: FC<ChatPanelProps> = ({
       timestamp: Date.now(),
     };
 
+    // Sending re-anchors to the bottom even if the user had scrolled up.
+    pinnedToBottomRef.current = true;
     setMessages((prev) => [...prev, userMessage]);
     setError(null);
     setIsChatLoading(true);
@@ -198,26 +218,68 @@ export const ChatPanel: FC<ChatPanelProps> = ({
               .map((m) => ({ role: m.role, content: m.content })),
             { role: 'user', content: trimmed },
           ],
-          stream: false,
+          stream: true,
         }),
         signal: abortControllerRef.current.signal,
       });
 
-      if (!res.ok) {
+      if (!res.ok || !res.body) {
         const errorData = await res.json().catch(() => ({}));
         setError(errorData.error || 'Failed to get response from Ollama');
         return;
       }
 
-      const data = await res.json();
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.message?.content || '',
-        timestamp: Date.now(),
-      };
+      // Add an empty assistant message up front, then fill it in live as the
+      // NDJSON stream arrives so the user sees the reply build token by token.
+      const assistantId = (Date.now() + 1).toString();
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: assistantId,
+          role: 'assistant',
+          content: '',
+          timestamp: Date.now(),
+        },
+      ]);
 
-      setMessages((prev) => [...prev, assistantMessage]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let content = '';
+
+      // Ollama streams one JSON object per line: { message: { content }, done }.
+      // Content arrives as deltas, so we accumulate and re-render on each token.
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (!trimmedLine) continue;
+          let chunk: {
+            message?: { content?: string };
+            done?: boolean;
+            error?: string;
+          };
+          try {
+            chunk = JSON.parse(trimmedLine);
+          } catch {
+            continue;
+          }
+          if (chunk.error) {
+            setError(chunk.error);
+            continue;
+          }
+          if (chunk.message?.content) {
+            content += chunk.message.content;
+            setMessages((prev) =>
+              prev.map((m) => (m.id === assistantId ? { ...m, content } : m)),
+            );
+          }
+        }
+      }
     } catch (err) {
       console.error('Chat error:', err);
       if (err instanceof Error && (err as Error).name === 'AbortError') {
@@ -277,41 +339,6 @@ export const ChatPanel: FC<ChatPanelProps> = ({
 
   const cardText = isDark ? '#dedede' : '#111111';
   const mutedText = isDark ? '#7a7a7a' : '#888';
-
-  // Render an assistant message, turning [[open:<id>]] markers into clickable
-  // chips that open the referenced item in the DetailView. Unknown ids (e.g. a
-  // model citing a stale id) fall back to plain text so nothing breaks.
-  const renderAssistantContent = (content: string) =>
-    parseDetailMarkers(content).map((seg, i) => {
-      if (seg.type === 'text') return <span key={i}>{seg.text}</span>;
-      const descriptor = descriptorsById.get(seg.id);
-      if (!descriptor) return null;
-      return (
-        <button
-          key={i}
-          type="button"
-          onClick={() => openDetail(descriptor)}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            margin: '0 0.15rem',
-            padding: '0.1rem 0.4rem',
-            fontFamily: "'Poppins', sans-serif",
-            fontSize: '0.7rem',
-            fontWeight: 700,
-            color: '#000',
-            background: '#fbbf24',
-            border: `1px solid ${isDark ? '#a16207' : '#111111'}`,
-            borderRadius: 4,
-            cursor: 'pointer',
-            verticalAlign: 'baseline',
-          }}
-          title={`Open ${descriptor.title}`}
-        >
-          {descriptor.title}
-        </button>
-      );
-    });
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
   const border = isDark ? '#404040' : '#111111';
   const inputBg = isDark ? '#0a0a0a' : '#fafafa';
@@ -745,6 +772,8 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                 so this region can shrink and keep the input pinned; otherwise a
                 200px floor preserves the natural standalone/mobile look. */}
             <div
+              ref={scrollContainerRef}
+              onScroll={handleMessagesScroll}
               style={{
                 flex: 1,
                 overflowY: 'auto',
@@ -868,12 +897,24 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                                 : '#f9f9f9',
                           border: `1px solid ${msg.role === 'user' ? inputBorder : divider}`,
                           borderRadius: 4,
-                          whiteSpace: 'pre-wrap',
+                          // Markdown owns its own block spacing; plain-text
+                          // messages (user input, grounding digest) keep newlines.
+                          whiteSpace:
+                            msg.role === 'assistant' && !msg.local
+                              ? 'normal'
+                              : 'pre-wrap',
                         }}
                       >
-                        {msg.role === 'assistant'
-                          ? renderAssistantContent(msg.content)
-                          : msg.content}
+                        {msg.role === 'assistant' && !msg.local ? (
+                          <ChatMarkdown
+                            content={msg.content}
+                            isDark={isDark}
+                            descriptorsById={descriptorsById}
+                            onOpen={openDetail}
+                          />
+                        ) : (
+                          msg.content
+                        )}
                       </div>
                     </div>
                   ))}

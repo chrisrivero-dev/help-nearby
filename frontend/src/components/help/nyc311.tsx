@@ -15,6 +15,8 @@ import {
   PanelInfoPopover,
 } from './PanelStatusControls';
 import type { NYC311Item } from '@/lib/nyc311/types';
+import type { GroundingItem } from './DashboardContext';
+import { usePublishGrounding } from '@/lib/chat/usePublishGrounding';
 
 const GOLD_COLOR = '#fbbf24';
 const NYC311_CACHE_TTL_MS = 10 * 60 * 1000;
@@ -111,6 +113,13 @@ function formatChecked(iso: string): string {
   });
 }
 
+// One-line summary of a 311 request for the chat grounding bus.
+function nyc311GroundingText(item: NYC311Item): string {
+  return [item.title, tagOf(item), formatReported(item), item.address?.trim()]
+    .filter(Boolean)
+    .join(' · ');
+}
+
 export const NYC311Panel: FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -169,6 +178,24 @@ export const NYC311Panel: FC = () => {
   }, [items, query, activeTags]);
 
   const filtersActive = query.trim().length > 0 || activeTags.length > 0;
+
+  // Publish the filtered 311 requests to the chat so it can see what's shown here.
+  const groundingItems = useMemo<GroundingItem[] | null>(
+    () =>
+      filteredItems.length > 0
+        ? filteredItems.map((o) => ({ groundingText: nyc311GroundingText(o) }))
+        : null,
+    [filteredItems],
+  );
+  const groundingFilters = useMemo(
+    () => ({
+      query: query.trim() || undefined,
+      categories: activeTags.length ? activeTags : undefined,
+    }),
+    [query, activeTags],
+  );
+  usePublishGrounding('nyc311', '311', groundingItems, groundingFilters);
+
   const toggleTag = (t: string) =>
     setActiveTags((prev) =>
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],

@@ -14,6 +14,8 @@ import {
   PanelRefreshButton,
   PanelInfoPopover,
 } from './PanelStatusControls';
+import type { GroundingItem } from './DashboardContext';
+import { usePublishGrounding } from '@/lib/chat/usePublishGrounding';
 
 interface WeatherAlert {
   id: string;
@@ -40,6 +42,12 @@ interface AlertSourceStatus {
 
 const GOLD_COLOR = '#fbbf24';
 const ALERTS_PAGE_SIZE = 10;
+
+// One-line summary of an alert for the chat grounding bus.
+const alertGroundingText = (a: WeatherAlert): string => {
+  const head = [a.title, a.severity, a.area].filter(Boolean).join(' · ');
+  return a.headline ? `${head} — ${a.headline}` : head;
+};
 
 export const AlertPanel: FC = () => {
   const { theme } = useTheme();
@@ -108,6 +116,23 @@ export const AlertPanel: FC = () => {
     return filteredWeatherAlerts.slice(offset, offset + ALERTS_PAGE_SIZE);
   }, [filteredWeatherAlerts, page]);
   const filtersActive = query.trim().length > 0 || activeTypes.length > 0;
+
+  // Publish the filtered alerts to the chat so it can see what's shown here.
+  const groundingItems = useMemo<GroundingItem[] | null>(
+    () =>
+      filteredWeatherAlerts?.map((a) => ({
+        groundingText: alertGroundingText(a),
+      })) ?? null,
+    [filteredWeatherAlerts],
+  );
+  const groundingFilters = useMemo(
+    () => ({
+      query: query.trim() || undefined,
+      categories: activeTypes.length ? activeTypes : undefined,
+    }),
+    [query, activeTypes],
+  );
+  usePublishGrounding('alerts', 'Alerts', groundingItems, groundingFilters);
 
   const toggleType = (t: string) =>
     setActiveTypes((prev) =>

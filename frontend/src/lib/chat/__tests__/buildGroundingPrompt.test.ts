@@ -54,6 +54,19 @@ const resourcesPanel: PanelGrounding = {
   filters: { query: 'clinic', categories: ['Health'] },
 };
 
+// Grounding-only panel: items carry no descriptor, so they're referenceable but
+// not openable (e.g. alerts, community, 311, updates).
+const alertsPanel: PanelGrounding = {
+  panelId: 'alerts',
+  label: 'Alerts',
+  totalCount: 1,
+  items: [
+    {
+      groundingText: 'Flood Warning · Severe · Downtown LA — Flooding expected',
+    },
+  ],
+};
+
 describe('buildGroundingSystemPrompt', () => {
   it('returns null when there is nothing to ground', () => {
     expect(
@@ -104,6 +117,19 @@ describe('buildGroundingSystemPrompt', () => {
     expect(out).toContain('Hope Clinic');
     expect(out).toContain('[[open:res_1]]');
     expect(out).toContain('[[open:res_2]]');
+  });
+
+  it('lists grounding-only panel items without an open marker', () => {
+    const out = buildGroundingSystemPrompt({
+      location: laLocation,
+      detail: null,
+      panelGrounding: { alerts: alertsPanel },
+    })!;
+    expect(out).toContain('ALERTS NEARBY');
+    expect(out).toContain('Flood Warning');
+    // The item line carries no marker (only the intro mentions the marker form).
+    const alertsSection = out.slice(out.indexOf('ALERTS NEARBY'));
+    expect(alertsSection).not.toContain('[[open:');
   });
 
   it('notes truncation when more items match than are shown', () => {

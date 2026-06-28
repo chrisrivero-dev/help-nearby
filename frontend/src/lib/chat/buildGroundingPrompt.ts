@@ -64,8 +64,10 @@ export const buildGroundingSystemPrompt = ({
       panel.totalCount > shown
         ? ` (showing ${shown} of ${panel.totalCount})`
         : '';
-    const lines = panel.items.map(
-      (item) => `- ${item.groundingText} [[open:${item.descriptor.id}]]`,
+    const lines = panel.items.map((item) =>
+      item.descriptor
+        ? `- ${item.groundingText} [[open:${item.descriptor.id}]]`
+        : `- ${item.groundingText}`,
     );
     sections.push(`${header.join(' · ')}${more}:\n${lines.join('\n')}`);
   }

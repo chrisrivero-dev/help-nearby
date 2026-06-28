@@ -7,8 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Plus, Search, X } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
-import { useDetail, useGrounding } from './DashboardContext';
+import { useDetail } from './DashboardContext';
 import type { DetailDescriptor, GroundingItem } from './DashboardContext';
+import { usePublishGrounding } from '@/lib/chat/usePublishGrounding';
 import { NeoPanel } from './NeoPanel';
 import { PanelHeader } from './PanelHeader';
 import { usePanelControl } from './PanelControlContext';
@@ -69,10 +70,6 @@ const formatChecked = (iso?: string) => {
     minute: '2-digit',
   });
 };
-
-// Cap on how many filtered resources we expose to the chat grounding bus, to
-// bound the system-prompt token cost.
-const GROUNDING_ITEM_CAP = 25;
 
 // One-line summary of a resource for the chat (and the detail descriptor's
 // groundingSummary). Reuses the same address/distance formatting as the cards.
@@ -500,7 +497,6 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
   const { latitude, longitude, isValid, isResolvingLocation } =
     useLocationContext();
   const { detail, openDetail } = useDetail();
-  const { publishPanelGrounding } = useGrounding();
   const selectedResourceId =
     detail?.kind === 'resource' ? detail.id : undefined;
 
@@ -691,43 +687,31 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
 
   const filtersActive = query.trim().length > 0 || activeCategories.length > 0;
 
-  // Publish a grounding snapshot of the filtered list so the chat panel can see
-  // the resources currently shown here. Capped to bound prompt size; publishes
-  // null when there's nothing usable so stale context clears.
-  useEffect(() => {
-    if (!filteredResources || filteredResources.length === 0) {
-      publishPanelGrounding('resources', null);
-      return;
-    }
-    const items: GroundingItem[] = filteredResources
-      .slice(0, GROUNDING_ITEM_CAP)
-      .map((r) => ({
+  // Grounding snapshot of the filtered list so the chat panel can see (and open)
+  // the resources currently shown here. Resources carry a descriptor, so they
+  // remain openable from chat markers.
+  const groundingItems = useMemo<GroundingItem[] | null>(
+    () =>
+      filteredResources?.map((r) => ({
         descriptor: toResourceDescriptor(r),
         groundingText: resourceGroundingText(r),
-      }));
-    publishPanelGrounding('resources', {
-      panelId: 'resources',
-      label: 'Resources',
-      items,
-      totalCount: filteredResources.length,
-      filters: {
-        query: query.trim() || undefined,
-        categories: activeCategories.length
-          ? activeCategories.map((c) => CATEGORY_LABELS[c] ?? c)
-          : undefined,
-      },
-    });
-  }, [
-    filteredResources,
-    query,
-    activeCategories,
-    publishPanelGrounding,
-  ]);
-
-  // Clear this panel's grounding when it unmounts.
-  useEffect(
-    () => () => publishPanelGrounding('resources', null),
-    [publishPanelGrounding],
+      })) ?? null,
+    [filteredResources],
+  );
+  const groundingFilters = useMemo(
+    () => ({
+      query: query.trim() || undefined,
+      categories: activeCategories.length
+        ? activeCategories.map((c) => CATEGORY_LABELS[c] ?? c)
+        : undefined,
+    }),
+    [query, activeCategories],
+  );
+  usePublishGrounding(
+    'resources',
+    'Resources',
+    groundingItems,
+    groundingFilters,
   );
 
   const cardText = isDark ? '#dedede' : '#111111';
@@ -792,15 +776,7 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-          {/* Manual refresh — bypasses the cache. Left of the info icon. */}
-          {isValid && (
-            <PanelRefreshButton
-              loading={nearbyRefreshing}
-              onRefresh={handleRefresh}
-              isDark={isDark}
-              label="Refresh resources"
-            />
-          )}
+          {/* Add button - left of refresh button */}
           <button
             type="button"
             onClick={(event) => {
@@ -825,6 +801,15 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
           >
             <Plus size={13} />
           </button>
+          {/* Manual refresh — bypasses the cache. Left of the info icon. */}
+          {isValid && (
+            <PanelRefreshButton
+              loading={nearbyRefreshing}
+              onRefresh={handleRefresh}
+              isDark={isDark}
+              label="Refresh resources"
+            />
+          )}
           {/* Info popover — live data sources */}
           <PanelInfoPopover
             isDark={isDark}

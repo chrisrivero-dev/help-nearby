@@ -7,7 +7,7 @@ const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 const fetchWithTimeout = async (
   url: string,
   init?: RequestInit,
-  timeoutMs = 30000,
+  timeoutMs = 60000,
 ) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         },
         body: JSON.stringify(chatBody),
       },
-      30000,
+      60000,
     );
 
     if (!res.ok) {

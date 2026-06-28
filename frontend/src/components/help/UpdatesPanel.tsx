@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/useTheme';
 import { useLocationContext } from './LocationContext';
@@ -14,8 +14,16 @@ import {
   PanelInfoPopover,
 } from './PanelStatusControls';
 import type { LocalUpdate } from '@/lib/community/types';
+import type { GroundingItem } from './DashboardContext';
+import { usePublishGrounding } from '@/lib/chat/usePublishGrounding';
 
 const GOLD_COLOR = '#fbbf24';
+
+// One-line summary of a local update for the chat grounding bus.
+function updateGroundingText(u: LocalUpdate): string {
+  const head = [u.title, u.description].filter(Boolean).join(' — ');
+  return u.sourceName ? `${head} (source: ${u.sourceName})` : head;
+}
 
 function timeAgo(iso?: string): string | undefined {
   if (!iso) return undefined;
@@ -69,6 +77,16 @@ export const UpdatesPanel: FC = () => {
   const handleRefresh = useCallback(() => {
     if (hasLocation) load();
   }, [hasLocation, load]);
+
+  // Publish the loaded updates to the chat so it can see what's shown here.
+  const groundingItems = useMemo<GroundingItem[] | null>(
+    () =>
+      items.length > 0
+        ? items.map((u) => ({ groundingText: updateGroundingText(u) }))
+        : null,
+    [items],
+  );
+  usePublishGrounding('updates', 'Updates', groundingItems);
 
   const EmptyOrLocked = ({ text }: { text: string }) => (
     <div
