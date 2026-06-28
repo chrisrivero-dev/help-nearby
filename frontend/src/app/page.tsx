@@ -802,19 +802,21 @@ const DEMO_CHIPS_HOME = [
   { id: 'cat', text: 'Shelter', kind: 'filter' },
   { id: 'res', text: 'Nearby resource · 0.5 mi', kind: 'result' },
   { id: 'src', text: '✓ Source-backed', kind: 'source' },
-  { id: 'ask', text: '"Any food banks nearby?"', kind: 'chat' },
 ] as const;
 
 const HOME_STEPS = [
   'Enter your location',
   'Filter by need',
   'Open a source-backed result',
-  'Ask follow-up questions',
+  'Ask Chat Nearby a follow-up',
 ];
 
 const CHIP_STEP_HOME: Record<string, number> = {
-  loc: 0, cat: 1, res: 2, src: 2, ask: 3,
+  loc: 0, cat: 1, res: 2, src: 2,
 };
+
+// 4 chip stages + user bubble stage + assistant bubble stage
+const TOTAL_STAGES = 6;
 
 const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
   isDark,
@@ -834,10 +836,10 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
 
   useEffect(() => {
     if (!mounted || prefersReduced || stage === 0) return;
-    const isLast = stage >= DEMO_CHIPS_HOME.length;
+    const isLast = stage >= TOTAL_STAGES;
     const t = setTimeout(
-      () => setStage((s) => (s >= DEMO_CHIPS_HOME.length ? 0 : s + 1)),
-      isLast ? 1400 : 2200,
+      () => setStage((s) => (s >= TOTAL_STAGES ? 0 : s + 1)),
+      isLast ? 1800 : 2200,
     );
     return () => clearTimeout(t);
   }, [stage, mounted, prefersReduced]);
@@ -855,14 +857,20 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
   const dimBorder = isDark ? '#2a2a2a' : '#d0d0d0';
   const amber = '#f59e0b';
 
-  const visibleCount = prefersReduced ? DEMO_CHIPS_HOME.length : stage;
-  const activeChipIdx = prefersReduced ? -1 : stage - 1;
+  const chipCount = DEMO_CHIPS_HOME.length; // 4
+  const visibleCount = prefersReduced ? chipCount : Math.min(stage, chipCount);
+  const activeChipIdx =
+    prefersReduced ? -1 : stage >= 1 && stage <= chipCount ? stage - 1 : -1;
+  const showUserBubble = prefersReduced || stage >= chipCount + 1;
+  const showAssistantBubble = prefersReduced || stage >= chipCount + 2;
   const activeStepIdx =
-    prefersReduced || stage === 0
+    prefersReduced
       ? -1
-      : CHIP_STEP_HOME[
-          DEMO_CHIPS_HOME[Math.min(stage - 1, DEMO_CHIPS_HOME.length - 1)].id
-        ];
+      : stage === 0
+        ? -1
+        : stage <= chipCount
+          ? CHIP_STEP_HOME[DEMO_CHIPS_HOME[Math.min(stage - 1, chipCount - 1)].id]
+          : 3;
 
   function chipStyles(chip: (typeof DEMO_CHIPS_HOME)[number], idx: number) {
     const visible = prefersReduced || idx < visibleCount;
@@ -876,10 +884,6 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
         background = isDark ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.08)';
         border = '2px solid #22c55e';
         color = isDark ? '#86efac' : '#15803d';
-      } else if (chip.kind === 'chat') {
-        background = isDark ? '#1a1a1a' : '#f4f4f4';
-        border = `2px solid ${borderColor}`;
-        color = textColor;
       } else {
         background = amber; border = `2px solid ${amber}`; color = '#111';
       }
@@ -1165,21 +1169,14 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
                       }
                       style={{
                         fontFamily: "'Poppins', sans-serif",
-                        fontSize: chip.kind === 'chat' ? '0.75rem' : '0.8rem',
+                        fontSize: '0.8rem',
                         fontWeight: 700,
                         letterSpacing: '0.01em',
-                        padding:
-                          chip.kind === 'chat'
-                            ? '0.4rem 0.8rem'
-                            : '0.35rem 0.75rem',
+                        padding: '0.35rem 0.75rem',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        maxWidth:
-                          chip.kind === 'result' || chip.kind === 'chat'
-                            ? 240
-                            : 160,
-                        fontStyle: chip.kind === 'chat' ? 'italic' : 'normal',
+                        maxWidth: chip.kind === 'result' ? 220 : 160,
                         ...s,
                         transition: prefersReduced
                           ? undefined
@@ -1206,22 +1203,112 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
                 );
               })}
             </div>
-          </div>
 
-          {/* Mobile — static summary */}
-          {isMobile && !prefersReduced && (
-            <p
+            {/* Chat zone — Chat Nearby preview */}
+            <div
               style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontSize: '0.75rem',
-                color: mutedColor,
-                margin: 0,
-                lineHeight: 1.6,
+                borderTop: `1px solid ${dimBorder}`,
+                padding: isMobile ? '0.8rem 1.2rem' : '0.8rem 1.8rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.45rem',
+                minHeight: isMobile ? 'auto' : 72,
               }}
             >
-              Location → Filter → Source-backed result → Ask follow-up
-            </p>
-          )}
+              {/* Zone label */}
+              <span
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: '0.52rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: amber,
+                  display: 'block',
+                  marginBottom: '0.15rem',
+                }}
+              >
+                Chat Nearby
+              </span>
+
+              {/* User bubble */}
+              <motion.div
+                animate={{
+                  opacity: showUserBubble ? 1 : 0,
+                  y: showUserBubble ? 0 : 5,
+                }}
+                transition={
+                  prefersReduced ? { duration: 0 } : { duration: 0.38, ease: 'easeOut' }
+                }
+                style={{ display: 'flex', justifyContent: 'flex-end' }}
+              >
+                <div
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    fontStyle: 'italic',
+                    color: '#111111',
+                    background: amber,
+                    border: `2px solid ${isDark ? '#b45309' : '#111111'}`,
+                    padding: '0.3rem 0.65rem',
+                    maxWidth: '82%',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  "Any food banks nearby?"
+                </div>
+              </motion.div>
+
+              {/* Assistant bubble */}
+              <motion.div
+                animate={{
+                  opacity: showAssistantBubble ? 1 : 0,
+                  y: showAssistantBubble ? 0 : 5,
+                }}
+                transition={
+                  prefersReduced ? { duration: 0 } : { duration: 0.38, ease: 'easeOut' }
+                }
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '0.4rem',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.5rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color: amber,
+                    marginTop: '0.35rem',
+                    flexShrink: 0,
+                    lineHeight: 1,
+                  }}
+                >
+                  CN
+                </span>
+                <div
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.7rem',
+                    lineHeight: 1.55,
+                    color: isDark ? '#b8b8b8' : '#444444',
+                    background: isDark ? '#1a1a1a' : '#f0f0f0',
+                    border: `2px solid ${isDark ? '#404040' : '#111111'}`,
+                    padding: '0.3rem 0.65rem',
+                    maxWidth: '88%',
+                  }}
+                >
+                  Yes — 3 food resources found near 90012. Closest source-backed listing is 0.7 mi away.
+                </div>
+              </motion.div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
