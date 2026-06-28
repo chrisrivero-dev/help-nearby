@@ -365,7 +365,7 @@ export const ChatPanel: FC<ChatPanelProps> = ({
   const border = isDark ? '#3A3A3A' : '#111111';
   const inputBg = isDark ? '#080808' : '#fafafa';
   const inputBorder = isDark ? '#3A3A3A' : '#d0d0d0';
-  const highlightColor = isDark ? '#D7FF3F' : '#FFB000';
+  const highlightColor = '#FFB000';
   // Strong NeoPanel-style border for the header's vertical separator, matching
   // the NewsTicker's left-cell divider.
   const headerBorder = isDark ? '#404040' : '#111111';
@@ -814,9 +814,9 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                       fontWeight: 700,
                       letterSpacing: '0.06em',
                       textTransform: 'uppercase',
-                      color: isDark ? '#D7FF3F' : '#FFB000',
+                      color: '#FFB000',
                       background: 'transparent',
-                      border: `1px solid ${isDark ? '#D7FF3F' : '#FFB000'}`,
+                      border: `1px solid ${'#FFB000'}`,
                       borderRadius: 4,
                       padding: '0.4rem 0.7rem',
                       cursor: 'pointer',
@@ -984,7 +984,7 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                       width: 28,
                       height: 28,
                       padding: 0,
-                      border: `2px solid #D7FF3F`,
+                      border: `2px solid #FFB000`,
                       background:
                         isChatLoading || models.length === 0
                           ? mutedText
@@ -1180,7 +1180,7 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                         fontSize: '0.68rem',
                         fontWeight: 600,
                         padding: '0.4rem 0.8rem',
-                        background: '#D7FF3F',
+                        background: '#FFB000',
                         border: 'none',
                         borderRadius: 4,
                         cursor: 'pointer',

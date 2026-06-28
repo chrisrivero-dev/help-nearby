@@ -39,7 +39,7 @@ export const OverviewPanel: FC<OverviewPanelProps> = ({ fill = false }) => {
         cx={12}
         cy={12}
         r={9}
-        fill="#D7FF3F"
+        fill="#FFB000"
         stroke={isDark ? '#1e1e1e' : '#000000'}
         strokeWidth={2}
       />

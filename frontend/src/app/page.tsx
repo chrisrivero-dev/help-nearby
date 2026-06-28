@@ -855,7 +855,7 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
   const textColor = isDark ? '#F5F5F0' : '#111111';
   const mutedColor = isDark ? '#B7B7AE' : '#4F4F46';
   const dimBorder = isDark ? '#3A3A3A' : '#d0d0d0';
-  const accent = isDark ? '#D7FF3F' : '#FFB000';
+  const accent = '#FFB000';
 
   const chipCount = DEMO_CHIPS_HOME.length; // 4
   const visibleCount = prefersReduced ? chipCount : Math.min(stage, chipCount);
@@ -1375,7 +1375,7 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
   const cardBg = isDark ? '#141414' : '#ffffff';
   const cardBorder = isDark ? '#3A3A3A' : '#111111';
   const divider = isDark ? '#3A3A3A' : '#d0d0d0';
-  const accentColor = isDark ? '#D7FF3F' : '#FFB000';
+  const accentColor = '#FFB000';
 
   const sectionLabelStyle: CSSProperties = {
     fontFamily: "'Poppins', sans-serif",
@@ -1729,7 +1729,7 @@ const PanelButton: FC<{
         whileHover={{
           x: -4,
           y: -4,
-          backgroundColor: '#D7FF3F',
+          backgroundColor: '#FFB000',
           color: '#111111',
         }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}

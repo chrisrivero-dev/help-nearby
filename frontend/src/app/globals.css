@@ -27,8 +27,8 @@
   --color-text-muted: #B7B7AE;
   --color-border: #3A3A3A;
   --color-border-strong: #3A3A3A;
-  --color-primary: #D7FF3F;
-  --color-primary-hover: #c8f020;
+  --color-primary: #FFB000;
+  --color-primary-hover: #FFC233;
   --color-shadow: rgba(0, 0, 0, 0.6);
 }
 
@@ -399,7 +399,7 @@ html.no-transitions * {
 }
 
 .help-panel-header:hover {
-  border-bottom-color: #D7FF3F !important;
+  border-bottom-color: #FFB000 !important;
 }
 
 .help-panel-header:hover

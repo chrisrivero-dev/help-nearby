@@ -153,7 +153,7 @@ const ResourceCard: FC<ResourceCardProps> = ({
       style={{
         padding: '0.9rem 1.4rem',
         borderBottom: isLast ? undefined : `1px solid ${divider}`,
-        borderLeft: isSelected ? '3px solid #D7FF3F' : undefined,
+        borderLeft: isSelected ? '3px solid #FFB000' : undefined,
         boxSizing: 'border-box',
         background: isSelected
           ? isDark
@@ -1014,12 +1014,12 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
                               cursor: 'pointer',
                               border: `1px solid ${
                                 active
-                                  ? '#D7FF3F'
+                                  ? '#FFB000'
                                   : isDark
                                     ? '#3A3A3A'
                                     : '#d0d0d0'
                               }`,
-                              background: active ? '#D7FF3F' : 'transparent',
+                              background: active ? '#FFB000' : 'transparent',
                               color: active ? '#111' : mutedText,
                             }}
                           >
@@ -1038,7 +1038,7 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
                       fontFamily: "'Poppins', sans-serif",
                       fontSize: '0.66rem',
                       letterSpacing: '0.06em',
-                      color: isDark ? '#D7FF3F' : '#FFB000',
+                      color: '#FFB000',
                       background: isDark ? '#141414' : '#F1F1EC',
                     }}
                   >
@@ -1054,7 +1054,7 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
                       fontSize: '0.66rem',
                       fontWeight: 700,
                       letterSpacing: '0.06em',
-                      color: isDark ? '#D7FF3F' : '#FFB000',
+                      color: '#FFB000',
                       background: isDark ? '#141414' : '#F1F1EC',
                     }}
                   >

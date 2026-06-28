@@ -491,7 +491,7 @@ const HelpDashboard: FC = () => {
                   position: 'absolute',
                   width: 4,
                   height: 42,
-                  background: '#D7FF3F',
+                  background: '#FFB000',
                   border: '1px solid var(--color-text)',
                 }}
               />
@@ -556,7 +556,7 @@ const HelpDashboard: FC = () => {
                       position: 'absolute',
                       width: 42,
                       height: 4,
-                      background: '#D7FF3F',
+                      background: '#FFB000',
                       border: '1px solid var(--color-text)',
                     }}
                   />

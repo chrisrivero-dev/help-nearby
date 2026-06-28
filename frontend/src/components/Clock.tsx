@@ -8,7 +8,7 @@ import { useOptionalLocationContext } from './help/LocationContext';
 import { Clock as ClockIcon } from 'lucide-react';
 
 const FONT_FAMILY = "'Poppins', sans-serif";
-const ACCENT = '#D7FF3F';
+const ACCENT = '#FFB000';
 
 // ─── Theme tokens, mirrored from the help panels ────────────────────────────
 const tokens = (isDark: boolean) => ({
