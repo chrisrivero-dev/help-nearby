@@ -26,9 +26,9 @@ interface PanelControlCellProps {
   /** When false, the collapse-to-rail control is hidden (e.g. on mobile, where
    *  the sidebar is stacked and collapsing to the desktop rail makes no sense). */
   canCollapse?: boolean;
-  /** When true, another cell (the mobile overview card) sits directly above, so
-   *  the top border is dropped to avoid doubling. When false (desktop, where the
-   *  control cell is the top of the stack) the top border is kept. */
+  /** When true, another cell sits directly above, so the top border is dropped
+   *  to avoid doubling. When false, the top border is still not rendered
+   *  (the control cell always tiles flush with panels below). */
   hasItemAbove?: boolean;
 }
 
@@ -56,7 +56,7 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
   collapsed,
   onToggleCollapsed,
   canCollapse = true,
-  hasItemAbove = false,
+  hasItemAbove = true,
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -133,11 +133,11 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
     <div
       style={{
         background: bg,
-        border: `2px solid ${border}`,
-        // Mobile: the overview card sits above, so drop the top border (its edge
-        // is the single seam). Desktop: the control cell is the top of the
-        // stack, so keep the full border.
-        borderTop: hasItemAbove ? 'none' : undefined,
+        // Top border is always omitted so the control cell tiles flush with
+        // panels below. Other borders provide definition.
+        borderBottom: `2px solid ${border}`,
+        borderLeft: `2px solid ${border}`,
+        borderRight: `2px solid ${border}`,
         padding: '0.5rem',
         display: 'flex',
         alignItems: 'center',

@@ -83,7 +83,10 @@ export const NeoPanel: FC<NeoPanelProps> = ({
       <motion.div
         style={{
           background: panelBg,
-          border: `2px solid ${borderColor}`,
+          borderTop: `2px solid ${borderColor}`,
+          borderLeft: `2px solid ${borderColor}`,
+          borderRight: `2px solid ${borderColor}`,
+          borderBottom: `2px solid ${borderColor}`,
           position: 'relative',
           zIndex: 2,
           ...(fill

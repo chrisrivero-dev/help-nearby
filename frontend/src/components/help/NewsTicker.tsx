@@ -114,12 +114,10 @@ export const NewsTicker: FC = () => {
         alignItems: 'center',
         height: 42,
         background: tickerBg,
-        border: `2px solid ${tickerBorder}`,
-        // Drop the top border so it doesn't double against the NavBar's bottom
-        // border above — the NavBar edge serves as the single seam.
-        borderTop: 'none',
+        borderTop: `1px solid ${tickerBorder}`,
         borderLeft: 'none',
         borderRight: 'none',
+        borderBottom: `2px solid ${tickerBorder}`,
         boxShadow: tickerShadow,
         flexShrink: 0,
         whiteSpace: 'nowrap',
@@ -304,23 +302,31 @@ export const NewsTicker: FC = () => {
             </div>
           )
         ) : (
-          <motion.span
-            key="ticker-empty"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+          <div
             style={{
-              fontFamily: "'Poppins', sans-serif",
-              fontSize: '0.72rem',
-              color: isDark ? '#333' : '#ccc',
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%',
               paddingLeft: '1rem',
-              letterSpacing: '0.02em',
-              whiteSpace: 'nowrap',
             }}
           >
-            Enter your location above to see what is happening near you.
-          </motion.span>
+            <motion.span
+              key="ticker-empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: '0.72rem',
+                color: isDark ? '#333' : '#ccc',
+                letterSpacing: '0.02em',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Enter your location above to see what is happening near you.
+            </motion.span>
+          </div>
         )}
       </div>
     </div>

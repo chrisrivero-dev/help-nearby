@@ -53,7 +53,6 @@ const NavBar: FC<NavBarProps> = ({
   const bandStyle: React.CSSProperties = {
     width: '100%',
     boxSizing: 'border-box',
-    borderBottom: `2px solid ${dividerColor}`,
   };
 
   // Content frame - matches the main page content container

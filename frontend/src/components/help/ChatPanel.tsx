@@ -313,6 +313,7 @@ export const ChatPanel: FC<ChatPanelProps> = ({
       );
     });
   const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const border = isDark ? '#404040' : '#111111';
   const inputBg = isDark ? '#0a0a0a' : '#fafafa';
   const inputBorder = isDark ? '#252525' : '#e4e4e4';
   const highlightColor = isDark ? '#fbbf24' : '#fbbf24';
@@ -325,6 +326,12 @@ export const ChatPanel: FC<ChatPanelProps> = ({
       className={className}
       fill={fill && isExpanded}
       isExpanded={isExpanded}
+      style={{
+        borderTop: `2px solid ${border}`,
+        borderLeft: `2px solid ${border}`,
+        borderRight: `2px solid ${border}`,
+        borderBottom: 'none',
+      }}
     >
       {/* Header — compact, NewsTicker-height. Title sits in a left cell; the
           model selector + action buttons + chevron live in a right cell fenced
@@ -358,7 +365,7 @@ export const ChatPanel: FC<ChatPanelProps> = ({
             alignItems: 'center',
             gap: '0.8rem',
             padding: '0 0.9rem',
-            borderLeft: `1px solid ${headerBorder}`,
+            borderLeft: `1px solid ${divider}`,
           }}
         >
           {/* Interactive controls cluster — transparent so it blends with the
@@ -881,7 +888,7 @@ export const ChatPanel: FC<ChatPanelProps> = ({
               style={{
                 flexShrink: 0,
                 padding: '0.75rem 1rem',
-                borderTop: `2px solid ${divider}`,
+                borderTop: `2px solid ${border}`,
                 background: inputBg,
               }}
             >

@@ -400,7 +400,7 @@ const HelpDashboard: FC = () => {
                 onToggleShowNonLive={() => setShowNonLive((v) => !v)}
                 collapsed={sidebarCollapsed}
                 onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
-                hasItemAbove={isMobile}
+                hasItemAbove={true}
               />
               <div
                 id="panel-slot-alerts"

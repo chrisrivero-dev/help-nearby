@@ -38,9 +38,10 @@ export const SidebarRail: FC<SidebarRailProps> = ({
     <div
       style={{
         background: bg,
-        border: `2px solid ${border}`,
-        // The control cell above supplies the top seam (matches its borderTop:none).
-        borderTop: 'none',
+        // Use explicit individual borders to avoid conflicts with theme changes
+        borderRight: `2px solid ${border}`,
+        borderBottom: `2px solid ${border}`,
+        borderLeft: `2px solid ${border}`,
         display: 'flex',
         flexDirection: 'column',
         // Grow to fill the remaining column height (like .panel-stack-filler in
