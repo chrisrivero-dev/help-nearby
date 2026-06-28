@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Default Ollama endpoint (can be overridden via environment variable)
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+// Default Ollama endpoint (can be overridden via environment variable or request body)
+const DEFAULT_OLLAMA_BASE_URL =
+  process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 
 // Abort controller for timeout handling (fetch doesn't support timeout option)
 const fetchWithTimeout = async (
@@ -73,16 +74,35 @@ export interface OllamaChatResponse {
   eval_duration?: number;
 }
 
+// Helper to get endpoint from request (client-provided or env var)
+const getOllamaEndpoint = (req: NextRequest): string => {
+  // Check for endpoint in request headers (sent from client)
+  const endpointHeader = req.headers.get('x-ollama-endpoint');
+  if (endpointHeader) {
+    try {
+      new URL(endpointHeader);
+      return endpointHeader;
+    } catch {
+      console.warn('Invalid endpoint in header, falling back to default');
+    }
+  }
+  // Check for endpoint in request body
+  return DEFAULT_OLLAMA_BASE_URL;
+};
+
 /* ── API Endpoints ── */
 
 /**
  * GET /api/ollama
- * Discover available Ollama models on the local machine
+ * Discover available Ollama models on the local or configured machine
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
+    const endpoint = getOllamaEndpoint(req);
+    console.log(`[ollama] Fetching models from: ${endpoint}`);
+
     // List all installed models (not just the ones currently loaded in memory)
-    const res = await fetchWithTimeout(`${OLLAMA_BASE_URL}/api/tags`, {}, 5000);
+    const res = await fetchWithTimeout(`${endpoint}/api/tags`, {}, 5000);
 
     if (!res.ok) {
       if (res.status === 503 || res.status === 404) {
@@ -99,11 +119,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Ollama API error:', error);
+    console.error('[ollama] API error:', error);
     return NextResponse.json(
       {
         error: 'Ollama not available',
-        message: 'Please ensure Ollama is running on localhost:11434',
+        message: `Please ensure Ollama is running at the configured endpoint`,
       },
       { status: 503 },
     );

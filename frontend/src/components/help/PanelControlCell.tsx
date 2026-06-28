@@ -118,8 +118,10 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
           padding: '0.75rem 0',
           background: rowBg,
           // Top of the collapsed rail (the overview no longer sits above), so
-          // keep the full border.
-          border: `2px solid ${border}`,
+          // the top border is omitted to tile flush with the overview above.
+          borderBottom: `2px solid ${border}`,
+          borderLeft: `2px solid ${border}`,
+          borderRight: `2px solid ${border}`,
           color: cardText,
           cursor: 'pointer',
         }}

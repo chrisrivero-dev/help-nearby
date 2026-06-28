@@ -40,7 +40,6 @@ export const SidebarRail: FC<SidebarRailProps> = ({
         background: bg,
         // Use explicit individual borders to avoid conflicts with theme changes
         borderRight: `2px solid ${border}`,
-        borderBottom: `2px solid ${border}`,
         borderLeft: `2px solid ${border}`,
         display: 'flex',
         flexDirection: 'column',
@@ -51,7 +50,7 @@ export const SidebarRail: FC<SidebarRailProps> = ({
         minHeight: 0,
       }}
     >
-      {panels.map(({ id, label }) => {
+      {panels.map(({ id, label }, index) => {
         const status = statuses[id];
         return (
           <button
@@ -67,6 +66,7 @@ export const SidebarRail: FC<SidebarRailProps> = ({
               padding: '0.75rem 0',
               background: rowBg,
               border: 'none',
+              borderTop: index === 0 ? `2px solid ${border}` : 'none',
               borderBottom: `2px solid ${border}`,
               cursor: 'pointer',
             }}

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Default Ollama endpoint (can be overridden via environment variable)
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+// Default Ollama endpoint (can be overridden via environment variable or request body)
+const DEFAULT_OLLAMA_BASE_URL =
+  process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 
 // Abort controller for timeout handling (fetch doesn't support timeout option)
 const fetchWithTimeout = async (
@@ -53,12 +54,30 @@ export interface OllamaChatResponse {
   eval_duration?: number;
 }
 
+// Helper to get endpoint from request (client-provided or env var)
+const getOllamaEndpoint = (req: NextRequest): string => {
+  // Check for endpoint in request headers (sent from client)
+  const endpointHeader = req.headers.get('x-ollama-endpoint');
+  if (endpointHeader) {
+    try {
+      new URL(endpointHeader);
+      return endpointHeader;
+    } catch {
+      console.warn('Invalid endpoint in header, falling back to default');
+    }
+  }
+  return DEFAULT_OLLAMA_BASE_URL;
+};
+
 /**
  * POST /api/ollama/chat
  * Send a message to Ollama and get a response (streaming or non-streaming)
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
+    const endpoint = getOllamaEndpoint(req);
+    console.log(`[ollama/chat] Sending request to: ${endpoint}`);
+
     const body = await req.json();
     const {
       model,
@@ -87,11 +106,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     };
 
     const res = await fetchWithTimeout(
-      `${OLLAMA_BASE_URL}/api/chat`,
+      `${endpoint}/api/chat`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-ollama-endpoint': endpoint, // Echo back endpoint for logging
         },
         body: JSON.stringify(chatBody),
       },
@@ -118,11 +138,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const data = (await res.json()) as OllamaChatResponse;
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Ollama chat error:', error);
+    console.error('[ollama/chat] Error:', error);
     return NextResponse.json(
       {
         error: 'Ollama not available',
-        message: 'Please ensure Ollama is running',
+        message: 'Please ensure Ollama is running at the configured endpoint',
       },
       { status: 503 },
     );

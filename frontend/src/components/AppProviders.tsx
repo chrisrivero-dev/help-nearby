@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import LanguageProvider from '@/components/LanguageProvider';
 import { LocationProvider } from '@/components/help/LocationContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { OllamaEndpointProvider } from '@/contexts/OllamaEndpointContext';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -25,9 +26,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <LocationProvider defaultZip="90012">
-          <AuthProvider>
-            <LanguageProvider>{children}</LanguageProvider>
-          </AuthProvider>
+          <OllamaEndpointProvider>
+            <AuthProvider>
+              <LanguageProvider>{children}</LanguageProvider>
+            </AuthProvider>
+          </OllamaEndpointProvider>
         </LocationProvider>
       </QueryClientProvider>
     </ThemeProvider>

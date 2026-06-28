@@ -15,6 +15,9 @@ import {
   summarizeGrounding,
 } from '@/lib/chat/buildGroundingPrompt';
 import { ChatMarkdown } from './ChatMarkdown';
+import { useOllamaEndpoint } from '@/contexts/OllamaEndpointContext';
+import { Settings } from 'lucide-react';
+import { PanelRefreshButton } from './PanelStatusControls';
 
 // Chat message interface
 interface ChatMessage extends OllamaMessage {
@@ -73,6 +76,7 @@ export const ChatPanel: FC<ChatPanelProps> = ({
   const location = useLocationContext();
   const { detail, openDetail } = useDetail();
   const { panelGrounding } = useGrounding();
+  const { endpoint: ollamaEndpoint, setEndpoint } = useOllamaEndpoint();
   const [isModelLoading, setIsModelLoading] = useState(true);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
@@ -85,6 +89,17 @@ export const ChatPanel: FC<ChatPanelProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Endpoint settings modal state
+  const [isEndpointModalOpen, setIsEndpointModalOpen] = useState(false);
+  const [tempEndpoint, setTempEndpoint] = useState(ollamaEndpoint);
+
+  // Sync temp endpoint when modal opens
+  useEffect(() => {
+    if (isEndpointModalOpen) {
+      setTempEndpoint(ollamaEndpoint);
+    }
+  }, [isEndpointModalOpen, ollamaEndpoint]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -112,7 +127,9 @@ export const ChatPanel: FC<ChatPanelProps> = ({
   useEffect(() => {
     const loadModels = async () => {
       try {
-        const res = await fetch('/api/ollama');
+        const res = await fetch('/api/ollama', {
+          headers: { 'x-ollama-endpoint': ollamaEndpoint },
+        });
         if (res.ok) {
           const data = await res.json();
           const modelList = data.models || [];
@@ -129,14 +146,16 @@ export const ChatPanel: FC<ChatPanelProps> = ({
       }
     };
     loadModels();
-  }, []);
+  }, [ollamaEndpoint]);
 
   // Refresh models manually
   const refreshModels = useCallback(async () => {
     setIsRefreshingModels(true);
     setError(null);
     try {
-      const res = await fetch('/api/ollama');
+      const res = await fetch('/api/ollama', {
+        headers: { 'x-ollama-endpoint': ollamaEndpoint },
+      });
       if (res.ok) {
         const data = await res.json();
         const modelList = data.models || [];
@@ -155,7 +174,7 @@ export const ChatPanel: FC<ChatPanelProps> = ({
       setIsRefreshingModels(false);
       setIsModelLoading(false);
     }
-  }, [selectedModel]);
+  }, [selectedModel, ollamaEndpoint]);
 
   // Track whether the user is parked at the bottom. A small threshold absorbs
   // sub-pixel rounding and the in-flight growth of a streaming message.
@@ -206,7 +225,10 @@ export const ChatPanel: FC<ChatPanelProps> = ({
     try {
       const res = await fetch('/api/ollama/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-ollama-endpoint': ollamaEndpoint,
+        },
         body: JSON.stringify({
           model: selectedModel,
           messages: [
@@ -384,8 +406,82 @@ export const ChatPanel: FC<ChatPanelProps> = ({
           >
             CHAT! NEARBY
           </span>
+          {/* Verify grounding button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              verifyGrounding();
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 24,
+              height: 24,
+              padding: 0,
+              border: 'none',
+              background: 'transparent',
+              borderRadius: 4,
+              cursor: 'pointer',
+              color: mutedText,
+            }}
+            title="Verify grounding — show the location and panels the chat can see"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 12l2 2 4-4" />
+              <path d="M12 3a9 9 0 1 0 9 9" />
+            </svg>
+          </button>
+          {/* Clear chat — resets the conversation to start fresh context */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              clearChat();
+            }}
+            disabled={messages.length === 0}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 24,
+              height: 24,
+              padding: 0,
+              border: 'none',
+              background: 'transparent',
+              borderRadius: 4,
+              cursor: messages.length === 0 ? 'not-allowed' : 'pointer',
+              color: mutedText,
+              opacity: messages.length === 0 ? 0.5 : 1,
+            }}
+            title="Clear chat"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 6h18" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
         </div>
-        {/* Right cell — bordered off from the title, holds controls + chevron */}
+        {/* Right cell — bordered off from the title, holds remaining controls + chevron */}
         <div
           style={{
             display: 'flex',
@@ -475,68 +571,18 @@ export const ChatPanel: FC<ChatPanelProps> = ({
               </div>
             </div>
             {/* Refresh button */}
+            <PanelRefreshButton
+              loading={isRefreshingModels}
+              onRefresh={refreshModels}
+              isDark={isDark}
+              label="Refresh models"
+            />
+            {/* Endpoint settings — gear icon to configure Ollama endpoint */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                refreshModels();
-              }}
-              disabled={
-                isModelLoading || isRefreshingModels || models.length === 0
-              }
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 24,
-                height: 24,
-                padding: 0,
-                border: `2px solid ${isDark ? '#fbbf24' : '#fbbf24'}`,
-                background: isDark ? inputBg : '#f9f9f9',
-                borderRadius: 4,
-                cursor: models.length === 0 ? 'not-allowed' : 'pointer',
-                opacity: models.length === 0 ? 0.5 : 1,
-                transition: 'background-color 0.2s ease',
-              }}
-              title="Refresh models"
-            >
-              {isRefreshingModels ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  style={{ width: 12, height: 12 }}
-                >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={isDark ? '#fbbf24' : '#fbbf24'}
-                    strokeWidth="2"
-                  >
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                  </svg>
-                </motion.div>
-              ) : (
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={isDark ? '#fbbf24' : '#fbbf24'}
-                  strokeWidth="2"
-                >
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                </svg>
-              )}
-            </button>
-            {/* Verify context — appends a local, model-free readout of the
-                location + active panels the chat is currently grounded in. */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                verifyGrounding();
+                setIsEndpointModalOpen((prev) => !prev);
               }}
               style={{
                 display: 'inline-flex',
@@ -545,65 +591,16 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                 width: 24,
                 height: 24,
                 padding: 0,
-                border: `2px solid ${isDark ? '#fbbf24' : '#fbbf24'}`,
-                background: isDark ? inputBg : '#f9f9f9',
+                border: 'none',
+                background: 'transparent',
                 borderRadius: 4,
                 cursor: 'pointer',
-                transition: 'background-color 0.2s ease',
+                transition: 'opacity 0.2s ease',
+                opacity: 0.7,
               }}
-              title="Verify grounding — show the location and panels the chat can see"
+              title="Configure Ollama endpoint"
             >
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={isDark ? '#fbbf24' : '#fbbf24'}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 12l2 2 4-4" />
-                <path d="M12 3a9 9 0 1 0 9 9" />
-              </svg>
-            </button>
-            {/* Clear chat — resets the conversation to start fresh context */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                clearChat();
-              }}
-              disabled={messages.length === 0}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 24,
-                height: 24,
-                padding: 0,
-                border: `2px solid ${isDark ? '#fbbf24' : '#fbbf24'}`,
-                background: isDark ? inputBg : '#f9f9f9',
-                borderRadius: 4,
-                cursor: messages.length === 0 ? 'not-allowed' : 'pointer',
-                opacity: messages.length === 0 ? 0.5 : 1,
-                transition: 'background-color 0.2s ease',
-              }}
-              title="Clear chat"
-            >
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={isDark ? '#fbbf24' : '#fbbf24'}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 6h18" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              </svg>
+              <Settings size={13} color={mutedText} />
             </button>
           </div>
           <motion.div
@@ -781,6 +778,7 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                 minHeight: fill ? 0 : '200px',
                 scrollbarWidth: 'thin',
                 scrollbarColor: `${isDark ? mutedText : '#d1d5db'} transparent`,
+                position: 'relative',
               }}
             >
               {messages.length === 0 ? (
@@ -1024,6 +1022,177 @@ export const ChatPanel: FC<ChatPanelProps> = ({
                 </div>
               </form>
             </div>
+            {/* Endpoint settings modal */}
+            {isEndpointModalOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 10,
+                  minWidth: 300,
+                  padding: '1.5rem',
+                  background: isDark ? '#0a0a0a' : '#ffffff',
+                  border: `1px solid ${border}`,
+                  borderRadius: 0,
+                  boxShadow: isDark
+                    ? '0 8px 24px rgba(0,0,0,0.8)'
+                    : '0 8px 24px rgba(0,0,0,0.12)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: cardText,
+                    }}
+                  >
+                    Ollama Endpoint
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsEndpointModalOpen(false)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 20,
+                      height: 20,
+                      padding: 0,
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: mutedText,
+                    }}
+                    aria-label="Close settings"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M18 6L6 18M6 6L18 18" />
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.8rem',
+                  }}
+                >
+                  <label
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.3rem',
+                      fontSize: '0.64rem',
+                      color: mutedText,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontWeight: 600,
+                      }}
+                    >
+                      API Endpoint URL
+                    </span>
+                    <input
+                      type="text"
+                      value={tempEndpoint}
+                      onChange={(e) => setTempEndpoint(e.target.value)}
+                      placeholder="http://localhost:11434"
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.7rem',
+                        color: cardText,
+                        background: isDark ? '#000' : '#fafafa',
+                        border: `1px solid ${isDark ? '#252525' : '#e4e4e4'}`,
+                        borderRadius: 4,
+                        padding: '0.5rem 0.7rem',
+                        outline: 'none',
+                      }}
+                    />
+                  </label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.5rem',
+                      justifyContent: 'flex-end',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEndpointModalOpen(false);
+                        setTempEndpoint(ollamaEndpoint);
+                      }}
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        padding: '0.4rem 0.8rem',
+                        background: 'transparent',
+                        border: `1px solid ${isDark ? '#333' : '#d1d5db'}`,
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        color: mutedText,
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const trimmed = tempEndpoint.trim();
+                        if (trimmed) {
+                          setEndpoint(trimmed);
+                        }
+                        // Reset models when endpoint changes
+                        setModels([]);
+                        setSelectedModel('');
+                        setIsEndpointModalOpen(false);
+                      }}
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        padding: '0.4rem 0.8rem',
+                        background: isDark ? '#fbbf24' : '#fbbf24',
+                        border: 'none',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        color: isDark ? '#000' : '#fff',
+                      }}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </div>
         </motion.div>
       )}
