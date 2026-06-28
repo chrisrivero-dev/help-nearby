@@ -15,14 +15,14 @@ const zOverlay = 200;
 const zToast = 300;
 
 // Panel border colors matching NavBar.tsx
-const panelBorderDark = '#252525';
-const panelBorderLight = '#e4e4e4';
+const panelBorderDark = '#3A3A3A';
+const panelBorderLight = '#d0d0d0';
 
 // Panel style helper function - needs isDark to be passed
 const getPanelDefaultStyle = (isDark: boolean): React.CSSProperties => ({
-  background: isDark ? '#121212' : '#ffffff',
+  background: isDark ? '#141414' : '#ffffff',
   border: `1px solid ${isDark ? panelBorderDark : panelBorderLight}`,
-  color: isDark ? '#dedede' : '#111111',
+  color: isDark ? '#F5F5F0' : '#111111',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -124,9 +124,9 @@ const Landing: FC = () => {
   const router = useRouter();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const textColor = isDark ? '#e8e8e8' : '#111111';
-  const bgColor = isDark ? '#0f0f0f' : '#fafafa';
-  const mutedColor = isDark ? '#888888' : '#666666';
+  const textColor = isDark ? '#F5F5F0' : '#111111';
+  const bgColor = isDark ? '#080808' : '#F1F1EC';
+  const mutedColor = isDark ? '#B7B7AE' : '#4F4F46';
   const shadowColor = isDark ? '#444444' : '#888888';
   const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
   const [isCycling, setIsCycling] = useState(false);
@@ -321,7 +321,7 @@ const Landing: FC = () => {
                     <stop
                       offset="0%"
                       stopColor={
-                        isDark ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.07)'
+                        isDark ? 'rgba(215,255,63,0.22)' : 'rgba(0,0,0,0.07)'
                       }
                     />
                     <stop offset="100%" stopColor="rgba(0,0,0,0)" />
@@ -351,7 +351,7 @@ const Landing: FC = () => {
                     <stop
                       offset="0%"
                       stopColor={
-                        isDark ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.07)'
+                        isDark ? 'rgba(215,255,63,0.22)' : 'rgba(0,0,0,0.07)'
                       }
                     />
                     <stop offset="100%" stopColor="rgba(0,0,0,0)" />
@@ -532,7 +532,7 @@ const Landing: FC = () => {
                           fill="none"
                           stroke={
                             isDark
-                              ? 'rgba(251,191,36,0.30)'
+                              ? 'rgba(215,255,63,0.30)'
                               : 'rgba(0,0,0,0.10)'
                           }
                           strokeWidth={1}
@@ -561,7 +561,7 @@ const Landing: FC = () => {
                     key={`conn-${activeNode}`}
                     d={getCardPathD(AID_CARDS[activeNode])}
                     stroke={
-                      isDark ? 'rgba(251,191,36,0.35)' : 'rgba(0,0,0,0.18)'
+                      isDark ? 'rgba(215,255,63,0.35)' : 'rgba(0,0,0,0.18)'
                     }
                     strokeWidth={1.5}
                     fill="none"
@@ -669,7 +669,7 @@ const Landing: FC = () => {
                 cx={24}
                 cy={24}
                 r={6}
-                stroke={isDark ? 'rgba(251,191,36,0.5)' : 'rgba(0,0,0,0.2)'}
+                stroke={isDark ? 'rgba(215,255,63,0.5)' : 'rgba(0,0,0,0.2)'}
                 strokeWidth={1}
                 fill="none"
                 style={{ transformOrigin: '24px 24px' }}
@@ -686,8 +686,8 @@ const Landing: FC = () => {
                 cx={24}
                 cy={24}
                 r={5.5}
-                fill={isDark ? 'rgba(251,191,36,0.55)' : 'rgba(0,0,0,0.45)'}
-                stroke={isDark ? 'rgba(251,191,36,0.9)' : 'rgba(0,0,0,0.65)'}
+                fill={isDark ? 'rgba(215,255,63,0.55)' : 'rgba(0,0,0,0.45)'}
+                stroke={isDark ? 'rgba(215,255,63,0.9)' : 'rgba(0,0,0,0.65)'}
                 strokeWidth={1.5}
               />
             </motion.svg>
@@ -850,12 +850,12 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
     return () => clearTimeout(t);
   }, [stage, mounted, prefersReduced]);
 
-  const borderColor = isDark ? '#404040' : '#111111';
-  const bg = isDark ? '#0f0f0f' : '#ffffff';
-  const textColor = isDark ? '#f4f4f4' : '#111111';
-  const mutedColor = isDark ? '#b8b8b8' : '#666666';
-  const dimBorder = isDark ? '#2a2a2a' : '#d0d0d0';
-  const amber = '#f59e0b';
+  const borderColor = isDark ? '#3A3A3A' : '#111111';
+  const bg = isDark ? '#0d0d0d' : '#ffffff';
+  const textColor = isDark ? '#F5F5F0' : '#111111';
+  const mutedColor = isDark ? '#B7B7AE' : '#4F4F46';
+  const dimBorder = isDark ? '#3A3A3A' : '#d0d0d0';
+  const accent = isDark ? '#D7FF3F' : '#FFB000';
 
   const chipCount = DEMO_CHIPS_HOME.length; // 4
   const visibleCount = prefersReduced ? chipCount : Math.min(stage, chipCount);
@@ -885,7 +885,7 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
         border = '2px solid #22c55e';
         color = isDark ? '#86efac' : '#15803d';
       } else {
-        background = amber; border = `2px solid ${amber}`; color = '#111';
+        background = accent; border = `2px solid ${accent}`; color = '#111';
       }
     }
     return { background, border, color };
@@ -927,7 +927,7 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
               fontSize: '0.66rem',
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
-              color: amber,
+              color: accent,
               margin: '0 0 1rem',
             }}
           >
@@ -981,8 +981,8 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
                       width: 22,
                       height: 22,
                       borderRadius: '50%',
-                      background: isActive ? amber : 'transparent',
-                      border: `2px solid ${isActive ? amber : dimBorder}`,
+                      background: isActive ? accent : 'transparent',
+                      border: `2px solid ${isActive ? accent : dimBorder}`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1091,7 +1091,7 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
                     fontWeight: 800,
                     letterSpacing: '0.16em',
                     textTransform: 'uppercase',
-                    color: amber,
+                    color: accent,
                   }}
                 >
                   Help Nearby
@@ -1223,7 +1223,7 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
                   fontWeight: 800,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
-                  color: amber,
+                  color: accent,
                   display: 'block',
                   marginBottom: '0.15rem',
                 }}
@@ -1249,7 +1249,7 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
                     fontWeight: 600,
                     fontStyle: 'italic',
                     color: '#111111',
-                    background: amber,
+                    background: accent,
                     border: `2px solid ${isDark ? '#b45309' : '#111111'}`,
                     padding: '0.3rem 0.65rem',
                     maxWidth: '82%',
@@ -1284,7 +1284,7 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
                     fontWeight: 800,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
-                    color: amber,
+                    color: accent,
                     marginTop: '0.35rem',
                     flexShrink: 0,
                     lineHeight: 1,
@@ -1370,11 +1370,12 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
   isDark,
   isMobile,
 }) => {
-  const textColor = isDark ? '#e8e8e8' : '#111111';
-  const mutedColor = isDark ? '#888888' : '#666666';
-  const cardBg = isDark ? '#181818' : '#ffffff';
-  const cardBorder = isDark ? '#404040' : '#111111';
-  const divider = isDark ? '#2a2a2a' : '#d0d0d0';
+  const textColor = isDark ? '#F5F5F0' : '#111111';
+  const mutedColor = isDark ? '#B7B7AE' : '#4F4F46';
+  const cardBg = isDark ? '#141414' : '#ffffff';
+  const cardBorder = isDark ? '#3A3A3A' : '#111111';
+  const divider = isDark ? '#3A3A3A' : '#d0d0d0';
+  const accentColor = isDark ? '#D7FF3F' : '#FFB000';
 
   const sectionLabelStyle: CSSProperties = {
     fontFamily: "'Poppins', sans-serif",
@@ -1382,9 +1383,9 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
     fontSize: '0.66rem',
     letterSpacing: '0.18em',
     textTransform: 'uppercase',
-    color: '#f59e0b',
+    color: accentColor,
     margin: '0 0 1rem',
-    borderLeft: '3px solid #f59e0b',
+    borderLeft: `3px solid ${accentColor}`,
     paddingLeft: '0.6rem',
   };
 
@@ -1728,8 +1729,8 @@ const PanelButton: FC<{
         whileHover={{
           x: -4,
           y: -4,
-          backgroundColor: '#fbbf24',
-          color: isDark ? '#121212' : '#ffffff',
+          backgroundColor: '#D7FF3F',
+          color: '#111111',
         }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
       >

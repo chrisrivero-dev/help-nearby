@@ -19,31 +19,31 @@
 
 /* ── Dark theme (default) ── */
 @theme {
-  --color-bg: #111111;
-  --color-bg-alt: #1a1a1a;
-  --color-surface: #181818;
-  --color-surface-alt: #202020;
-  --color-text: #f4f4f4;
-  --color-text-muted: #b8b8b8;
-  --color-border: #2a2a2a;
-  --color-border-strong: #404040;
-  --color-primary: #60a5fa;
-  --color-primary-hover: #93c5fd;
-  --color-shadow: rgba(0, 0, 0, 0.5);
+  --color-bg: #080808;
+  --color-bg-alt: #141414;
+  --color-surface: #141414;
+  --color-surface-alt: #1C1C1C;
+  --color-text: #F5F5F0;
+  --color-text-muted: #B7B7AE;
+  --color-border: #3A3A3A;
+  --color-border-strong: #3A3A3A;
+  --color-primary: #D7FF3F;
+  --color-primary-hover: #c8f020;
+  --color-shadow: rgba(0, 0, 0, 0.6);
 }
 
 /* ── Light overrides ── */
 :root[data-theme='light'] {
-  --color-bg: #f1ebe4;
-  --color-bg-alt: #e4d8cc;
+  --color-bg: #F1F1EC;
+  --color-bg-alt: #E3E3DC;
   --color-surface: #ffffff;
-  --color-surface-alt: #f5f5f5;
+  --color-surface-alt: #E3E3DC;
   --color-text: #111111;
-  --color-text-muted: #666666;
-  --color-border: #e0e0e0;
-  --color-border-strong: #999999;
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
+  --color-text-muted: #4F4F46;
+  --color-border: #d0d0d0;
+  --color-border-strong: #111111;
+  --color-primary: #111111;
+  --color-primary-hover: #333333;
   --color-shadow: rgba(0, 0, 0, 0.08);
 }
 
@@ -337,12 +337,12 @@ html.no-transitions * {
 .panel-stack-filler {
   flex: 1 1 0;
   min-height: 0;
-  background: #0a0a0a;
-  border: 2px solid #404040;
+  background: #050505;
+  border: 2px solid #3A3A3A;
 }
 
 :root[data-theme='light'] .panel-stack-filler {
-  background: #ececec;
+  background: #E3E3DC;
   border-color: #111111;
 }
 
@@ -352,11 +352,11 @@ html.no-transitions * {
    "empty space" even when a filler has collapsed or content doesn't reach the
    bottom. */
 .empty-region {
-  background: #0a0a0a;
+  background: #050505;
 }
 
 :root[data-theme='light'] .empty-region {
-  background: #ececec;
+  background: #E3E3DC;
 }
 
 .panel-masonry.panel-stack > * {
@@ -399,7 +399,7 @@ html.no-transitions * {
 }
 
 .help-panel-header:hover {
-  border-bottom-color: #fbbf24 !important;
+  border-bottom-color: #D7FF3F !important;
 }
 
 .help-panel-header:hover

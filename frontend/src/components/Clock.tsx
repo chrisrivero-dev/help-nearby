@@ -8,14 +8,14 @@ import { useOptionalLocationContext } from './help/LocationContext';
 import { Clock as ClockIcon } from 'lucide-react';
 
 const FONT_FAMILY = "'Poppins', sans-serif";
-const ACCENT = '#fbbf24'; // gold accent, matching TitleBase
+const ACCENT = '#D7FF3F';
 
 // ─── Theme tokens, mirrored from the help panels ────────────────────────────
 const tokens = (isDark: boolean) => ({
-  containerBg: isDark ? '#121212' : '#ffffff',
-  containerBorder: isDark ? '#252525' : '#e4e4e4',
-  tileBg: isDark ? '#1e1e1e' : '#f4f5f7',
-  tileText: isDark ? '#dedede' : '#111111',
+  containerBg: isDark ? '#141414' : '#ffffff',
+  containerBorder: isDark ? '#3A3A3A' : '#d0d0d0',
+  tileBg: isDark ? '#1C1C1C' : '#E3E3DC',
+  tileText: isDark ? '#F5F5F0' : '#111111',
   mutedText: isDark ? '#555' : '#aaa',
 });
 

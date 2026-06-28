@@ -48,9 +48,9 @@ export const NeoPanel: FC<NeoPanelProps> = ({
   // Otherwise, use the disableHoverLift prop
   const shouldDisableHoverLift = isExpanded ? true : disableHoverLift;
 
-  const borderColor = isDark ? '#404040' : '#111111';
+  const borderColor = isDark ? '#3A3A3A' : '#111111';
   const shadowColor = isDark ? '#000000' : '#111111';
-  const panelBg = isDark ? '#181818' : '#ffffff';
+  const panelBg = isDark ? '#141414' : '#ffffff';
 
   return (
     <motion.div

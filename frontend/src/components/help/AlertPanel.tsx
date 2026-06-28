@@ -40,7 +40,7 @@ interface AlertSourceStatus {
   ok: boolean;
 }
 
-const GOLD_COLOR = '#fbbf24';
+const GOLD_COLOR = '#D7FF3F';
 const ALERTS_PAGE_SIZE = 10;
 
 // One-line summary of an alert for the chat grounding bus.
@@ -438,13 +438,13 @@ export const AlertPanel: FC = () => {
                             cursor: 'pointer',
                             border: `1px solid ${
                               active
-                                ? '#fbbf24'
+                                ? '#D7FF3F'
                                 : isDark
-                                  ? '#2a2a2a'
-                                  : '#e0e0e0'
+                                  ? '#3A3A3A'
+                                  : '#d0d0d0'
                             }`,
-                            background: active ? '#fbbf24' : 'transparent',
-                            color: active ? '#000' : mutedText,
+                            background: active ? '#D7FF3F' : 'transparent',
+                            color: active ? '#111' : mutedText,
                           }}
                         >
                           {eventType}

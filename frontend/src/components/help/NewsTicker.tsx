@@ -97,11 +97,11 @@ export const NewsTicker: FC = () => {
   const shouldPlay = isPlaying;
 
   const tickerBg = isDark
-    ? 'linear-gradient(90deg, #181818 0%, #161616 100%)'
-    : 'linear-gradient(90deg, #e4d8cc 0%, #e0d4c8 100%)';
+    ? 'linear-gradient(90deg, #141414 0%, #111111 100%)'
+    : 'linear-gradient(90deg, #F1F1EC 0%, #E3E3DC 100%)';
   // Match NeoPanel's theme-aware border so the ticker blends with every other
-  // panel (dark: #404040, light: #111111).
-  const tickerBorder = isDark ? '#404040' : '#111111';
+  // panel (dark: #3A3A3A, light: #111111).
+  const tickerBorder = isDark ? '#3A3A3A' : '#111111';
   const tickerShadow = isDark
     ? '2px 2px 0px rgba(0,0,0,0.5)'
     : '2px 2px 0px rgba(0,0,0,0.04)';

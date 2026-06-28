@@ -171,9 +171,9 @@ const LoginModal: FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
   const primaryBtnStyle: React.CSSProperties = {
     ...buttonStyle,
-    backgroundColor: isDark ? '#fbbf24' : '#fbbf24',
-    color: isDark ? '#ffffff' : '#111111',
-    boxShadow: '0 4px 0 #b45309',
+    backgroundColor: '#D7FF3F',
+    color: '#111111',
+    boxShadow: '0 4px 0 #a8cc10',
   };
 
   const secondaryBtnStyle: React.CSSProperties = {
@@ -359,7 +359,7 @@ const LoginModal: FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: isDark ? '#fbbf24' : '#f59e0b',
+                  color: isDark ? '#D7FF3F' : '#FFB000',
                   fontWeight: 600,
                   cursor: 'pointer',
                   fontSize: '14px',

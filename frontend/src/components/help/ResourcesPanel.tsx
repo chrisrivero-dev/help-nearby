@@ -153,7 +153,7 @@ const ResourceCard: FC<ResourceCardProps> = ({
       style={{
         padding: '0.9rem 1.4rem',
         borderBottom: isLast ? undefined : `1px solid ${divider}`,
-        borderLeft: isSelected ? '3px solid #fbbf24' : undefined,
+        borderLeft: isSelected ? '3px solid #D7FF3F' : undefined,
         boxSizing: 'border-box',
         background: isSelected
           ? isDark
@@ -1014,13 +1014,13 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
                               cursor: 'pointer',
                               border: `1px solid ${
                                 active
-                                  ? '#fbbf24'
+                                  ? '#D7FF3F'
                                   : isDark
-                                    ? '#2a2a2a'
-                                    : '#e0e0e0'
+                                    ? '#3A3A3A'
+                                    : '#d0d0d0'
                               }`,
-                              background: active ? '#fbbf24' : 'transparent',
-                              color: active ? '#000' : mutedText,
+                              background: active ? '#D7FF3F' : 'transparent',
+                              color: active ? '#111' : mutedText,
                             }}
                           >
                             {CATEGORY_LABELS[c]}
@@ -1038,8 +1038,8 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
                       fontFamily: "'Poppins', sans-serif",
                       fontSize: '0.66rem',
                       letterSpacing: '0.06em',
-                      color: isDark ? '#fbbf24' : '#92400e',
-                      background: isDark ? '#1a120a' : '#fff7ed',
+                      color: isDark ? '#D7FF3F' : '#FFB000',
+                      background: isDark ? '#141414' : '#F1F1EC',
                     }}
                   >
                     LIVE DATA UNAVAILABLE — SHOWING LAST-KNOWN INFORMATION
@@ -1054,8 +1054,8 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
                       fontSize: '0.66rem',
                       fontWeight: 700,
                       letterSpacing: '0.06em',
-                      color: isDark ? '#fbbf24' : '#92400e',
-                      background: isDark ? '#1a120a' : '#fff7ed',
+                      color: isDark ? '#D7FF3F' : '#FFB000',
+                      background: isDark ? '#141414' : '#F1F1EC',
                     }}
                   >
                     {nearby.isStaleWhileLoading

@@ -38,8 +38,8 @@ export const PanelHeader: FC<PanelHeaderProps> = ({
           height: dense ? 42 : undefined,
           padding: dense ? 0 : '1rem 1rem',
           borderBottom: `1px solid ${divider}`,
-          backgroundColor: hovered ? '#fbbf24' : 'transparent',
-          color: hovered ? (isDark ? '#121212' : '#ffffff') : undefined,
+          backgroundColor: hovered ? '#D7FF3F' : 'transparent',
+          color: hovered ? '#111111' : undefined,
           cursor: 'pointer',
           transition: 'background-color 0.2s ease, color 0.2s ease',
         } as CSSProperties

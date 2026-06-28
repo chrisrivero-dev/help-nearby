@@ -241,7 +241,7 @@ const TitleBase: FC<TitleProps> = ({
     whiteSpace: 'nowrap',
     cursor: 'pointer',
     transition: 'color 0.2s ease',
-    color: isNearbyHovered ? '#fbbf24' : textColor,
+    color: isNearbyHovered ? (isDark ? '#D7FF3F' : '#FFB000') : textColor,
     /* no shadow - just black outline via text-stroke */
   };
 
@@ -332,7 +332,7 @@ const TitleBase: FC<TitleProps> = ({
                     cx={30}
                     cy={30}
                     r={6}
-                    fill="#fbbf24"
+                    fill="#D7FF3F"
                     stroke={isDark ? '#1e1e1e' : '#000000'}
                     strokeWidth={2}
                   />
@@ -407,7 +407,7 @@ const TitleBase: FC<TitleProps> = ({
                   textAlign: 'center',
                   color: textColor,
                   background: isDark ? '#07080b' : '#ffffff',
-                  border: '3px solid #fbbf24',
+                  border: '3px solid #D7FF3F',
                   borderRadius: 0,
                   padding: '2px 6px',
                   outline: 'none',
@@ -449,11 +449,11 @@ const TitleBase: FC<TitleProps> = ({
                     fontFamily: "'Poppins', sans-serif",
                     fontWeight: 700,
                     fontSize: '1.4rem',
-                    color: hasLocation ? textColor : '#fbbf24',
+                    color: hasLocation ? textColor : (isDark ? '#D7FF3F' : '#FFB000'),
                     background: 'none',
                     border: `3px solid ${
                       isLocationHovered
-                        ? '#fbbf24'
+                        ? '#D7FF3F'
                         : isDark
                           ? '#252a36'
                           : '#d0d4dc'
@@ -483,7 +483,7 @@ const TitleBase: FC<TitleProps> = ({
                       left: 0,
                       marginTop: 0,
                       backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
-                      border: '2px solid #fbbf24',
+                      border: '2px solid #D7FF3F',
                       borderRadius: 0,
                       boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
                       zIndex: 1000,
@@ -522,9 +522,9 @@ const TitleBase: FC<TitleProps> = ({
                                 ? '#e8e8e8'
                                 : '#333',
                             background: hovered
-                              ? '#fbbf24'
+                              ? '#D7FF3F'
                               : isDark
-                                ? '#1e1e1e'
+                                ? '#141414'
                                 : '#ffffff',
                             border: 'none',
                             borderBottom:

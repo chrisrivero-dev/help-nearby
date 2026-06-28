@@ -18,7 +18,7 @@ import type { NYC311Item } from '@/lib/nyc311/types';
 import type { GroundingItem } from './DashboardContext';
 import { usePublishGrounding } from '@/lib/chat/usePublishGrounding';
 
-const GOLD_COLOR = '#fbbf24';
+const GOLD_COLOR = '#D7FF3F';
 const NYC311_CACHE_TTL_MS = 10 * 60 * 1000;
 const NYC311_PAGE_SIZE = 10;
 

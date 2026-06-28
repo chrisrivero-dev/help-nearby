@@ -40,11 +40,11 @@ const NavBar: FC<NavBarProps> = ({
     right: 0,
     boxSizing: 'border-box',
     backgroundColor: isDark
-      ? 'rgba(15, 15, 15, 0.7)'
-      : 'rgba(250, 250, 250, 0.7)',
+      ? 'rgba(8, 8, 8, 0.85)'
+      : 'rgba(241, 241, 236, 0.88)',
     backdropFilter: 'blur(10px) saturate(180%)',
     WebkitBackdropFilter: 'blur(10px) saturate(180%)',
-    color: isDark ? '#e8e8e8' : '#111111',
+    color: isDark ? '#F5F5F0' : '#111111',
     zIndex: 1001,
   };
 
