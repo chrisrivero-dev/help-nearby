@@ -1061,46 +1061,74 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
             gap: '1rem',
           }}
         >
-          {/* Mock browser frame */}
+          {/* Panel frame — styled like the /help command center */}
           <div
             style={{
               border: `2px solid ${borderColor}`,
-              background: isDark ? '#121212' : '#fafafa',
-              padding: isMobile ? '1.2rem' : '1.8rem 2rem',
+              background: isDark ? '#0d0d0d' : '#ffffff',
             }}
           >
+            {/* Panel header bar */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem',
-                marginBottom: '1.2rem',
-                paddingBottom: '0.8rem',
+                justifyContent: 'space-between',
+                padding: '0.55rem 1.2rem',
                 borderBottom: `1px solid ${dimBorder}`,
+                background: isDark ? '#111111' : '#f4f4f4',
               }}
             >
-              {['#3a3a3a', '#3a3a3a', '#3a3a3a'].map((c, i) => (
-                <div
-                  key={i}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span
                   style={{
-                    width: 8,
-                    height: 8,
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.57rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    color: amber,
+                  }}
+                >
+                  Help Nearby
+                </span>
+                <span style={{ color: dimBorder, fontSize: '0.7rem', lineHeight: 1 }}>·</span>
+                <span
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.57rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    color: mutedColor,
+                  }}
+                >
+                  Resource Search
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <div
+                  style={{
+                    width: 6,
+                    height: 6,
                     borderRadius: '50%',
-                    background: isDark ? c : '#ddd',
+                    background: '#22c55e',
+                    flexShrink: 0,
                   }}
                 />
-              ))}
-              <span
-                style={{
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: '0.6rem',
-                  color: mutedColor,
-                  marginLeft: '0.5rem',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                help-nearby.com/help
-              </span>
+                <span
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '0.52rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: mutedColor,
+                  }}
+                >
+                  Live
+                </span>
+              </div>
             </div>
 
             <div
@@ -1110,6 +1138,7 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
                 gap: '0.55rem',
                 alignItems: 'center',
                 minHeight: 52,
+                padding: isMobile ? '1.2rem' : '1.5rem 1.8rem',
               }}
             >
               {DEMO_CHIPS_HOME.map((chip, idx) => {
@@ -1256,9 +1285,9 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
 }) => {
   const textColor = isDark ? '#e8e8e8' : '#111111';
   const mutedColor = isDark ? '#888888' : '#666666';
-  const cardBg = isDark ? '#121212' : '#ffffff';
-  const cardBorder = isDark ? panelBorderDark : panelBorderLight;
-  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const cardBg = isDark ? '#181818' : '#ffffff';
+  const cardBorder = isDark ? '#404040' : '#111111';
+  const divider = isDark ? '#2a2a2a' : '#d0d0d0';
 
   const sectionLabelStyle: CSSProperties = {
     fontFamily: "'Poppins', sans-serif",
@@ -1268,6 +1297,8 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
     textTransform: 'uppercase',
     color: '#f59e0b',
     margin: '0 0 1rem',
+    borderLeft: '3px solid #f59e0b',
+    paddingLeft: '0.6rem',
   };
 
   const bodyStyle: CSSProperties = {
@@ -1280,14 +1311,15 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
 
   const cardStyle: CSSProperties = {
     background: cardBg,
-    border: `1px solid ${cardBorder}`,
+    border: `2px solid ${cardBorder}`,
     padding: '1.2rem 1.3rem',
   };
 
   const cardTitleStyle: CSSProperties = {
     fontFamily: "'Poppins', sans-serif",
-    fontWeight: 700,
-    fontSize: '0.82rem',
+    fontWeight: 800,
+    fontSize: '0.78rem',
+    letterSpacing: '0.03em',
     color: textColor,
     margin: '0 0 0.4rem',
   };
@@ -1361,7 +1393,7 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
             lineHeight: 1.7,
             margin: '1.4rem 0 0',
             paddingTop: '1rem',
-            borderTop: `1px solid ${divider}`,
+            borderTop: `2px solid ${divider}`,
             maxWidth: 680,
           }}
         >
@@ -1382,7 +1414,21 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
         >
           {BUILT_FOR.map((item) => (
             <div key={item.title} style={cardStyle}>
-              <p style={cardTitleStyle}>{item.title}</p>
+              <p
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontWeight: 800,
+                  fontSize: '0.68rem',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: textColor,
+                  margin: '0 0 0.6rem',
+                  paddingBottom: '0.5rem',
+                  borderBottom: `1px solid ${divider}`,
+                }}
+              >
+                {item.title}
+              </p>
               <p style={cardDescStyle}>{item.desc}</p>
             </div>
           ))}
@@ -1400,8 +1446,9 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
         <p
           style={{
             fontFamily: "'Poppins', sans-serif",
-            fontWeight: 700,
-            fontSize: '1rem',
+            fontWeight: 800,
+            fontSize: '0.92rem',
+            letterSpacing: '0.02em',
             color: textColor,
             margin: '0 0 0.75rem',
           }}
@@ -1521,7 +1568,7 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
           lineHeight: 1.7,
           margin: 0,
           paddingTop: '1.2rem',
-          borderTop: `1px solid ${divider}`,
+          borderTop: `2px solid ${divider}`,
           textAlign: 'center',
         }}
       >
