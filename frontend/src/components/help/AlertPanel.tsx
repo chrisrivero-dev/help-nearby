@@ -54,8 +54,8 @@ export const AlertPanel: FC = () => {
   const heroShadow = isDark
     ? '4px 4px 0px rgba(0,0,0,0.85)'
     : '4px 4px 0px rgba(0,0,0,0.05)';
-  const cardText = isDark ? '#dedede' : '#111111';
-  const mutedText = isDark ? '#555' : '#999';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
+  const mutedText = isDark ? '#9a9a9a' : '#999';
   // Detail/subtext tone matched to ResourcesPanel so alert headlines read clearly.
   const detailText = isDark ? '#bdbdbd' : '#444444';
   const inputBg = isDark ? '#07080b' : '#ffffff';
@@ -203,7 +203,7 @@ export const AlertPanel: FC = () => {
   const alertSourceName =
     sources.find((source) => source.ok)?.name ?? 'National Weather Service';
 
-  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const divider = isDark ? '#2a2a2a' : '#f0f0f0';
   const accentColor = GOLD_COLOR;
 
   // Report live status (green / connected source) and respond to the
@@ -458,7 +458,7 @@ export const AlertPanel: FC = () => {
                 style={{
                   padding: '0.85rem 1rem',
                   borderLeft: `3px solid ${accentColor}`,
-                  background: isDark ? '#0d0d0d' : '#fafafa',
+                  background: isDark ? '#141414' : '#fafafa',
                 }}
               >
                 <span

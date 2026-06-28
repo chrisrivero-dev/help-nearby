@@ -19,23 +19,23 @@
 
 /* ── Dark theme (default) ── */
 @theme {
-  --color-bg: #0f0f0f;
+  --color-bg: #111111;
   --color-bg-alt: #1a1a1a;
-  --color-surface: #1e1e1e;
-  --color-surface-alt: #2a2a2a;
-  --color-text: #e8e8e8;
-  --color-text-muted: #888888;
-  --color-border: #2e2e2e;
-  --color-border-strong: #444444;
+  --color-surface: #181818;
+  --color-surface-alt: #202020;
+  --color-text: #f4f4f4;
+  --color-text-muted: #b8b8b8;
+  --color-border: #2a2a2a;
+  --color-border-strong: #404040;
   --color-primary: #60a5fa;
   --color-primary-hover: #93c5fd;
-  --color-shadow: rgba(0, 0, 0, 0.4);
+  --color-shadow: rgba(0, 0, 0, 0.5);
 }
 
 /* ── Light overrides ── */
 :root[data-theme='light'] {
-  --color-bg: #fafafa;
-  --color-bg-alt: #f0f0f0;
+  --color-bg: #f1ebe4;
+  --color-bg-alt: #e4d8cc;
   --color-surface: #ffffff;
   --color-surface-alt: #f5f5f5;
   --color-text: #111111;
@@ -336,7 +336,7 @@ html.no-transitions * {
 .panel-stack-filler {
   flex: 1 1 0;
   min-height: 0;
-  background: #121212;
+  background: #181818;
   border: 2px solid #404040;
 }
 

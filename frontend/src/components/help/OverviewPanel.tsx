@@ -21,9 +21,9 @@ export const OverviewPanel: FC<OverviewPanelProps> = ({
   const { city, state, zip, isValid, isResolvingLocation } =
     useLocationContext();
 
-  const cardText = isDark ? '#dedede' : '#111111';
-  const mutedText = isDark ? '#7a7a7a' : '#888888';
-  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
+  const mutedText = isDark ? '#b8b8b8' : '#888888';
+  const divider = isDark ? '#2a2a2a' : '#f0f0f0';
 
   const locationLabel = isResolvingLocation
     ? 'Resolving location…'

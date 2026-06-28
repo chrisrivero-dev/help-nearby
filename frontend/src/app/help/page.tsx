@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import NavBar from '@/components/NavBar';
 import { NewsTicker } from '@/components/help/NewsTicker';
+import { ClarityStrip } from '@/components/help/ClarityStrip';
 import { PanelLayout } from '@/components/help/PanelLayout';
 import { PanelControlCell } from '@/components/help/PanelControlCell';
 import {
@@ -247,6 +248,9 @@ const HelpDashboard: FC = () => {
 
       {/* Ticker Strip */}
       <NewsTicker />
+
+      {/* How it works — collapsible, dismissed to sessionStorage */}
+      {!isMobile && <ClarityStrip />}
 
       <PanelControlProvider value={panelControlValue}>
         {/* Full-width OverviewPanel - above the 2-column grid. Wrapped in a

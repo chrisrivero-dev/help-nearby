@@ -97,8 +97,8 @@ export const NewsTicker: FC = () => {
   const shouldPlay = isPlaying;
 
   const tickerBg = isDark
-    ? 'linear-gradient(90deg, #111314 0%, #0d0f12 100%)'
-    : 'linear-gradient(90deg, #f7f8fa 0%, #f4f5f7 100%)';
+    ? 'linear-gradient(90deg, #181818 0%, #161616 100%)'
+    : 'linear-gradient(90deg, #e4d8cc 0%, #e0d4c8 100%)';
   // Match NeoPanel's theme-aware border so the ticker blends with every other
   // panel (dark: #404040, light: #111111).
   const tickerBorder = isDark ? '#404040' : '#111111';
@@ -150,7 +150,7 @@ export const NewsTicker: FC = () => {
             background: 'transparent',
             border: 'none',
             cursor: 'pointer',
-            color: isDark ? '#dedede' : '#111111',
+            color: isDark ? '#f4f4f4' : '#111111',
             lineHeight: 0,
           }}
         >
@@ -166,7 +166,7 @@ export const NewsTicker: FC = () => {
             fontWeight: 800,
             fontSize: '0.6rem',
             letterSpacing: '0.15em',
-            color: isDark ? '#dedede' : '#111111',
+            color: isDark ? '#f4f4f4' : '#111111',
             whiteSpace: 'nowrap',
           }}
         >
@@ -199,7 +199,7 @@ export const NewsTicker: FC = () => {
                 fontSize: '0.72rem',
                 fontWeight: 700,
                 letterSpacing: '0.08em',
-                color: isDark ? '#555' : '#999',
+                color: isDark ? '#9a9a9a' : '#999',
                 paddingLeft: '1rem',
                 whiteSpace: 'nowrap',
               }}
@@ -238,7 +238,7 @@ export const NewsTicker: FC = () => {
               style={{
                 fontFamily: "'Poppins', sans-serif",
                 fontSize: '0.72rem',
-                color: isDark ? '#333' : '#ccc',
+                color: isDark ? '#777777' : '#ccc',
                 paddingLeft: '1rem',
                 whiteSpace: 'nowrap',
               }}
@@ -274,11 +274,11 @@ export const NewsTicker: FC = () => {
                       fontWeight: isNothingToSee ? 700 : 400,
                       color: isNothingToSee
                         ? isDark
-                          ? '#555'
+                          ? '#9a9a9a'
                           : '#999'
                         : isDark
                           ? '#8a9ab0'
-                          : '#555',
+                          : '#9a9a9a',
                       whiteSpace: 'nowrap',
                       lineHeight: 1.2,
                     }}
@@ -311,7 +311,7 @@ export const NewsTicker: FC = () => {
             style={{
               fontFamily: "'Poppins', sans-serif",
               fontSize: '0.72rem',
-              color: isDark ? '#333' : '#ccc',
+              color: isDark ? '#777777' : '#ccc',
               paddingLeft: '1rem',
               letterSpacing: '0.02em',
               whiteSpace: 'nowrap',

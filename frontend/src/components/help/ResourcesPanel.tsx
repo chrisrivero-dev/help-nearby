@@ -124,10 +124,10 @@ const ResourceCard: FC<ResourceCardProps> = ({
   const [showTipForm, setShowTipForm] = useState(false);
   const [showReport, setShowReport] = useState(false);
 
-  const cardText = isDark ? '#dedede' : '#111111';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
   const detailText = isDark ? '#bdbdbd' : '#444444';
-  const mutedText = isDark ? '#7a7a7a' : '#888';
-  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const mutedText = isDark ? '#b8b8b8' : '#888';
+  const divider = isDark ? '#2a2a2a' : '#f0f0f0';
   const linkColor = isDark ? '#93c5fd' : '#1d4ed8';
 
   const address = formatResourceAddress(r);
@@ -730,9 +730,9 @@ export const ResourcesPanel: FC<ResourcesPanelProps> = ({
     [publishPanelGrounding],
   );
 
-  const cardText = isDark ? '#dedede' : '#111111';
-  const mutedText = isDark ? '#7a7a7a' : '#888';
-  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
+  const mutedText = isDark ? '#b8b8b8' : '#888';
+  const divider = isDark ? '#2a2a2a' : '#f0f0f0';
 
   // Report live status (green / connected source) and respond to the
   // sidebar's expand/collapse-all control.

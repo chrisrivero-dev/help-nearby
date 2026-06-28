@@ -17,7 +17,7 @@ export const PanelStatusSquare: FC<{
   ok: boolean;
   isDark: boolean;
 }> = ({ loading, ok, isDark }) => {
-  const cardText = isDark ? '#dedede' : '#111111';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
   const statusColor = ok ? '#22c55e' : '#ef4444';
 
   return (
@@ -75,7 +75,7 @@ export const PanelRefreshButton: FC<{
   isDark: boolean;
   label?: string;
 }> = ({ loading, onRefresh, isDark, label = 'Refresh' }) => {
-  const mutedText = isDark ? '#7a7a7a' : '#888';
+  const mutedText = isDark ? '#b8b8b8' : '#888';
 
   return (
     <motion.button
@@ -125,8 +125,8 @@ export const PanelInfoPopover: FC<{
   ariaLabel?: string;
   children: ReactNode;
 }> = ({ isDark, title, ariaLabel = 'About this panel', children }) => {
-  const cardText = isDark ? '#dedede' : '#111111';
-  const mutedText = isDark ? '#7a7a7a' : '#888';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
+  const mutedText = isDark ? '#b8b8b8' : '#888';
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const [rect, setRect] = useState<DOMRect | null>(null);

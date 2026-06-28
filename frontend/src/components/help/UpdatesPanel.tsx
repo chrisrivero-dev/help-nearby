@@ -41,9 +41,9 @@ export const UpdatesPanel: FC = () => {
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  const cardText = isDark ? '#dedede' : '#111111';
-  const mutedText = isDark ? '#555' : '#999';
-  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
+  const mutedText = isDark ? '#9a9a9a' : '#999';
+  const divider = isDark ? '#2a2a2a' : '#f0f0f0';
   const isLive = items.length > 0;
 
   // Fetch real, approved, non-expired updates. No demo fallback — an empty

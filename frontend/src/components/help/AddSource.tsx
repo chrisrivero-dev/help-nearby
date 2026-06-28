@@ -144,7 +144,7 @@ export const AddSource: FC<AddSourceProps> = ({ isDark, onClose, onAdded }) => {
           width: 'min(540px, 100%)',
           maxHeight: 'min(760px, calc(100vh - 2rem))',
           overflowY: 'auto',
-          background: isDark ? '#121212' : '#ffffff',
+          background: isDark ? '#181818' : '#ffffff',
           color: cardText,
           border: `1px solid ${border}`,
           borderRadius: 8,
