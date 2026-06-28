@@ -23,10 +23,7 @@ import { OverviewPanel } from '@/components/help/OverviewPanel';
 import { DetailView } from '@/components/help/DetailView';
 import { ChatPanel } from '@/components/help/ChatPanel';
 import { SidebarRail } from '@/components/help/SidebarRail';
-import {
-  DashboardProvider,
-  useDetail,
-} from '@/components/help/DashboardContext';
+import { DashboardProvider } from '@/components/help/DashboardContext';
 
 const MIN_SPLIT_PANE_HEIGHT = 220;
 const SPLIT_DIVIDER_HEIGHT = 0;
@@ -59,15 +56,12 @@ const clampChatPaneHeight = (height: number, columnHeight: number) => {
 };
 
 const HelpDashboard: FC = () => {
-  // Overview panel state
-  const [isOverviewExpanded, setIsOverviewExpanded] = useState(true);
   // Chat panel expand state — owned here so the right column can size itself
-  // (an expanded chat fills the column / shares it 50-50 with the detail view).
+  // (an expanded chat shares the column 50-50 with the detail view, which shows
+  // the OverviewPanel as its default background when nothing is selected).
   const [isChatExpanded, setIsChatExpanded] = useState(true);
   // Detect mobile for responsive layout
   const [isMobile, setIsMobile] = useState(false);
-  // The item open in the universal DetailView, driven by any panel (or chat).
-  const { detail } = useDetail();
   const rightColumnRef = useRef<HTMLDivElement>(null);
   const [rightColumnHeight, setRightColumnHeight] = useState(0);
   const [chatPaneRatio, setChatPaneRatio] = useState(0.5);
@@ -234,7 +228,7 @@ const HelpDashboard: FC = () => {
     });
   }, []);
 
-  const showDesktopSplitDivider = !isMobile && !!detail && isChatExpanded;
+  const showDesktopSplitDivider = !isMobile && isChatExpanded;
   const chatPaneHeight =
     showDesktopSplitDivider && rightColumnHeight > 0
       ? clampChatPaneHeight(
@@ -358,13 +352,12 @@ const HelpDashboard: FC = () => {
                 : `${sidebarWidth}px ${COLUMN_DIVIDER_WIDTH}px minmax(0, 1fr)`,
             gap: 0,
             width: '100%',
-            // Desktop: grow to fill the space between the OverviewPanel and the
+            // Desktop: grow to fill the space between the NavBar/ticker and the
             // viewport bottom. Each column owns its own scroll, and page-scroll
             // is already prevented by motion.main's overflow:hidden, so this
             // stays `visible` — otherwise it would clip the chat panel's upward
-            // hover-lift where it sits flush under the OverviewPanel. The chat's
-            // NeoPanel raises its z-index above the OverviewPanel on hover so the
-            // lift paints over it cleanly.
+            // hover-lift where it sits flush under the detail view. The chat's
+            // NeoPanel raises its z-index on hover so the lift paints cleanly.
             // Mobile: natural height, scrolls with the page.
             flex: isMobile ? undefined : '1 1 auto',
             minHeight: 0,
@@ -385,17 +378,14 @@ const HelpDashboard: FC = () => {
             }}
           >
             <PanelLayout className="panel-stack">
-              {/* Overview sits at the very top of the stack, above the control
-                  cell. When the sidebar collapses to the rail it shrinks to just
-                  its radar icon; clicking that re-expands the sidebar. */}
-              <div className="panel-slot">
-                <OverviewPanel
-                  isExpanded={isOverviewExpanded}
-                  onToggle={() => setIsOverviewExpanded((v) => !v)}
-                  collapsed={sidebarCollapsed}
-                  onExpandSidebar={() => setSidebarCollapsed(false)}
-                />
-              </div>
+              {/* Mobile keeps a standalone overview card at the top of the
+                  stack. On desktop the overview lives in the DetailView as its
+                  default background, so the control cell is the top entry. */}
+              {isMobile && (
+                <div className="panel-slot">
+                  <OverviewPanel />
+                </div>
+              )}
               {/* Static control cell. It elevates its own stacking only while
                   its dropdown is open, so the panel below can still hover-lift
                   over the control row. */}
@@ -410,6 +400,7 @@ const HelpDashboard: FC = () => {
                 onToggleShowNonLive={() => setShowNonLive((v) => !v)}
                 collapsed={sidebarCollapsed}
                 onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
+                hasItemAbove={isMobile}
               />
               <div
                 id="panel-slot-alerts"
@@ -525,7 +516,7 @@ const HelpDashboard: FC = () => {
               <div
                 className="empty-region"
                 style={{
-                  flex: !detail && isChatExpanded ? '0 0 auto' : '1 1 auto',
+                  flex: '1 1 auto',
                   overflowY: 'auto',
                   minHeight: 0,
                 }}

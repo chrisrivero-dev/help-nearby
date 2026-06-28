@@ -23,6 +23,13 @@ interface PanelControlCellProps {
   /** Whether the whole sidebar is collapsed to the status rail. */
   collapsed: boolean;
   onToggleCollapsed: () => void;
+  /** When false, the collapse-to-rail control is hidden (e.g. on mobile, where
+   *  the sidebar is stacked and collapsing to the desktop rail makes no sense). */
+  canCollapse?: boolean;
+  /** When true, another cell (the mobile overview card) sits directly above, so
+   *  the top border is dropped to avoid doubling. When false (desktop, where the
+   *  control cell is the top of the stack) the top border is kept. */
+  hasItemAbove?: boolean;
 }
 
 const LABEL_STYLE: CSSProperties = {
@@ -48,6 +55,8 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
   onToggleShowNonLive,
   collapsed,
   onToggleCollapsed,
+  canCollapse = true,
+  hasItemAbove = false,
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -89,31 +98,34 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
     cursor: 'pointer',
   });
 
-  // Collapsed: only the expand chevron fits in the narrow rail width. The rail
-  // of per-panel status indicators renders below this (in page.tsx).
+  // Collapsed: only the expand chevron fits in the narrow rail width. Rendered
+  // as a single full-width rowBg cell so it reads as the same surface as the
+  // OverviewPanel radar cell above and the status-square rail below (which both
+  // use a full-width rowBg button at 0.75rem padding) — a bare `bg` container
+  // here looked like a lighter, mismatched shade in the rail.
   if (collapsed) {
     return (
-      <div
+      <button
+        type="button"
+        onClick={onToggleCollapsed}
+        title="Expand sidebar"
+        aria-label="Expand sidebar"
         style={{
-          background: bg,
-          border: `2px solid ${border}`,
-          borderTop: 'none',
-          padding: '0.5rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          width: '100%',
+          padding: '0.75rem 0',
+          background: rowBg,
+          // Top of the collapsed rail (the overview no longer sits above), so
+          // keep the full border.
+          border: `2px solid ${border}`,
+          color: cardText,
+          cursor: 'pointer',
         }}
       >
-        <button
-          type="button"
-          onClick={onToggleCollapsed}
-          title="Expand sidebar"
-          aria-label="Expand sidebar"
-          style={iconBtn(false)}
-        >
-          <ChevronRight size={18} strokeWidth={3} color={cardText} />
-        </button>
-      </div>
+        <ChevronRight size={18} strokeWidth={3} color={cardText} />
+      </button>
     );
   }
 
@@ -122,9 +134,10 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
       style={{
         background: bg,
         border: `2px solid ${border}`,
-        // Drop the top border so it doesn't double against the OverviewPanel's
-        // bottom border above — the overview's edge serves as the single seam.
-        borderTop: 'none',
+        // Mobile: the overview card sits above, so drop the top border (its edge
+        // is the single seam). Desktop: the control cell is the top of the
+        // stack, so keep the full border.
+        borderTop: hasItemAbove ? 'none' : undefined,
         padding: '0.5rem',
         display: 'flex',
         alignItems: 'center',
@@ -135,16 +148,18 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
         zIndex: menuOpen ? 40 : undefined,
       }}
     >
-      {/* Collapse the whole sidebar to the status rail */}
-      <button
-        type="button"
-        onClick={onToggleCollapsed}
-        title="Collapse sidebar"
-        aria-label="Collapse sidebar"
-        style={iconBtn(false)}
-      >
-        <ChevronLeft size={18} strokeWidth={3} color={cardText} />
-      </button>
+      {/* Collapse the whole sidebar to the status rail (desktop only) */}
+      {canCollapse && (
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          title="Collapse sidebar"
+          aria-label="Collapse sidebar"
+          style={iconBtn(false)}
+        >
+          <ChevronLeft size={18} strokeWidth={3} color={cardText} />
+        </button>
+      )}
 
       {/* Multiselect panel picker (grows to fill width) */}
       <div

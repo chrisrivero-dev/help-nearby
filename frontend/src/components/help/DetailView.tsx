@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { useDetail } from './DashboardContext';
 import type { DetailDescriptor } from './DashboardContext';
 import { ResourceDetailRenderer } from './ResourceDetailView';
+import { OverviewPanel } from './OverviewPanel';
 
 // Registry of detail renderers keyed by `DetailDescriptor.kind`. Adding a new
 // panel-driven detail view = register one renderer here; no other change to the
@@ -20,11 +21,12 @@ const DETAIL_RENDERERS: Record<string, DetailRenderer> = {
 
 /**
  * Universal detail pane. Renders whichever item a panel pushed into the shared
- * detail channel, dispatching on `kind`. Renders nothing when no item is open.
+ * detail channel, dispatching on `kind`. When no item is open it falls back to
+ * the OverviewPanel as the default background of the detail area.
  */
 export const DetailView: FC = () => {
   const { detail, closeDetail } = useDetail();
-  if (!detail) return null;
+  if (!detail) return <OverviewPanel fill />;
 
   const Renderer = DETAIL_RENDERERS[detail.kind];
   if (!Renderer) return null;

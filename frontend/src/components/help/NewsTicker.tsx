@@ -118,6 +118,8 @@ export const NewsTicker: FC = () => {
         // Drop the top border so it doesn't double against the NavBar's bottom
         // border above — the NavBar edge serves as the single seam.
         borderTop: 'none',
+        borderLeft: 'none',
+        borderRight: 'none',
         boxShadow: tickerShadow,
         flexShrink: 0,
         whiteSpace: 'nowrap',
