@@ -20,11 +20,9 @@ export const OverviewPanel: FC<OverviewPanelProps> = ({ fill = false }) => {
   const { city, state, zip, isValid, isResolvingLocation } =
     useLocationContext();
 
-  const cardText = isDark ? '#dedede' : '#111111';
-  const mutedText = isDark ? '#7a7a7a' : '#888888';
-  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
-  // Match ResourceDetailView's surface so the overview reads as the same kind
-  // of detail-pane background.
+  const cardText = isDark ? '#f4f4f4' : '#111111';
+  const mutedText = isDark ? '#b8b8b8' : '#888888';
+  const divider = isDark ? '#2a2a2a' : '#f0f0f0';
   const bg = isDark ? '#121212' : '#ffffff';
 
   const locationLabel = isResolvingLocation

@@ -12,7 +12,7 @@ interface PanelLayoutProps {
 export const PanelLayout: FC<PanelLayoutProps> = ({ children, className }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const mutedText = isDark ? '#555' : '#999';
+  const mutedText = isDark ? '#9a9a9a' : '#999';
 
   // Responsive masonry grid layout using CSS classes
   // - Desktop (>1024px): 3 columns minimum width 300px per column

@@ -16,8 +16,8 @@ export const ResourceCardCommunityNotes: FC<Props> = ({ tips }) => {
   const [showAll, setShowAll] = useState(false);
 
   const noteBg = isDark ? '#0a0a0a' : '#f7f7f5';
-  const noteBorder = isDark ? '#1e1e1e' : '#e8e8e4';
-  const mutedText = isDark ? '#7a7a7a' : '#888';
+  const noteBorder = isDark ? '#2a2a2a' : '#e8e8e4';
+  const mutedText = isDark ? '#b8b8b8' : '#888';
   const noteText = isDark ? '#c4c4c4' : '#333333';
 
   if (tips.length === 0) return null;

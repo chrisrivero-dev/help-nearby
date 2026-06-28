@@ -142,10 +142,10 @@ export const NYC311Panel: FC = () => {
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [page, setPage] = useState(1);
 
-  const cardText = isDark ? '#dedede' : '#111111';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
   const detailText = isDark ? '#bdbdbd' : '#444444';
-  const mutedText = isDark ? '#7a7a7a' : '#888';
-  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const mutedText = isDark ? '#b8b8b8' : '#888';
+  const divider = isDark ? '#2a2a2a' : '#f0f0f0';
 
   const tagOptions = useMemo(() => {
     const seen = new Set<string>();

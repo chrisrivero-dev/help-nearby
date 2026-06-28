@@ -61,10 +61,10 @@ export const PanelControlCell: FC<PanelControlCellProps> = ({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const cardText = isDark ? '#dedede' : '#111111';
-  const mutedText = isDark ? '#7a7a7a' : '#888888';
-  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
-  const bg = isDark ? '#121212' : '#ffffff';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
+  const mutedText = isDark ? '#b8b8b8' : '#888888';
+  const divider = isDark ? '#2a2a2a' : '#f0f0f0';
+  const bg = isDark ? '#181818' : '#ffffff';
   const border = isDark ? '#404040' : '#111111';
   const rowBg = isDark ? '#0e0e0e' : '#fafafa';
   const liveGreen = '#22c55e';

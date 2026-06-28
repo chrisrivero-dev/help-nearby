@@ -31,9 +31,9 @@ export const ReportListingIssueModal: FC<Props> = ({ resource, onClose }) => {
   const [formState, setFormState] = useState<FormState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const bg = isDark ? '#0d0d0d' : '#f9f9f9';
+  const bg = isDark ? '#141414' : '#f9f9f9';
   const border = isDark ? '#252525' : '#e0e0e0';
-  const cardText = isDark ? '#dedede' : '#111111';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
   const mutedText = isDark ? '#666' : '#888';
 
   async function handleSubmit(e: React.FormEvent) {

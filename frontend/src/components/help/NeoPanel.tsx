@@ -50,7 +50,7 @@ export const NeoPanel: FC<NeoPanelProps> = ({
 
   const borderColor = isDark ? '#404040' : '#111111';
   const shadowColor = isDark ? '#000000' : '#111111';
-  const panelBg = isDark ? '#121212' : '#ffffff';
+  const panelBg = isDark ? '#181818' : '#ffffff';
 
   return (
     <motion.div

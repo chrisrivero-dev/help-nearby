@@ -24,9 +24,9 @@ export const SubmitTipForm: FC<Props> = ({ resource, onClose }) => {
   const [errorMsg, setErrorMsg] = useState('');
   const honeypotRef = useRef<HTMLInputElement>(null);
 
-  const cardBg = isDark ? '#0d0d0d' : '#f9f9f9';
+  const cardBg = isDark ? '#141414' : '#f9f9f9';
   const border = isDark ? '#252525' : '#e0e0e0';
-  const cardText = isDark ? '#dedede' : '#111111';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
   const mutedText = isDark ? '#666' : '#888';
   const gold = '#fbbf24';
 

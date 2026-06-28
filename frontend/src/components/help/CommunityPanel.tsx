@@ -156,11 +156,11 @@ export const CommunityPanel: FC = () => {
   const [activeTypes, setActiveTypes] = useState<string[]>([]);
   const [page, setPage] = useState(1);
 
-  const cardText = isDark ? '#dedede' : '#111111';
+  const cardText = isDark ? '#f4f4f4' : '#111111';
   // Detail/subtext tone matched to Alerts/Resources panels (darker, near-black).
   const detailText = isDark ? '#bdbdbd' : '#444444';
-  const mutedText = isDark ? '#7a7a7a' : '#888';
-  const divider = isDark ? '#1e1e1e' : '#f0f0f0';
+  const mutedText = isDark ? '#b8b8b8' : '#888';
+  const divider = isDark ? '#2a2a2a' : '#f0f0f0';
 
   // Distinct tags present in the current results, for the toggle chips.
   const tagOptions = useMemo(() => {
