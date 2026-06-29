@@ -941,12 +941,12 @@ const Discover: FC<DiscoverProps> = ({
                       cursor: 'pointer',
                       border: `1px solid ${
                         active
-                          ? '#C9A227'
+                          ? '#E0A800'
                           : theme === 'dark'
                             ? '#2a2a2a'
                             : '#e0e0e0'
                       }`,
-                      background: active ? '#C9A227' : 'transparent',
+                      background: active ? '#E0A800' : 'transparent',
                       color: active
                         ? '#000'
                         : theme === 'dark'
@@ -999,7 +999,7 @@ const Discover: FC<DiscoverProps> = ({
                     fontSize: '0.66rem',
                     fontWeight: 700,
                     letterSpacing: '0.06em',
-                    color: theme === 'dark' ? '#C9A227' : '#92400e',
+                    color: theme === 'dark' ? '#E0A800' : '#92400e',
                     background:
                       theme === 'dark'
                         ? 'rgba(120, 53, 15, 0.22)'

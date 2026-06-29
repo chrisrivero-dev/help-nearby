@@ -4,7 +4,7 @@ import type { CSSProperties, FC } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { EMBED_CATEGORIES } from '@/lib/resources/categories';
 
-const ACCENT_PRESETS = ['#C9A227', '#1d4ed8', '#16a34a', '#dc2626'];
+const ACCENT_PRESETS = ['#E0A800', '#1d4ed8', '#16a34a', '#dc2626'];
 
 const DEFAULT_HEIGHT = 620;
 

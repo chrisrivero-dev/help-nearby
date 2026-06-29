@@ -18,7 +18,7 @@ import type { CommunityOpportunity } from '@/lib/community/types';
 import type { GroundingItem } from './DashboardContext';
 import { usePublishGrounding } from '@/lib/chat/usePublishGrounding';
 
-const GOLD_COLOR = '#C9A227';
+const GOLD_COLOR = '#E0A800';
 const COMMUNITY_CACHE_TTL_MS = 10 * 60 * 1000;
 const COMMUNITY_PAGE_SIZE = 10;
 

@@ -98,7 +98,7 @@ const DemoCityPage: FC = () => {
           >
             <span>Home</span>
             <span>Services</span>
-            <span style={{ borderBottom: '2px solid #C9A227' }}>
+            <span style={{ borderBottom: '2px solid #E0A800' }}>
               Community Resources
             </span>
             <span>Contact</span>

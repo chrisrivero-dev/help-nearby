@@ -14,7 +14,7 @@ import { EMBED_CATEGORIES } from '@/lib/resources/categories';
 
 const MAX_ROWS = 5;
 
-const DEFAULT_ACCENT = '#C9A227';
+const DEFAULT_ACCENT = '#E0A800';
 
 const sanitizeAccent = (raw: string | null): string => {
   if (!raw) return DEFAULT_ACCENT;

@@ -377,8 +377,8 @@ export const AddSource: FC<AddSourceProps> = ({ isDark, onClose, onAdded }) => {
             type="submit"
             disabled={status === 'submitting'}
             style={{
-              border: '1px solid #C9A227',
-              background: '#C9A227',
+              border: '1px solid #E0A800',
+              background: '#E0A800',
               color: '#111111',
               padding: '0.48rem 0.8rem',
               borderRadius: 4,

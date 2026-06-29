@@ -105,7 +105,7 @@ export const ClarityStrip: FC = () => {
   const textColor = isDark ? '#f4f4f4' : '#111111';
   const mutedColor = isDark ? '#b8b8b8' : '#666666';
   const dimBorder = isDark ? '#2a2a2a' : '#d8d8d8';
-  const amber = '#C9A227';
+  const amber = '#E0A800';
 
   // In reduced-motion mode, treat all chips as visible and active
   const visibleCount = prefersReduced ? DEMO_CHIPS.length : stage;

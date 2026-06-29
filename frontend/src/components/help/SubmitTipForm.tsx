@@ -28,7 +28,7 @@ export const SubmitTipForm: FC<Props> = ({ resource, onClose }) => {
   const border = isDark ? '#252525' : '#e0e0e0';
   const cardText = isDark ? '#f4f4f4' : '#111111';
   const mutedText = isDark ? '#666' : '#888';
-  const gold = '#C9A227';
+  const gold = '#E0A800';
 
   const MAX = 280;
   const remaining = MAX - body.length;

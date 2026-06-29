@@ -29,17 +29,17 @@ const SURFACE = '#121212';
 const BORDER = '#232323';
 const TEXT = '#d4d4d4';
 const MUTED = '#555';
-const GOLD = '#C9A227';
+const GOLD = '#E0A800';
 const RED = '#ef4444';
 const GREEN = '#22c55e';
 
 function badge(status: string) {
   const map: Record<string, string> = {
-    pending: '#C9A227',
+    pending: '#E0A800',
     approved: GREEN,
     rejected: RED,
     needs_review: '#6366f1',
-    open: '#C9A227',
+    open: '#E0A800',
     investigating: '#6366f1',
     resolved_fixed: GREEN,
     resolved_unverified: MUTED,

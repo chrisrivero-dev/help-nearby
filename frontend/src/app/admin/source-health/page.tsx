@@ -11,7 +11,7 @@ const BORDER = '#232323';
 const TEXT = '#d4d4d4';
 const MUTED = '#555';
 const GREEN = '#22c55e';
-const AMBER = '#C9A227';
+const AMBER = '#E0A800';
 const RED = '#ef4444';
 
 type HealthStatus = 'healthy' | 'degraded' | 'circuit_open';

@@ -321,7 +321,7 @@ const Landing: FC = () => {
                     <stop
                       offset="0%"
                       stopColor={
-                        isDark ? 'rgba(201,162,39,0.22)' : 'rgba(0,0,0,0.07)'
+                        isDark ? 'rgba(224,168,0,0.22)' : 'rgba(0,0,0,0.07)'
                       }
                     />
                     <stop offset="100%" stopColor="rgba(0,0,0,0)" />
@@ -351,7 +351,7 @@ const Landing: FC = () => {
                     <stop
                       offset="0%"
                       stopColor={
-                        isDark ? 'rgba(201,162,39,0.22)' : 'rgba(0,0,0,0.07)'
+                        isDark ? 'rgba(224,168,0,0.22)' : 'rgba(0,0,0,0.07)'
                       }
                     />
                     <stop offset="100%" stopColor="rgba(0,0,0,0)" />
@@ -532,7 +532,7 @@ const Landing: FC = () => {
                           fill="none"
                           stroke={
                             isDark
-                              ? 'rgba(201,162,39,0.30)'
+                              ? 'rgba(224,168,0,0.30)'
                               : 'rgba(0,0,0,0.10)'
                           }
                           strokeWidth={1}
@@ -561,7 +561,7 @@ const Landing: FC = () => {
                     key={`conn-${activeNode}`}
                     d={getCardPathD(AID_CARDS[activeNode])}
                     stroke={
-                      isDark ? 'rgba(201,162,39,0.35)' : 'rgba(0,0,0,0.18)'
+                      isDark ? 'rgba(224,168,0,0.35)' : 'rgba(0,0,0,0.18)'
                     }
                     strokeWidth={1.5}
                     fill="none"
@@ -669,7 +669,7 @@ const Landing: FC = () => {
                 cx={24}
                 cy={24}
                 r={6}
-                stroke={isDark ? 'rgba(201,162,39,0.5)' : 'rgba(0,0,0,0.2)'}
+                stroke={isDark ? 'rgba(224,168,0,0.5)' : 'rgba(0,0,0,0.2)'}
                 strokeWidth={1}
                 fill="none"
                 style={{ transformOrigin: '24px 24px' }}
@@ -686,8 +686,8 @@ const Landing: FC = () => {
                 cx={24}
                 cy={24}
                 r={5.5}
-                fill={isDark ? 'rgba(201,162,39,0.55)' : 'rgba(0,0,0,0.45)'}
-                stroke={isDark ? 'rgba(201,162,39,0.9)' : 'rgba(0,0,0,0.65)'}
+                fill={isDark ? 'rgba(224,168,0,0.55)' : 'rgba(0,0,0,0.45)'}
+                stroke={isDark ? 'rgba(224,168,0,0.9)' : 'rgba(0,0,0,0.65)'}
                 strokeWidth={1.5}
               />
             </motion.svg>
@@ -855,7 +855,7 @@ const HowItWorksSection: FC<{ isDark: boolean; isMobile: boolean }> = ({
   const textColor = isDark ? '#F5F5F0' : '#111111';
   const mutedColor = isDark ? '#B7B7AE' : '#4F4F46';
   const dimBorder = isDark ? '#3A3A3A' : '#d0d0d0';
-  const accent = '#C9A227';
+  const accent = '#E0A800';
 
   const chipCount = DEMO_CHIPS_HOME.length; // 4
   const visibleCount = prefersReduced ? chipCount : Math.min(stage, chipCount);
@@ -1375,7 +1375,7 @@ const BelowFold: FC<{ isDark: boolean; isMobile: boolean }> = ({
   const cardBg = isDark ? '#141414' : '#ffffff';
   const cardBorder = isDark ? '#3A3A3A' : '#111111';
   const divider = isDark ? '#3A3A3A' : '#d0d0d0';
-  const accentColor = '#C9A227';
+  const accentColor = '#E0A800';
 
   const sectionLabelStyle: CSSProperties = {
     fontFamily: "'Poppins', sans-serif",
@@ -1729,7 +1729,7 @@ const PanelButton: FC<{
         whileHover={{
           x: -4,
           y: -4,
-          backgroundColor: '#C9A227',
+          backgroundColor: '#E0A800',
           color: '#111111',
         }}
         transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}

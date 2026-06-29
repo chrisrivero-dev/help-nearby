@@ -145,7 +145,7 @@ const Menu: FC<MenuProps> = () => {
   const buttonHoverStyle: React.CSSProperties = {
     x: -4,
     y: -4,
-    backgroundColor: '#C9A227',
+    backgroundColor: '#E0A800',
     color: isDark ? '#121212' : '#ffffff',
   };
 
@@ -212,7 +212,7 @@ const Menu: FC<MenuProps> = () => {
           whileHover={{
             x: -4,
             y: -4,
-            backgroundColor: '#C9A227',
+            backgroundColor: '#E0A800',
             color: isDark ? '#121212' : '#ffffff',
           }}
           transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
@@ -279,7 +279,7 @@ const Menu: FC<MenuProps> = () => {
             whileHover={{
               x: -4,
               y: -4,
-              backgroundColor: '#C9A227',
+              backgroundColor: '#E0A800',
               color: isDark ? '#121212' : '#ffffff',
             }}
             transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
