@@ -125,7 +125,7 @@ const Directory: FC = () => {
   const border = isDark ? '#252525' : '#e4e4e4';
   const surface = isDark ? '#121212' : '#ffffff';
   const softSurface = isDark ? '#171717' : '#f8f8f8';
-  const gold = '#f59e0b';
+  const gold = '#C9A227';
 
   const pageStyle: CSSProperties = {
     width: '100%',

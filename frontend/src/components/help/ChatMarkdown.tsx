@@ -175,7 +175,7 @@ export const ChatMarkdown: FC<ChatMarkdownProps> = ({
                 fontSize: '0.7rem',
                 fontWeight: 700,
                 color: '#000',
-                background: '#fbbf24',
+                background: '#C9A227',
                 border: `1px solid ${isDark ? '#a16207' : '#111111'}`,
                 borderRadius: 4,
                 cursor: 'pointer',

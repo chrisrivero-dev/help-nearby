@@ -29,7 +29,7 @@ export const CATEGORY_LABELS: Record<ResourceCategory, string> = {
 /** Map-marker colors, one per category. */
 export const CATEGORY_COLORS: Record<ResourceCategory, string> = {
   health: '#ef4444',
-  social_services: '#f59e0b',
+  social_services: '#C9A227',
   library: '#8b5cf6',
   government: '#64748b',
   cooling: '#06b6d4',

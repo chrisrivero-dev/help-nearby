@@ -17,7 +17,7 @@ import type { LocalUpdate } from '@/lib/community/types';
 import type { GroundingItem } from './DashboardContext';
 import { usePublishGrounding } from '@/lib/chat/usePublishGrounding';
 
-const GOLD_COLOR = '#FFB000';
+const GOLD_COLOR = '#C9A227';
 
 // One-line summary of a local update for the chat grounding bus.
 function updateGroundingText(u: LocalUpdate): string {
